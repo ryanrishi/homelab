@@ -1,5 +1,6 @@
 provider "aws" {
   region = "us-east-1"
+  profile = "ryanrishi"
 }
 
 variable "www_domain_name" {
