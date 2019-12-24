@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "aws-east-1"
+  region = "us-east-1"
 }
 
 variable "www_domain_name" {
