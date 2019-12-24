@@ -13,8 +13,7 @@ variable "root_domain_name" {
 resource "aws_s3_bucket" "www" {
   bucket = "${var.www_domain_name}"
   
-  acl = "public_read"
-  
+  acl    = "public-read"
   policy = <<POLICY
   {
     "Version": "2019-12-23",
