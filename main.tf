@@ -105,3 +105,17 @@ resource "aws_route53_record" "www" {
     evaluate_target_health = false
   }
 }
+
+resource "aws_route53_record" "ns" {
+  name            = "ryanrishi.com"
+  ttl             = 60
+  type            = "NS"
+  zone_id         = aws_route53_zone.zone.zone_id
+
+  records = [
+    "${aws_route53_zone.zone.name_servers.0}.",
+    "${aws_route53_zone.zone.name_servers.1}.",
+    "${aws_route53_zone.zone.name_servers.2}.",
+    "${aws_route53_zone.zone.name_servers.3}."
+  ]
+}
