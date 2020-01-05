@@ -110,6 +110,18 @@ resource "aws_route53_record" "www" {
   }
 }
 
+resource "aws_route53_record" "root" {
+  zone_id = aws_route53_zone.zone.zone_id
+  name    = var.root_domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.ryanrishi-com.domain_name
+    zone_id                = aws_cloudfront_distribution.ryanrishi-com.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
 resource "aws_route53_record" "mx-gsuite" {
   zone_id = aws_route53_zone.zone.zone_id
   name    = var.root_domain_name
