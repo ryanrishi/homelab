@@ -36,9 +36,13 @@ POLICY
 }
 
 resource "aws_acm_certificate" "certificate" {
-  domain_name               = "*.${var.root_domain_name}"
+  domain_name               = var.root_domain_name
   validation_method         = "EMAIL"
   subject_alternative_names = [var.www_domain_name]
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_cloudfront_distribution" "www_distribution" {
