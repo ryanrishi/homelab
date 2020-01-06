@@ -82,7 +82,6 @@ resource "aws_cloudfront_distribution" "www_distribution" {
   }
 
   enabled             = true
-  default_root_object = "index.html"
 
   default_cache_behavior {
     viewer_protocol_policy  = "redirect-to-https"
@@ -131,7 +130,6 @@ resource "aws_cloudfront_distribution" "ryanrishi-com" {
   }
 
   enabled             = true
-  default_root_object = "index.html"
 
   default_cache_behavior {
     viewer_protocol_policy  = "redirect-to-https"
