@@ -102,7 +102,7 @@ resource "aws_cloudfront_distribution" "www_distribution" {
     }
   }
 
-  aliases = [var.root_domain_name]
+  aliases = [var.www_domain_name]
 
   restrictions {
     geo_restriction {
@@ -150,7 +150,7 @@ resource "aws_cloudfront_distribution" "ryanrishi-com" {
     }
   }
 
-  aliases = [var.www_domain_name]
+  aliases = [var.root_domain_name]
 
   restrictions {
     geo_restriction {
