@@ -30,7 +30,7 @@ resource "aws_s3_bucket" "www" {
 POLICY
 
   website {
-    redirect_all_requests_to = var.root_domain_name
+    redirect_all_requests_to = "https://${var.root_domain_name}"
   }
 }
 
