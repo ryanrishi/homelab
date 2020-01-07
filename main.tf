@@ -58,6 +58,11 @@ POLICY
   }
 }
 
+resource "aws_s3_bucket" "ryanrishi-com-logs" {
+  bucket  = "${var.root_domain_name}-logs"
+  acl     = "log-delivery-write"
+}
+
 resource "aws_acm_certificate" "certificate" {
   domain_name               = var.root_domain_name
   validation_method         = "EMAIL"
@@ -103,6 +108,12 @@ resource "aws_cloudfront_distribution" "www_distribution" {
   }
 
   aliases = [var.www_domain_name]
+
+  logging_config {
+    include_cookies = false
+    bucket          = aws_s3_bucket.ryanrishi-com-logs.bucket_domain_name
+    prefix          = "${var.www_domain_name}/cloudfront"
+  }
 
   restrictions {
     geo_restriction {
@@ -151,6 +162,12 @@ resource "aws_cloudfront_distribution" "ryanrishi-com" {
   }
 
   aliases = [var.root_domain_name]
+
+  logging_config {
+    include_cookies = false
+    bucket          = aws_s3_bucket.ryanrishi-com-logs.bucket_domain_name
+    prefix          = "${var.root_domain_name}/cloudfront"
+  }
 
   restrictions {
     geo_restriction {
