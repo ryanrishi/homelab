@@ -281,6 +281,18 @@ resource "aws_route53_record" "root" {
   }
 }
 
+resource "aws_route53_record" "stage" {
+  zone_id = aws_route53_zone.zone.zone_id
+  name    = var.stage_domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.stage_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.stage_distribution.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
 resource "aws_route53_record" "mx-gsuite" {
   zone_id = aws_route53_zone.zone.zone_id
   name    = var.root_domain_name
