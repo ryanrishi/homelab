@@ -6,11 +6,6 @@ terraform {
   }
 }
 
-provider "aws" {
-  region  = var.region
-  profile = "ryanrishi"
-}
-
 resource "aws_s3_bucket" "www" {
   bucket = var.www_domain_name
   acl    = "public-read"
