@@ -8,9 +8,7 @@ resource "aws_s3_bucket" "www" {
     {
       "Sid": "AddPerm",
       "Effect": "Allow",
-      "Principal": {
-        "AWS": "${aws_iam_user.ryan.arn}"
-      },
+      "Principal": "*",
       "Action": ["s3:GetObject"],
       "Resource": ["arn:aws:s3:::${var.www_domain_name}/*"]
     }
@@ -33,9 +31,7 @@ resource "aws_s3_bucket" "ryanrishi-com" {
     {
       "Sid": "AddPerm",
       "Effect": "Allow",
-      "Principal": {
-        "AWS": "${aws_iam_user.ryan.arn}"
-      },
+      "Principal": "*",
       "Action": ["s3:GetObject"],
       "Resource": ["arn:aws:s3:::${var.root_domain_name}/*"]
     }
@@ -64,9 +60,7 @@ resource "aws_s3_bucket" "stage_ryanrishi_com" {
     {
       "Sid": "AddPerm",
       "Effect": "Allow",
-      "Principal": {
-        "AWS": "${aws_iam_user.ryan.arn}"
-      },
+      "Principal": "*",
       "Action": ["s3:GetObject"],
       "Resource": ["arn:aws:s3:::${var.stage_domain_name}/*"]
     }
