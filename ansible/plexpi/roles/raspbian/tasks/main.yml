@@ -1,0 +1,5 @@
+- name: INCLUDE | Configure APT
+  include_tasks: apt.yml
+
+- name: INCLUDE | Configure NTP
+  include_tasks: ntp.yml

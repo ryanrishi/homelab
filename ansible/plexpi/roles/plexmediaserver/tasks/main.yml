@@ -1,0 +1,32 @@
+- name: APT_KEY | Add Plex key
+  apt_key:
+    url: https://downloads.plex.tv/plex-keys/PlexSign.key
+    state: present
+
+- name: APT_REPOSITORY | Add Plex repository
+  apt_repository:
+    repo: deb https://downloads.plex.tv/repo/deb public main
+    state: present
+  register: plex_repo_added
+
+- name: APT | Install apt-transport-https
+  apt:
+    name: apt-transport-https
+    state: present
+
+- name: APT | Update
+  apt:
+    update_cache: yes
+  when: plex_repo_added.changed
+
+- name: APT | Install plexmediaserver
+  apt:
+    name: plexmediaserver
+    state: present
+  register: plexmediaserver_installed
+
+- name: SERVICE | Restart plexmediaserver
+  service:
+    name: plexmediaserver
+    state: restarted
+  when: plexmediaserver_installed.changed

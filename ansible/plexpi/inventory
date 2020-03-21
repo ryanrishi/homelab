@@ -1,0 +1,1 @@
+plexpi ansible_host=rpi ansible_user=pi

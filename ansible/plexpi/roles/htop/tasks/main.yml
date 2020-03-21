@@ -1,0 +1,4 @@
+- name: APT | Install/update htop
+  apt:
+    name: htop
+    state: latest
