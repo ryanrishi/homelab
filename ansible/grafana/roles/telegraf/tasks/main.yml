@@ -1,0 +1,46 @@
+- name: Check if Telegraf is installed
+  command: bash -c "if [ -f /usr/bin/telegraf ]; then telegraf --version | grep {{ telegraf_version }}; fi"
+  register: current_telegraf_version
+
+- name: Download and install Telegraf
+  block:
+    - name: APT | Install Telegraf
+      apt:
+        name: telegraf
+        state: present
+
+    - name: SERVICE | Start Telegraf
+      service:
+        name: telegraf
+        enabled: true
+        state: restarted
+
+    - name: COMMAND | Create telelgraf InfluxDB user
+      # TODO Use `influxdb_user` module, but not sure how to grant all privileges
+      command: influx -username {{ influxdb_user }} -password "{{ influxdb_password }}" -execute "CREATE USER {{ telegraf_influxdb_user }} WITH PASSWORD '{{ telegraf_influxdb_password }}' WITH ALL PRIVILEGES;"
+
+    - name: Setup telegrafo.conf
+      block:
+        - name: COPY | Copy telegraf.conf
+          copy:
+            src: config/telegraf.conf
+            dest: /etc/telegraf/telegraf.conf
+            backup: yes
+
+        - name: LINE IN FILE | Update telegraf.conf
+          # TODO use .j2 instead of regexp for templates
+          lineinfile:
+            dest: /etc/telegraf/telegraf.conf
+            regexp: "{{ item.regexp }}"
+            line: "{{ item.line }}"
+            backrefs: true
+          with_items:
+            - { regexp: '^(\s+)hostname', line: '\g<1>hostname = "{{ hostname }}"' }
+            - { regexp: '^(\s+)username', line: '\g<1>username = "{{ telegraf_influxdb_user }}"' }
+            - { regexp: '^(\s+)password', line: '\g<1>password = "{{ telegraf_influxdb_password }}"' }
+
+    - name: SERVICE | Restart Telegraf
+      service:
+        name: telegraf
+        state: restarted
+  when: current_telegraf_version.stdout.find('Telegraf') == -1

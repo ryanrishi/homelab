@@ -1,0 +1,31 @@
+- name: Check Grafana version
+  command: bash -c "if [ -f /usr/sbin/grafana-cli ]; then grafana-cli --version | grep {{ grafana_version }}; fi"
+  register: current_grafana_version
+
+- name: Download and install Grafana
+  block:
+    - name: APT KEY | Import Grafana signing key
+      apt_key: url=https://packages.grafana.com/gpg.key state=present
+
+    - name: APT REPOSITORY | Add Grafana repository
+      apt_repository:
+        repo: "deb https://packages.grafana.com/oss/deb stable main"
+        state: present
+      register: grafana_repo_added
+
+    - name: APT | Update
+      apt:
+        update_cache: yes
+      when: grafana_repo_added.changed
+
+    - name: APT | Install Grafana
+      apt:
+        name: grafana
+        state: present
+
+    - name: SERVICE | Start Grafana
+      service:
+        name: grafana-server
+        enabled: true
+        state: restarted
+  when: current_grafana_version.stdout.find('Grafana') == -1

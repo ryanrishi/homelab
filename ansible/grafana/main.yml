@@ -1,0 +1,23 @@
+- hosts: grafanapi
+  become: true
+
+  pre_tasks:
+    - name: INCLUDE VARS | Load config
+      include_vars:
+        file: config.yml
+
+    - name: INCLUDE VARS | Load public config
+      include_vars:
+        file: config.public.yml
+
+  roles:
+    - { role: influxdb, tags: [ 'influxdb' ] }
+    - { role: telegraf, tags: [ 'telegraf' ] }
+    - { role: grafana, tags: [ 'grafana' ] }
+
+  handlers:
+    - name: restart influxdb
+      command: /etc/init.d/influxdb restart
+
+    - name: restart grafana
+      command: /etc/init.d/grafana-server restart
