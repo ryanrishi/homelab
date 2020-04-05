@@ -1,21 +1,11 @@
-hostname: raspberrypi
-
-influxdb_version: 1.7.10
-influxdb_url: "http://0.0.0.0:8086"
-influxdb_user: admin
-# influxdb_password: password
-
-telegraf_version: 1.13.4
-telegraf_influxdb_user: telegraf
-# telegraf_influxdb_password: password
-
 grafana_version: 6.7.1
 grafana_user: admin
-# grafana_password: admin
+grafana_password: admin
 grafana_admin_user: admin
-# grafana_admin_password: admin
+grafana_admin_password: admin
 grafana_influxdb_user: grafana
-# grafana_influxdb_password: password
+grafana_influxdb_password: password
+influxdb_password: password   # needed to create Grafana InfluxDB user
 
 grafana_instance: "{{ ansible_fqdn | default(ansible_host) | default(inventory_hostname) }}"
 

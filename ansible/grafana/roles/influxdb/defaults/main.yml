@@ -1,0 +1,4 @@
+influxdb_version: 1.7.10
+influxdb_url: "http://0.0.0.0:8086"
+influxdb_user: admin
+influxdb_password: password

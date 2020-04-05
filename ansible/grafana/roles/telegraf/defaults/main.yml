@@ -1,0 +1,6 @@
+telegraf_version: 1.13.4
+telegraf_influxdb_user: telegraf
+telegraf_influxdb_password: password
+influxdb_password: password # needed to create Telgraf InfluxDB user
+
+hostname: raspberrypi
