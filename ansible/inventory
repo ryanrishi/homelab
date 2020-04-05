@@ -1,2 +1,11 @@
-plexpi    ansible_host=rpi  ansible_user=pi
-grafanapi ansible_host=rpi  ansible_user=pi
+[openvpn]
+rpi ansible_host=rpi ansible_user=pi
+
+[plexpi]
+rpi ansible_host=rpi ansible_user=pi
+
+[grafanapi]
+rpi ansible_host=rpi ansible_user=pi
+
+[ddclient]
+rpi ansible_host=rpi ansible_user=pi
