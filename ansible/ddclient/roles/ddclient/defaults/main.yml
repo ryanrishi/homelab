@@ -1,0 +1,35 @@
+ddclient_apt_install:
+  - libio-socket-ssl-perl
+  - perl
+  - libdata-validate-ip-perl
+  - libio-socket-ssl-perl
+  - libio-socket-inet6-perl
+  - libjson-pp-perl
+
+ddclient_git_repo_http: "https://github.com/ddclient/ddclient.git"
+ddclient_git_repo_dest: "{{ ansible_user_dir }}/git/ddclient"
+
+ddclient_daemon: 300
+
+ddclient_file:
+  directory: /etc/ddclient
+  file: ddclient.conf
+
+# see https://github.com/ddclient/ddclient/blob/master/sample-etc_ddclient.conf for provider examples
+ddclient_conf:
+  - name: default
+    pid: ~/pid.pid
+  - name: "Blank"
+    protocol: value
+    use: value
+    server: value
+    ssl: value
+    login: value
+    password: value
+    address: value
+
+ddclient_exec: /usr/sbin/ddclient
+ddclient_pid:
+  directory: /var/run/ddclient
+  file: ddclient.pid
+ddclient_cache: /var/cache/ddclient

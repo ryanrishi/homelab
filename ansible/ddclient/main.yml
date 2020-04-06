@@ -1,0 +1,4 @@
+- hosts: ddclient
+
+  roles:
+    - role: ddclient
