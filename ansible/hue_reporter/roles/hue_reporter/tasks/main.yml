@@ -1,0 +1,24 @@
+- name: Install jq
+  apt:
+    name: jq
+    state: present
+
+- name: Create hue.sh
+  template:
+    src: etc/telegraf/hue.sh.j2
+    dest: /etc/telegraf/hue.sh
+    owner: root
+    group: telegraf
+    mode: 0750
+  become: true
+
+- name: Add hue.sh to Telegraf [[inputs.exec]]
+  blockinfile:
+    dest: /etc/telegraf/telegraf.conf
+    insertbefore: EOF
+    block: |
+      [[inputs.exec]]
+        command = "/etc/telegraf/hue.sh"
+        data_format = "influx"
+  notify: restart telegraf
+  become: true
