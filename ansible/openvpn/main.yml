@@ -1,4 +1,0 @@
-- hosts: openvpn
-
-  roles:
-    - openvpn

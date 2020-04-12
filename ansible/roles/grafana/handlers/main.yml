@@ -1,0 +1,14 @@
+- name: Set privileges on provisioned dashboards directory
+  become: true
+  file:
+    path: "{{ grafana_data_dir }}/dashboards"
+    state: directory
+    recurse: false
+    mode: 0755
+  listen: "provisioned dashboards changed"
+
+- name: restart influxdb
+  command: /etc/init.d/influxdb restart
+
+- name: restart grafana
+  command: /etc/init.d/grafana-server restart

@@ -1,0 +1,59 @@
+- name: Install dependencies
+  become: true
+  apt:
+    name:
+      - ufw
+      - host
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Update ufw default forward policy
+  lineinfile:
+    dest: /etc/default/ufw
+    regexp: "^DEFAULT_FORWARD_POLICY"
+    line: DEFAULT_FORWARD_POLICY="ACCEPT"
+  notify: reload ufw
+
+- name: Enable ufw ip forward
+  lineinfile:
+    dest: /etc/ufw/sysctl.conf
+    regexp: ^net/ipv4/ip_forward
+    line: net/ipv4/ip_forward=1
+  notify: reload ufw
+
+- name: Add NAT rules to ufw
+  become: true
+  blockinfile:
+    dest: /etc/ufw/before.rules
+    insertbefore: BOF
+    block: |
+      # Nat table
+      *nat
+      :POSTROUTING ACCEPT [0:0]
+      # Nat rules
+      -F
+      -A POSTROUTING -s 192.168.86.0/24 -o wlan0 -j SNAT --to-source {{ ansible_wlan0.ipv4.address }}
+      # don't delete the 'COMMIT' line or these nat rules won't be processed
+      COMMIT
+  notify: reload ufw
+
+- name: Allow ssh
+  become: true
+  ufw:
+    rule: limit
+    port: ssh
+    proto: tcp
+
+- name: Allow OpenVPN
+  become: true
+  ufw:
+    rule: allow
+    port: "{{ openvpn_port }}"
+    proto: "{{ openvpn_protocol }}"
+
+- name: Enable ufw
+  become: true
+  ufw:
+    logging: on
+    state: enabled

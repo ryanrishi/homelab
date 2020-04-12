@@ -1,5 +1,0 @@
----
-- hosts: grafanapi
-
-  roles:
-    - hue_reporter

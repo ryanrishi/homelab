@@ -1,0 +1,11 @@
+- include_tasks: apt.yaml
+
+- include_tasks: ntp.yaml
+
+- include_tasks: vim.yaml
+
+# TODO static IPs
+
+# TODO motd
+
+# TODO resolv.conf

@@ -1,0 +1,113 @@
+- include: firewall.yml
+
+- name: Install OpenVPN
+  apt:
+    name: openvpn
+    state: present
+
+- name: Create /etc/openvpn
+  file:
+    path: /etc/openvpn
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+
+- name: Create /etc/openvpn/keys
+  file:
+    path: /etc/openvpn/keys
+    state: directory
+    mode: 0700
+    owner: root
+    group: root
+
+- name: Create clientside and serverside directories
+  become: true
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  loop:
+    - "{{ clientside }}/keys"
+    - "{{ serverside }}"
+
+- name: Create OpenVPN base client.conf
+  become: true
+  template:
+    src: client.conf.j2
+    dest: "{{ clientside }}/client.conf"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Download EasyRSA
+  get_url:
+    url: "{{ easyrsa_url }}"
+    dest: "/home/{{ user }}/openvpn"
+
+- name: Create scripts
+  become: true
+  template:
+    src: "{{ item }}.j2"
+    dest: "/home/{{ user }}/openvpn/{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+  loop:
+    - create_serverside
+    - create_clientside
+  tags: client
+
+- name: Run serverside script
+  become: true
+  command: ./create_serverside
+  args:
+    chdir: "/home/{{ user }}/openvpn"
+    creates: "{{ easyrsa_server }}/ta.key"
+
+- name: Run clientside script
+  command: ./create_clientside {{ item }}
+  args:
+    chdir: "/home/{{ user }}/openvpn"
+    creates: "{{ clientside }}/files/{{ item }}.ovpn"
+  loop: "{{ openvpn_clients }}"
+  tags: client
+
+- name: Install all server keys
+  become: true
+  command: install -o root -g root -m 600 {{ item.name }} /etc/openvpn/keys/
+  args:
+    chdir: "{{ item.path }}"
+    creates: "/etc/openvpn/keys/{{ item.name }}"
+  loop:
+    - name: ca.crt
+      path: "{{ easyrsa_server }}/pki"
+    - name: "{{ ansible_hostname }}.crt"
+      path: "{{ easyrsa_server }}/pki/issued"
+    - name: "{{ ansible_hostname }}.key"
+      path: "{{ easyrsa_server }}/pki/private"
+    - name: ta.key
+      path: "{{ easyrsa_server }}"
+
+- name: Copy Diffie-Hellman key
+  copy:
+    src: "{{ openvpn_dh }}"
+    dest: /etc/openvpn/keys/dh.pem
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Create OpenVPN server.conf
+  template:
+    src: server.conf.j2
+    dest: /etc/openvpn/server.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart openvpn
+
+- name: Make sure OpenVPN is started and enabled
+  systemd:
+    name: openvpn
+    state: started
+    enabled: true

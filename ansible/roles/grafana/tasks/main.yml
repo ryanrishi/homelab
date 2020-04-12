@@ -1,0 +1,14 @@
+- include: install.yml
+
+- include: configure.yml
+
+- name: Create Grafana InfluxDB user
+  # TODO use `influxdb_user` module
+  command: "influx -username {{ influxdb_user }} -password \"{{ influxdb_password }}\" -execute \"{{ item.command }}\""
+  with_items:
+    - { command: "CREATE USER {{ grafana_influxdb_user }} WITH PASSWORD '{{ grafana_influxdb_password }}';" }
+    - { command: "GRANT READ on telegraf to {{ grafana_influxdb_user }};" }
+
+- include: datasources.yml
+
+- include: dashboards.yml
