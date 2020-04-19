@@ -30,3 +30,9 @@
 #   hosts: basil
 #   roles:
 #     - openvpn
+- name: mullvad
+  become: true
+  hosts: cayenne
+  roles:
+    - mullvad
+
