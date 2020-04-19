@@ -1,4 +1,7 @@
 common_packages:
   - htop
+  - jq
+  - nmap
   - ntp
+  - tree
   - vim
