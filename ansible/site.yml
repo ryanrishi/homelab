@@ -1,35 +1,32 @@
-- name: common
-  hosts: all
-  become: true
-  roles:
-    - common
+# - name: common
+#   hosts: all
+#   become: true
+#   roles:
+#     - common
 
 - name: ddclient
-  hosts: ddclient
+  hosts: basil
   roles:
     - ddclient
 
-- name: influxdb
-  hosts: influxdb
+- name: grafana
+  hosts: basil
   roles:
     - influxdb
-
-- name: telegraf
-  hosts: telegraf
-  roles:
     - telegraf
-
-- name: grafana
-  hosts: grafana
-  roles:
     - grafana
 
 - name: plexpi
-  hosts: plexpi
+  hosts: basil
   roles:
     - plexpi
 
+- name: deluge
+  hosts: cayenne
+  roles:
+    - deluge
+
 # - name: openvpn
-#   hosts: openvpn
+#   hosts: basil
 #   roles:
 #     - openvpn

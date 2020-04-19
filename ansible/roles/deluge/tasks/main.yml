@@ -1,0 +1,109 @@
+- name: Install deluge packages
+  become: true
+  apt:
+    name:
+      - deluge-console
+      - deluged
+    state: present
+
+- stat:
+    path: "{{ deluge_logs_dir | dirname }}"
+  register: _deluge_logs_dir
+
+- name: Create deluge log directory
+  file:
+    path: "{{ deluge_logs_dir }}"
+    owner: "{{ deluge_user }}"
+    recurse: true
+    state: directory
+  when:
+    - _deluge_logs_dir is defined
+    - not _deluge_logs_dir.stat.exists
+
+- stat:
+    path: "{{ deluge_download_location | dirname }}"
+  register: _deluge_download_location
+
+- name: Create deluge download directory
+  file:
+    path: "{{ deluge_download_location }}"
+    owner: "{{ deluge_user }}"
+    group: "{{ deluge_group }}"
+    mode: '0755'
+    recurse: true
+    state: directory
+  when:
+    - _deluge_download_location is defined
+    - not _deluge_download_location.stat.exists
+
+- name: Enable deluged service
+  service:
+    name: deluged
+    enabled: true
+
+- include: deluge-web.yml
+  become: true
+
+- name: Enable deluge daemon
+  become: true
+  lineinfile:
+    dest: '/etc/default/deluged'
+    regexp: '^ENABLE_DELUGED=0$'
+    backrefs: true
+    line: 'ENABLE_DELUGED=1'
+
+- name: Start deluge daemon
+  become: true
+  service:
+    name: deluged
+    state: started
+
+- name: Pause for deluge daemon to create files
+  pause: seconds=5
+
+- include: deluge-users.yml
+  become: true
+  when: deluge_users_to_add != [] or deluge_users_to_remove != []
+
+- name: Check if deluge core.conf needs updating
+  become: true
+  template:
+    src: core.conf.j2
+    dest: "{{ deluge_config_dir }}/core.conf"
+    owner: "{{ deluge_user }}"
+    group: "{{ deluge_group }}"
+    mode: '0640'
+  check_mode: true
+  register: _deluge_core_conf
+
+- name: Stop deluge
+  become: true
+  service:
+    name: deluged
+    state: stopped
+  when: _deluge_core_conf.changed
+
+- name: Update deluge core.conf
+  become: true
+  template:
+    src: core.conf.j2
+    dest: "{{ deluge_config_dir }}/core.conf"
+    owner: "{{ deluge_user }}"
+    group: "{{ deluge_group }}"
+    mode: '0640'
+    backup: true
+  notify: restart deluged
+
+- name: Ensure deluged is running and enabled
+  become: true
+  service:
+    name: deluged
+    state: started
+    enabled: true
+
+- name: Ensure deluge-web is running and enabled
+  become: true
+  service:
+    name: deluge-web
+    state: started
+    enabled: true

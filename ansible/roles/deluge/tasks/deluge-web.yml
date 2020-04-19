@@ -1,0 +1,42 @@
+- name: Install deluge-web
+  apt:
+    name: deluge-web
+    state: present
+
+- name: Create deluge-web init script
+  template:
+    src: deluge-web.j2
+    dest: /etc/init.d/deluge-web
+    mode: '0755'
+  notify: restart deluge-web
+
+- name: Enable deluge-web
+  service:
+    name: deluge-web
+    enabled: true
+
+- name: Check if deluge-web config needs updating
+  template:
+    src: web.conf.j2
+    dest: "{{ deluge_config_dir }}/web.conf"
+    owner: "{{ deluge_user }}"
+    group: "{{ deluge_group }}"
+    mode: '0640'
+  check_mode: true
+  register: _deluge_web_conf
+
+- name: Stop deluge-web when deluge config changes
+  service:
+    name: deluge-web
+    state: stopped
+  when: _deluge_web_conf.changed
+
+- name: Update deluge-web config
+  template:
+    src: web.conf.j2
+    dest: "{{ deluge_config_dir }}/web.conf"
+    owner: "{{ deluge_user }}"
+    group: "{{ deluge_group }}"
+    mode: '0640'
+    backup: true
+  notify: restart deluge-web

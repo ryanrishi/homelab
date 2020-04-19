@@ -1,0 +1,22 @@
+deluge_users_to_add:                 []
+deluge_users_to_remove:              []
+deluge_config_dir:                   /var/lib/deluged/config
+deluge_download_location:            /home
+deluge_allow_remote:                 true
+deluge_queue_new_to_top:             true
+deluge_prioritize_first_last_pieces: true
+deluge_move_completed_path:          "{{ deluge_download_location }}"
+deluge_torrentfiles_location:        "{{ deluge_download_location }}"
+deluge_autoadd_location:             "{{ deluge_download_location }}"
+deluge_listen_interface:             tun0
+
+deluge_web:               true
+deluge_web_port:          8112
+deluge_web_log_level:     info
+deluge_web_daemon_args:   "-c {{ deluge_config_dir }} -l {{ deluge_logs_dir }}/web.log -L {{ deluge_web_log_level }}"
+deluge_web_password:      deluge
+deluge_web_password_salt: c26ab3bbd8b137f99cd83c2c1c0963bcc1a35cad
+
+deluge_user:     debian-deluged
+deluge_group:    debian-deluged
+deluge_logs_dir: /var/log/deluged

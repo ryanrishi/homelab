@@ -1,0 +1,11 @@
+- name: restart deluged
+  become: true
+  service:
+    name: deluged
+    state: restarted
+
+- name: restart deluge-web
+  become: true
+  service:
+    name: deluge-web
+    state: restarted
