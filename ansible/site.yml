@@ -26,10 +26,6 @@
   roles:
     - deluge
 
-# - name: openvpn
-#   hosts: basil
-#   roles:
-#     - openvpn
 - name: mullvad
   become: true
   hosts: cayenne
