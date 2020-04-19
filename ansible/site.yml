@@ -31,3 +31,9 @@
   hosts: cayenne
   roles:
     - mullvad
+
+- name: radarr
+  become: true
+  hosts: paprika
+  roles:
+    - radarr
