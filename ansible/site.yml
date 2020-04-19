@@ -1,8 +1,8 @@
-# - name: common
-#   hosts: all
-#   become: true
-#   roles:
-#     - common
+- name: common
+  hosts: all
+  become: true
+  roles:
+    - common
 
 - name: ddclient
   hosts: basil
@@ -35,4 +35,3 @@
   hosts: cayenne
   roles:
     - mullvad
-
