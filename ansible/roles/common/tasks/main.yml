@@ -4,8 +4,6 @@
 
 - include_tasks: vim.yaml
 
-# TODO static IPs
+- include_tasks: etc-hosts.yml
 
 # TODO motd
-
-# TODO resolv.conf
