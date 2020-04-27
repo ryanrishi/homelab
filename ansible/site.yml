@@ -27,13 +27,13 @@
     - plexpi
 
 - name: deluge
-  hosts: cayenne
+  hosts: paprika
   roles:
     - deluge
 
 - name: mullvad
   become: true
-  hosts: cayenne
+  hosts: paprika
   roles:
     - mullvad
 
