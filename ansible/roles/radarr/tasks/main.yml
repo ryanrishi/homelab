@@ -51,7 +51,6 @@
     dest: /etc/systemd/system/radarr.service
     owner: root
     group: root
-    mode: 0600
 
 - name: Start Radarr on startup
   service:
