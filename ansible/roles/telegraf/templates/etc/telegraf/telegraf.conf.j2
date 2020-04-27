@@ -1,6 +1,6 @@
 # Global Agent Configuration
 [agent]
-  hostname = "{{ hostname }}"
+  hostname = "{{ ansible_hostname }}"
   flush_interval = "15s"
   interval = "15s"
 
@@ -25,6 +25,6 @@
 # Output Plugin InfluxDB
 [[outputs.influxdb]]
   database = "telegraf"
-  urls = [ "http://127.0.0.1:8086" ]
+  urls = [ "http://{{ influxdb_host }}:8086" ]
   username = "{{ telegraf_influxdb_user }}"
   password = "{{ telegraf_influxdb_password }}"

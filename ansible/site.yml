@@ -9,12 +9,17 @@
   roles:
     - ddclient
 
-- name: grafana
+- name: influxdb + grafana
   hosts: basil
   roles:
     - influxdb
-    - telegraf
     - grafana
+
+- name: telegraf
+  hosts: all
+  become: true
+  roles:
+    - telegraf
 
 - name: plexpi
   hosts: basil
