@@ -20,6 +20,15 @@
     - _deluge_logs_dir is defined
     - not _deluge_logs_dir.stat.exists
 
+- name: Mount Plex NFS Share
+  become: true
+  mount:
+    backup: true
+    path: /mnt/Plex
+    src: "{{ mount_address }}"
+    fstype: nfs
+    state: mounted
+
 - stat:
     path: "{{ deluge_download_location | dirname }}"
   register: _deluge_download_location

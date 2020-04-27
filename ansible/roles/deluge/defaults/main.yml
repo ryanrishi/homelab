@@ -10,6 +10,8 @@ deluge_torrentfiles_location:        "{{ deluge_download_location }}"
 deluge_autoadd_location:             "{{ deluge_download_location }}"
 deluge_listen_interface:             tun0
 
+mount_address:           "10.2.3.4:/SharedFolder"
+
 deluge_web:               true
 deluge_web_port:          8112
 deluge_web_log_level:     info
