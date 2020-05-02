@@ -1,0 +1,4 @@
+jackett_version:    0.16.59
+jackett_group_name: jackett
+jackett_user_name:   jackett
+jackett_user_home:  /opt/{{ jackett_user_name }}

@@ -37,8 +37,9 @@
   roles:
     - mullvad
 
-- name: radarr
+- name: radarr + jackett
   become: true
   hosts: paprika
   roles:
     - radarr
+    - jackett
