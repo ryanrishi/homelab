@@ -21,6 +21,12 @@
   roles:
     - telegraf
 
+- name: telegraf-synology-snmp
+  become: true
+  hosts: basil
+  roles:
+    - telegraf-synology-snmp
+
 - name: plexpi
   hosts: basil
   roles:
