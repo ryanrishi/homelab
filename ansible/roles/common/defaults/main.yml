@@ -5,6 +5,7 @@ common_packages:
   - lsof
   - nmap
   - ntp
+  - tmux
   - tree
   - vim
 
