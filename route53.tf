@@ -2,6 +2,22 @@ resource "aws_route53_zone" "zone" {
   name = var.root_domain_name
 }
 
+resource "aws_route53_zone" "ccag119_info_zone" {
+  name = "ccag119.info"
+}
+
+resource "aws_route53_record" "ccag119_info_ns" {
+  name    = "ccag119.info"
+  zone_id = aws_route53_zone.ccag119_info_zone.zone_id
+  type    = "NS"
+  ttl     = 60
+
+  records = [
+    "abby.ns.cloudflare.com.",
+    "carter.ns.cloudflare.com."
+  ]
+}
+
 resource "aws_route53_record" "www" {
   zone_id = aws_route53_zone.zone.zone_id
   name    = var.www_domain_name
@@ -14,26 +30,14 @@ resource "aws_route53_record" "www" {
   }
 }
 
-resource "aws_route53_record" "root" {
+resource "aws_route53_record" "dns_a" {
   zone_id = aws_route53_zone.zone.zone_id
-  name    = var.root_domain_name
+  name    = local.domain_name
   type    = "A"
 
   alias {
-    name                   = aws_cloudfront_distribution.ryanrishi-com.domain_name
-    zone_id                = aws_cloudfront_distribution.ryanrishi-com.hosted_zone_id
-    evaluate_target_health = false
-  }
-}
-
-resource "aws_route53_record" "stage" {
-  zone_id = aws_route53_zone.zone.zone_id
-  name    = var.stage_domain_name
-  type    = "A"
-
-  alias {
-    name                   = aws_cloudfront_distribution.stage_distribution.domain_name
-    zone_id                = aws_cloudfront_distribution.stage_distribution.hosted_zone_id
+    name                   = aws_cloudfront_distribution.cloudfront_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.cloudfront_distribution.hosted_zone_id
     evaluate_target_health = false
   }
 }
@@ -54,10 +58,10 @@ resource "aws_route53_record" "mx-gsuite" {
 }
 
 resource "aws_route53_record" "ns" {
-  name            = "ryanrishi.com"
-  ttl             = 60
-  type            = "NS"
-  zone_id         = aws_route53_zone.zone.zone_id
+  name    = "ryanrishi.com"
+  ttl     = 60
+  type    = "NS"
+  zone_id = aws_route53_zone.zone.zone_id
 
   records = [
     "${aws_route53_zone.zone.name_servers.0}.",
