@@ -1,3 +1,5 @@
 basil ansible_user=pi
 cayenne ansible_user=pi
 paprika ansible_user=pi
+
+pihole ansible_user=ryan

@@ -49,3 +49,9 @@
   roles:
     - radarr
     - jackett
+
+- name: pihole
+  become: true
+  hosts: pihole
+  roles:
+    - pihole
