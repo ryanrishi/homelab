@@ -55,3 +55,9 @@
   hosts: pihole
   roles:
     - pihole
+
+- name: monitoring
+  become: true
+  hosts: monitoring
+  roles:
+    - docker-grafana-influxdb

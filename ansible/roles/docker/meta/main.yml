@@ -1,0 +1,9 @@
+---
+dependencies:
+  - role: geerlingguy.pip
+  - role: geerlingguy.docker
+    vars:
+      # might need to run `sudo usermod -aG docker ryan` manually
+      docker_users:
+        - ryan
+

@@ -1,9 +1,4 @@
 ---
-- name: Install python-docker
-  apt:
-    name: python-docker
-    state: present
-
 - name: Start pihole container
   docker_container:
     name: pihole
@@ -16,6 +11,9 @@
       - "53:53/udp"
       - "80:80"
       - "443:443"
+    dns_servers:
+      - 127.0.0.1
+      - 8.8.8.8
     volumes:
       - /opt/pihole/etc/pihole:/etc/pihole
       - /opt/pihole/etc/dnsmasq.d:/etc/dnsmasq.d

@@ -2,4 +2,9 @@ basil ansible_user=pi
 cayenne ansible_user=pi
 paprika ansible_user=pi
 
-pihole ansible_user=ryan
+[proxmox]
+pihole      ansible_user=ryan
+monitoring  ansible_user=ryan
+
+[proxmox:vars]
+ansible_python_interpreter=/usr/bin/python3

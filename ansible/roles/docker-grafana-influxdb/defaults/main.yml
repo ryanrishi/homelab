@@ -1,0 +1,7 @@
+docker_grafana_influxdb_home: /opt/docker-grafana-influxdb
+
+influx_admin_user: admin
+influx_admin_password: password
+
+grafana_admin_user: admin
+grafana_admin_password: password

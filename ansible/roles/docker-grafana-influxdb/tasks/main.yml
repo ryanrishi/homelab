@@ -1,0 +1,32 @@
+- name: Create docker-grafana-influxdb home and subdirectories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_real_user_id }}"
+    group: "{{ ansible_real_group_id }}"
+  with_items:
+    - "{{ docker_grafana_influxdb_home }}"
+    - "{{ docker_grafana_influxdb_home }}/grafana/provisioning/dashboards"
+    - "{{ docker_grafana_influxdb_home }}/grafana/provisioning/datasources"
+
+- name: Copy docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_grafana_influxdb_home }}/docker-compose.yml"
+
+- name: Copy etc/grafana
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ docker_grafana_influxdb_home }}/{{ item.dest }}"
+  with_items:
+    - src: grafana/provisioning/datasources/influxdb.yml
+      dest: grafana/provisioning/datasources/influxdb.yml
+    - src: grafana/provisioning/dashboards/dashboards.yml
+      dest: grafana/provisioning/dashboards/dashboards.yml
+    - src: grafana/provisioning/dashboards/telegraf-system-metrics.json
+      dest: grafana/provisioning/dashboards/telegraf-system-metrics.json
+
+- name: Start Grafana, Telegraf, and InfluxDB in docker-compose
+  docker_compose:
+    project_src: "{{ docker_grafana_influxdb_home }}"
+    restarted: yes
