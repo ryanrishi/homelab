@@ -1,0 +1,3 @@
+docker_wireguard_home:  /opt/docker-wireguard
+wireguard_server_url:   example.com
+wireguard_server_peers: 2

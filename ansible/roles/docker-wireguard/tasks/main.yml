@@ -1,0 +1,24 @@
+- name: Create docker-wireguard home
+  file:
+    path: "{{ docker_wireguard_home }}"
+    state: directory
+
+- name: Start docker-wireguard contianer
+  docker_container:
+    image: linuxserver/wireguard
+    name: wireguard
+    restart_policy: unless-stopped
+    capabilities:
+      - NET_ADMIN
+      - SYS_MODULE
+    env:
+      TZ: Etc/UTC
+      SERVERURL: "{{ wireguard_server_url }}"
+      PEERS: "{{ wireguard_server_peers | int }}"
+    ports:
+      - "51820:51820/udp"
+    volumes:
+      - "{{ docker_wireguard_home }}/config:/config"
+      - "/lib/modules:/lib/modules"
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
