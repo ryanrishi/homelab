@@ -1,0 +1,14 @@
+- name: Install nfs-common
+  apt:
+    name: nfs-common
+    state: present
+
+- name: Mount Plex NFS Share
+  become: true
+  mount:
+    backup: true
+    src: "{{ item.src }}"
+    path: "{{ item.path }}"
+    fstype: nfs
+    state: mounted
+  with_items: "{{ mounts }}"

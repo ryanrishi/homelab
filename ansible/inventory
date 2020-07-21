@@ -3,8 +3,9 @@ cayenne ansible_user=pi
 paprika ansible_user=pi
 
 [proxmox]
-pihole      ansible_user=ryan
+media       ansible_user=ryan
 monitoring  ansible_user=ryan
+pihole      ansible_user=ryan
 
 [proxmox:vars]
 ansible_python_interpreter=/usr/bin/python3

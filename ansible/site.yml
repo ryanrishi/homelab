@@ -61,3 +61,9 @@
   hosts: monitoring
   roles:
     - docker-grafana-influxdb
+
+- name: htpc
+  become: true
+  hosts: media
+  roles:
+    - docker-htpc

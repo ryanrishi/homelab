@@ -1,0 +1,91 @@
+version: "3.4"
+services:
+  vpn:
+    container_name: vpn
+    image: dperson/openvpn-client:latest
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID={{ ansible_user_id }}
+      - PGID={{ ansible_user_gid }}
+    sysctls:
+        - net.ipv6.conf.all.disable_ipv6=0
+    volumes:
+      - /dev/net:/dev/net:z
+      - "{{ docker_htpc_home }}/vpn/config:/vpn"
+    security_opt:
+      - label:disable
+    ports:
+      - "8112:8112"
+    command: '-d -f "" -r {{ vpn_network_cidr }}'
+
+  deluge:
+    container_name: deluge
+    image: linuxserver/deluge:latest
+    restart: unless-stopped
+    network_mode: service:vpn
+    environment:
+      - PUID={{ ansible_user_id }}
+      - PGID={{ ansible_user_gid }}
+      - TZ=Etc/UTC
+    volumes:
+      - "{{ downloads_dir }}/downloads:/downloads"
+      - "{{ docker_htpc_home }}/deluge/config:/config"
+
+  jackett:
+    container_name: jackett
+    image: linuxserver/jackett:latest
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID={{ ansible_user_id }}
+      - PGID={{ ansible_user_gid }}
+      - TZ=Etc/UTC
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ downloads_dir }}/downloads/torrent-blackhole:/downloads"
+      - "{{ docker_htpc_home }}/jackett/config:/config"
+
+  ombi:
+    container_name: ombi
+    image: linuxserver/ombi
+    restart: unless-stopped
+    environment:
+      - PUID={{ ansible_user_id }}
+      - PGID={{ ansible_user_gid }}
+      - TZ=Etc/UTC
+    volumes:
+      - "{{ docker_htpc_home }}/ombi/config:/config"
+    ports:
+      - "3579:3579"
+
+  sonarr:
+    container_name: sonarr
+    image: linuxserver/sonarr:latest
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID={{ ansible_user_id }}
+      - PGID={{ ansible_user_gid }}
+      - TZ=Etc/UTC
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker_htpc_home }}/sonarr/config:/config"
+      - "{{ downloads_dir }}/complete/tv:/tv"
+      - "{{ docker_htpc_home }}/deluge/downloads:/downloads"
+
+  radarr:
+    container_name: radarr
+    image: linuxserver/radarr:latest
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID={{ ansible_user_id }}
+      - PGID={{ ansible_user_gid }}
+      - TZ=Etc/UTC
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker_htpc_home }}/radarr/config:/config"
+      - "{{ downloads_dir }}/complete/movies:/movies"
+      - "{{ docker_htpc_home }}/deluge/downloads:/downloads"

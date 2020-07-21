@@ -1,0 +1,9 @@
+docker_htpc_home: /opt/docker-htpc
+downloads_dir:    /mnt/someshare
+
+vpn_network_cidr: 192.168.1.0/24
+mullvad_account_id: 1234567887654321
+
+deluge_queue_new_to_top:              true
+deluge_allow_remote:                  true
+deluge_prioritize_first_last_pieces:  true
