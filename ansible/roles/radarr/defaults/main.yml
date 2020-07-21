@@ -1,4 +1,0 @@
-radarr_version:     0.2.0.1480
-radarr_group_name:  radarr
-radarr_user_name:   radarr
-radarr_user_home:   /opt/{{ radarr_user_name }}

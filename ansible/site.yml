@@ -32,24 +32,6 @@
   roles:
     - plexpi
 
-- name: deluge
-  hosts: paprika
-  roles:
-    - deluge
-
-- name: mullvad
-  become: true
-  hosts: paprika
-  roles:
-    - mullvad
-
-- name: radarr + jackett
-  become: true
-  hosts: paprika
-  roles:
-    - radarr
-    - jackett
-
 - name: pihole
   become: true
   hosts: pihole
