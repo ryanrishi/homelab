@@ -1,0 +1,43 @@
+- name: Ensure grafana configuration directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: grafana
+  become: true
+  with_items:
+    - "/etc/grafana"
+    - "/etc/grafana/datasources"
+    - "/etc/grafana/provisioning"
+    - "/etc/grafana/provisioning/datasources"
+    - "/etc/grafana/provisioning/dashboards"
+    - "/etc/grafana/provisioning/notifiers"
+
+- name: Create grafana main configuration file
+  template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    owner: root
+    group: grafana
+    mode: 0640
+  become: true
+  notify: restart grafana
+
+- name: Create grafana directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: grafana
+    group: grafana
+  with_items:
+    - "{{ grafana_logs_dir }}"
+    - "{{ grafana_data_dir }}"
+    - "{{ grafana_data_dir }}/dashboards"
+    - "{{ grafana_data_dir }}/plugins"
+
+- name: SERVICE | Enable and start Grafana service
+  service:
+    name: grafana-server
+    enabled: true
+    state: started

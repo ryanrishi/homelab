@@ -1,0 +1,9 @@
+- include_tasks: apt.yaml
+
+- include_tasks: ntp.yaml
+
+- include_tasks: vim.yaml
+
+- include_tasks: etc-hosts.yml
+
+# TODO motd

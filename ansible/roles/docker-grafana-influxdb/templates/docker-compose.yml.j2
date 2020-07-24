@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUX_ADMIN_USER="{{ influx_admin_user }}"
+      - INFLUX_ADMIN_PASSWORD="{{ influx_admin_password }}"
+    volumes:
+      - ./influxdb/data:/var/lib/influxdb
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER={{ grafana_admin_user }}
+      - GF_SECURITY_ADMIN_PASSWORD={{ grafana_admin_password }}
+    user: "0"
+    links:
+      - influxdb
+    depends_on:
+      - influxdb
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/data:/var/lib/grafana

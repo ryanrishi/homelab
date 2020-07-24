@@ -1,0 +1,19 @@
+---
+- name: Start pihole container
+  docker_container:
+    name: pihole
+    image: pihole/pihole
+    state: started
+    restart: true
+    restart_policy: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "80:80"
+      - "443:443"
+    dns_servers:
+      - 127.0.0.1
+      - 8.8.8.8
+    volumes:
+      - /opt/pihole/etc/pihole:/etc/pihole
+      - /opt/pihole/etc/dnsmasq.d:/etc/dnsmasq.d

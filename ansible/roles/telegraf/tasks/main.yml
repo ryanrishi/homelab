@@ -1,0 +1,31 @@
+- name: Install InfluxDB APT key
+  apt_key:
+    url: 'https://repos.influxdata.com/influxdb.key'
+    state: present
+
+- name: Add Influx data APT repository
+  apt_repository:
+    repo: 'deb https://repos.influxdata.com/debian buster stable'
+    state: present
+
+- name: Install Telegraf
+  apt:
+    name: telegraf
+    state: present
+
+# - name: Create telelgraf InfluxDB user
+#   # TODO Use `influxdb_user` module, but not sure how to grant all privileges
+#   command: influx -username {{ influxdb_user }} -password "{{ influxdb_password }}" -execute "CREATE USER {{ telegraf_influxdb_user }} WITH PASSWORD '{{ telegraf_influxdb_password }}' WITH ALL PRIVILEGES;"
+#   when: influxdb_host == ansible_hostname
+
+- name: Setup telegraf.conf
+  template:
+    src: etc/telegraf/telegraf.conf.j2
+    dest: /etc/telegraf/telegraf.conf
+    backup: true
+
+- name: Restart and enable Telegraf
+  service:
+    name: telegraf
+    enabled: true
+    state: restarted

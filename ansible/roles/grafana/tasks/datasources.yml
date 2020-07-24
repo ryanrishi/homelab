@@ -1,0 +1,14 @@
+- name: Create/Update datasources file (provisioning)
+  become: true
+  copy:
+    dest: /etc/grafana/provisioning/datasources/ansible.yml
+    content: |
+      apiVersion: 1
+      deleteDatasources: []
+      datasources:
+      {{ grafana_datasources | to_nice_yaml }}
+    backup: false
+    owner: root
+    group: grafana
+    mode: 0640
+  notify: restart grafana

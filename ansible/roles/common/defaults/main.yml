@@ -1,0 +1,14 @@
+common_packages:
+  - dnsutils
+  - htop
+  - jq
+  - lsof
+  - nmap
+  - ntp
+  - tmux
+  - tree
+  - vim
+
+host_entries:
+  - name: server_hostname
+    ip: 10.2.3.4

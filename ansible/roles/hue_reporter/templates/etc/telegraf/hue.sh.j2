@@ -1,0 +1,10 @@
+#!/bin/bash
+
+curl -s {{ bridge_ip }}/api/{{ philips_hue_token }}/lights | jq --arg now $(date +%s) -r '
+keys[] as $k |
+"hue,lamp=\"\(.[$k].name)\" light_state_on=\(.[$k].state.on) \($now)
+hue,lamp=\"\(.[$k].name)\" light_state_bri=\(.[$k].state.bri) \($now)
+hue,lamp=\"\(.[$k].name)\" light_state_hue=\(.[$k].state.hue) \($now)
+hue,lamp=\"\(.[$k].name)\" light_state_sat=\(.[$k].state.sat) \($now)
+hue,lamp=\"\(.[$k].name)\" light_state_reachable=\(.[$k].state.reachable) \($now)"
+' | sort

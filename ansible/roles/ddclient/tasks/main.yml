@@ -1,0 +1,60 @@
+- name: Create ~/git Directory
+  file:
+    path: "{{ ansible_user_dir }}/git"
+    state: directory
+    owner: "{{ ansible_real_user_id }}"
+    group: "{{ ansible_real_group_id }}"
+
+- name: Ensure git is Installed
+  apt:
+    name: git
+    state: present
+    update_cache: yes
+    cache_valid_time: 86400
+  become: true
+
+- name: Clone ddclient Git Repo
+  git:
+    repo: "{{ ddclient_git_repo_http }}"
+    dest: "{{ ddclient_git_repo_dest }}"
+    update: yes
+    accept_hostkey: yes
+  register: _ddclient_git_cloned
+
+- import_tasks: install.yml
+
+- name: Copy ddclient.conf File
+  template:
+    src: ddclient.conf.j2
+    dest: "{{ ddclient_file.directory }}/{{ ddclient_file.file }}"
+    owner: root
+    group: root
+  become: true
+  notify: restart ddclient
+
+- name: Update Mode for New Files
+  file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+    state: file
+  with_items:
+    - { path: "{{ ddclient_file.directory }}/{{ ddclient_file.file }}", mode: "0700" }
+    - { path: "{{ ddclient_exec }}", mode: "0775" }
+  become: true
+
+- name: Autostart DDClient Block
+  block:
+    - name: Autostart DDClient
+      service:
+        name: ddclient
+        enabled: yes
+        state: started
+      ignore_errors: true
+      become: true
+  rescue:
+    - name: Show Output of Failed Service
+      shell: ddclient -daemon=0 -debug -verbose -noquiet
+      register: _ddclient_systemd
+    - debug: var=_ddclient_systemd

@@ -1,0 +1,34 @@
+- name: Check InfluxDB version number
+  command: bash -c "if [ -f /usr/bin/influx ]; then influx --version | grep {{ influxdb_version }}; fi"
+  register: current_influxdb_version
+
+- name: Download and install InfluxDB
+  block:
+    - name: Import InfluxDB GPG signing key
+      apt_key: url=https://repos.influxdata.com/influxdb.key state=present
+
+    - name: Add InfluxDB repository
+      apt_repository: repo="deb https://repos.influxdata.com/ubuntu trusty stable" state=present
+
+    - name: Install InfluxDB
+      apt:
+        name: influxdb
+        state: present
+
+    - name: Start InfluxDB
+      service:
+        name: influxdb
+        enabled: true
+        state: restarted
+
+    - name: Create admin InfluxDB user
+      # TODO Use `influxdb_user` module, but not sure how to grant all privileges
+      command: influx -execute "CREATE USER {{ influxdb_user }} WITH PASSWORD '{{ influxdb_password }}' WITH ALL PRIVILEGES;"
+  when: current_influxdb_version.stdout.find('InfluxDB') == -1
+
+- name: Install influxdb config
+  template:
+    src: config/influxdb.conf
+    dest: /etc/influxdb/influxdb.conf
+  notify:
+    - restart influxdb

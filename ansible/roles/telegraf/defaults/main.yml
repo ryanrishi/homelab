@@ -1,0 +1,9 @@
+telegraf_version: 1.13.4
+telegraf_influxdb_user: telegraf
+telegraf_influxdb_password: password
+
+ # InfluxDB admin credentials needed to create Telgraf InfluxDB user
+influxdb_user: admin
+influxdb_password: password
+
+influxdb_host: 127.0.0.1

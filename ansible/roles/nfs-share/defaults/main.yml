@@ -1,0 +1,3 @@
+mounts:
+  - src: host:/path/to/folder
+    path: /mnt/somemount

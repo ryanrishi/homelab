@@ -1,0 +1,7 @@
+---
+- name: restart telegraf
+  service:
+    name: telegraf
+    enabled: true
+    state: restarted
+  become: true

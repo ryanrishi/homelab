@@ -1,0 +1,57 @@
+- name: common
+  hosts: all
+  become: true
+  roles:
+    - common
+
+- name: ddclient
+  hosts: basil
+  roles:
+    - ddclient
+
+- name: influxdb + grafana
+  hosts: basil
+  roles:
+    - influxdb
+    - grafana
+
+- name: telegraf
+  hosts: all
+  become: true
+  roles:
+    - telegraf
+
+- name: telegraf-synology-snmp
+  become: true
+  hosts: basil
+  roles:
+    - telegraf-synology-snmp
+
+- name: plexpi
+  hosts: basil
+  roles:
+    - plexpi
+
+- name: pihole
+  become: true
+  hosts: pihole
+  roles:
+    - pihole
+
+- name: monitoring
+  become: true
+  hosts: monitoring
+  roles:
+    - docker-grafana-influxdb
+
+- name: htpc
+  become: true
+  hosts: media
+  roles:
+    - docker-htpc
+
+- name: wireguard
+  become: true
+  hosts: wireguard
+  roles:
+    - docker-wireguard

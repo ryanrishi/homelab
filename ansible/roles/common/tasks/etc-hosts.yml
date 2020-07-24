@@ -1,0 +1,11 @@
+# https://serverfault.com/a/935570
+---
+- name: Add IP address of all hosts to all hosts
+  lineinfile:
+    dest: /etc/hosts
+    backup: true
+    regexp: '.*{{ item }}$'
+    line: "{{ item.ip }} {{ item.name }}"
+    state: present
+  when: host_entries is defined
+  with_items: "{{ host_entries }}"

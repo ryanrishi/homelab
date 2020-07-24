@@ -1,0 +1,7 @@
+dependencies:
+  - role: docker
+  - role: nfs-share
+    vars:
+      mounts:
+        - src: hangar:/volume1/Plex
+          path: /mnt/Plex

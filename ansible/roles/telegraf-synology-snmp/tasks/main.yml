@@ -1,0 +1,25 @@
+- name: Install SNMP Tools
+  apt:
+    name: snmp
+    state: present
+
+- name: Install SNMP MIBs Downloader
+  apt:
+    name: snmp-mibs-downloader
+    state: present
+
+- name: Download Synology SNMP MIBs
+  unarchive:
+    src: https://global.download.synology.com/download/Document/MIBGuide/Synology_MIB_File.zip
+    dest: /usr/share/snmp/mibs
+    remote_src: true
+    extra_opts:
+      - -j
+
+- name: Add Synology Telegraf configuration
+  template:
+    src: etc/telegraf/telegraf.d/synology.conf.j2
+    dest: /etc/telegraf/telegraf.d/synology.conf
+    owner: root
+    group: root
+  notify: restart telegraf

@@ -1,0 +1,48 @@
+- name: Stop docker-compose
+  docker_compose:
+    project_src: "{{ docker_htpc_home }}"
+    stopped: true
+
+- name: Create Docker container volumes
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ docker_htpc_home }}"
+    - "{{ docker_htpc_home }}/vpn/config"
+    - "{{ docker_htpc_home }}/deluge/config"
+    - "{{ docker_htpc_home }}/jackett/config"
+    - "{{ docker_htpc_home }}/sonarr/config"
+    - "{{ docker_htpc_home }}/radarr/config"
+    - "{{ docker_htpc_home }}/ombi/config"
+
+- name: Copy OpenVPN configurations
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.path }}"
+  with_items:
+    - src: mullvad_ca_all.conf
+      path: "{{ docker_htpc_home }}/vpn/config/mullvad_ca_all.conf"
+    - src: mullvad_ca.crt
+      path: "{{ docker_htpc_home }}/vpn/config/mullvad_ca.crt"
+
+- name: Copy Mullvad credentials
+  template:
+    src: mullvad_userpass.txt.j2
+    dest: "{{ docker_htpc_home }}/vpn/config/mullvad_userpass.txt"
+
+- name: Copy Deluge configurations
+  template:
+    src: deluge/config/core.conf.j2
+    dest: "{{ docker_htpc_home }}/deluge/config/core.conf"
+
+- name: Copy docker-compose
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_htpc_home }}/docker-compose.yml"
+    backup: true
+
+- name: Start docker-compose
+  docker_compose:
+    project_src: "{{ docker_htpc_home }}"
+    restarted: yes
