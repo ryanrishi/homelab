@@ -1,20 +1,24 @@
-- name: Stop docker-compose
-  docker_compose:
-    project_src: "{{ docker_htpc_home }}"
-    stopped: true
+- stat:
+    path: "{{ docker_htpc_home }}"
+  register: _docker_htpc_home
 
 - name: Create Docker container volumes
   file:
-    path: "{{ item }}"
+    path: "{{ item.path }}"
     state: directory
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_real_group_id }}"
   with_items:
-    - "{{ docker_htpc_home }}"
-    - "{{ docker_htpc_home }}/vpn/config"
-    - "{{ docker_htpc_home }}/deluge/config"
-    - "{{ docker_htpc_home }}/jackett/config"
-    - "{{ docker_htpc_home }}/sonarr/config"
-    - "{{ docker_htpc_home }}/radarr/config"
-    - "{{ docker_htpc_home }}/ombi/config"
+    - path: "{{ docker_htpc_home }}"
+    - path: "{{ docker_htpc_home }}/vpn/config"
+    - path: "{{ docker_htpc_home }}/deluge/config"
+    - path: "{{ docker_htpc_home }}/jackett/config"
+    - path: "{{ docker_htpc_home }}/sonarr/config"
+    - path: "{{ docker_htpc_home }}/radarr/config"
+    - path: "{{ docker_htpc_home }}/ombi/config"
+    - path: "{{ docker_htpc_home }}/plex/config"
+      create: include_plex
+  when: item.create | default(True) | bool
 
 - name: Copy OpenVPN configurations
   copy:
@@ -41,8 +45,10 @@
     src: docker-compose.yml.j2
     dest: "{{ docker_htpc_home }}/docker-compose.yml"
     backup: true
+  register: _docker_htpc_docker_compose
 
 - name: Start docker-compose
   docker_compose:
     project_src: "{{ docker_htpc_home }}"
     restarted: yes
+  when: _docker_htpc_docker_compose.changed

@@ -1,0 +1,56 @@
+---
+- name: Install resolvconf
+  apt:
+    name: resolvconf
+    state: present
+  become: true
+
+- name: Enable resolvconf
+  service:
+    name: resolvconf
+    enabled: true
+
+- name: Configure resolvconf
+  template:
+    src: etc/resolvconf/resolv.conf.d/base.j2
+    dest: /etc/resolvconf/resolv.conf.d/base
+  become: true
+  register: _resolvconf_base
+
+- name: Restart resolvconf
+  service:
+    name: resolvconf
+    state: restarted
+  become: true
+  when: _resolvconf_base.changed
+
+# TODO this might be better as its own role
+- name: Supersede dhclient DNS servers and domain
+  block:
+    - name: Supersede DNS servers
+      become: true
+      lineinfile:
+        path: /etc/dhcp/dhclient.conf
+        regexp: "^supersede domain-name-servers"
+        insertafter: "#supersede domain-name-servers"
+        line: "supersede domain-name-servers {{ network.nameservers | join(' ') }};"
+        backup: true
+      when: network.nameservers is defined
+      register: _dhclient_nameservers
+    - name: Supersede domain
+      become: true
+      lineinfile:
+        path: /etc/dhcp/dhclient.conf
+        regexp: "^supersede domain-name "
+        insertafter: '#supersede domain-name '
+        line: 'supersede domain-name "{{ network.domain }}";'
+        backup: true
+      when: network.domain is defined
+      register: _dhclient_domain
+
+- name: Reload dhclient
+  become: true
+  command: dhclient
+  when: _dhclient_nameservers.changed or _dhclient_domain.changed
+
+

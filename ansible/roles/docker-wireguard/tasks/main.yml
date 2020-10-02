@@ -5,7 +5,7 @@
 
 - name: Start docker-wireguard contianer
   docker_container:
-    image: linuxserver/wireguard
+    image: linuxserver/wireguard:latest
     name: wireguard
     restart_policy: unless-stopped
     capabilities:
@@ -15,6 +15,9 @@
       TZ: Etc/UTC
       SERVERURL: "{{ wireguard_server_url }}"
       PEERS: "{{ wireguard_server_peers | int }}"
+      PUID: "{{ ansible_user_uid | int }}"
+      PGID: "{{ ansible_user_gid | int }}"
+
     ports:
       - "51820:51820/udp"
     volumes:

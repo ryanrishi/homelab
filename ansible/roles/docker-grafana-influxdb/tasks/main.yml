@@ -13,6 +13,7 @@
   template:
     src: docker-compose.yml.j2
     dest: "{{ docker_grafana_influxdb_home }}/docker-compose.yml"
+  register: _docker_compose_grafana_influxdb
 
 - name: Copy etc/grafana
   template:
@@ -25,8 +26,10 @@
       dest: grafana/provisioning/dashboards/dashboards.yml
     - src: grafana/provisioning/dashboards/telegraf-system-metrics.json
       dest: grafana/provisioning/dashboards/telegraf-system-metrics.json
+  register: _docker_grafana_provisioning
 
-- name: Start Grafana, Telegraf, and InfluxDB in docker-compose
+- name: Start Grafana and InfluxDB in docker-compose
   docker_compose:
     project_src: "{{ docker_grafana_influxdb_home }}"
-    restarted: yes
+    restarted: true
+  when: _docker_compose_grafana_influxdb.changed or _docker_grafana_provisioning.changed

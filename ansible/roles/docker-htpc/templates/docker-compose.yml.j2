@@ -6,9 +6,6 @@ services:
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
-    environment:
-      - PUID={{ ansible_user_id }}
-      - PGID={{ ansible_user_gid }}
     sysctls:
         - net.ipv6.conf.all.disable_ipv6=0
     volumes:
@@ -26,7 +23,7 @@ services:
     restart: unless-stopped
     network_mode: service:vpn
     environment:
-      - PUID={{ ansible_user_id }}
+      - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
       - TZ=Etc/UTC
     volumes:
@@ -39,7 +36,7 @@ services:
     restart: unless-stopped
     network_mode: host
     environment:
-      - PUID={{ ansible_user_id }}
+      - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
       - TZ=Etc/UTC
     volumes:
@@ -49,10 +46,10 @@ services:
 
   ombi:
     container_name: ombi
-    image: linuxserver/ombi
+    image: linuxserver/ombi:latest
     restart: unless-stopped
     environment:
-      - PUID={{ ansible_user_id }}
+      - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
       - TZ=Etc/UTC
     volumes:
@@ -66,7 +63,7 @@ services:
     restart: unless-stopped
     network_mode: host
     environment:
-      - PUID={{ ansible_user_id }}
+      - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
       - TZ=Etc/UTC
     volumes:
@@ -81,7 +78,7 @@ services:
     restart: unless-stopped
     network_mode: host
     environment:
-      - PUID={{ ansible_user_id }}
+      - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
       - TZ=Etc/UTC
     volumes:
@@ -89,3 +86,19 @@ services:
       - "{{ docker_htpc_home }}/radarr/config:/config"
       - "{{ downloads_dir }}/complete/movies:/movies"
       - "{{ docker_htpc_home }}/deluge/downloads:/downloads"
+{% if include_plex %}
+
+  plex:
+    container_name: plex
+    image: linuxserver/plex:latest
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID={{ ansible_user_uid }}
+      - PGID={{ ansible_user_gid }}
+      - TZ=Etc/UTC
+    volumes:
+      - "{{ docker_htpc_home }}/plex/config:/config"
+      - "{{ downloads_dir }}/complete/tv:/tv"
+      - "{{ downloads_dir }}/complete/movies:/movies"
+{% endif %}

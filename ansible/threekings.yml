@@ -1,0 +1,41 @@
+# not sure why I need to specify vars_files in each play when threekings is the name of an inventory group
+---
+- name: common
+  hosts: threekings
+  become: true
+  roles:
+    - common
+
+- name: resolvconf
+  hosts: threekings
+  roles:
+    - resolvconf
+
+- name: ddclient
+  hosts: ddclient.threekings.ccag119.info
+  roles:
+    - ddclient
+
+- name: monitoring
+  hosts: monitoring.threekings.ccag119.info
+  become: true
+  roles:
+    - docker-grafana-influxdb
+
+- name: telegraf
+  hosts: threekings
+  become: true
+  roles:
+    - telegraf
+
+- name: media
+  hosts: media.threekings.ccag119.info
+  roles:
+    - role: docker-htpc
+      vars:
+        include_plex: true
+
+- name: wireguard
+  hosts: wireguard.threekings.ccag119.info
+  roles:
+    - docker-wireguard

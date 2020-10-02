@@ -2,13 +2,11 @@
   apt:
     name: "{{ ddclient_apt_install }}"
     state: present
-    update_cache: yes
-    cache_valid_time: 86400
   become: true
 
 - name: Copy over ddclient Executable
   synchronize:
-    src: "{{ ddclient_git_repo_dest }}/ddclient"
+    src: "{{ ddclient_git_repo_dest }}/ddclient.in"
     dest: "{{ ddclient_exec }}"
     checksum: yes
     times: no

@@ -23,7 +23,7 @@
 
 - import_tasks: install.yml
 
-- name: Copy ddclient.conf File
+- name: Copy ddclient.conf
   template:
     src: ddclient.conf.j2
     dest: "{{ ddclient_file.directory }}/{{ ddclient_file.file }}"

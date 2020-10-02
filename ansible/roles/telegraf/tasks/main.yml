@@ -23,9 +23,11 @@
     src: etc/telegraf/telegraf.conf.j2
     dest: /etc/telegraf/telegraf.conf
     backup: true
+  register: _telegraf_conf
 
 - name: Restart and enable Telegraf
   service:
     name: telegraf
     enabled: true
     state: restarted
+  when: _telegraf_conf.changed

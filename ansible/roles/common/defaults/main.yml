@@ -1,5 +1,6 @@
 common_packages:
   - dnsutils
+  - gnupg
   - htop
   - jq
   - lsof

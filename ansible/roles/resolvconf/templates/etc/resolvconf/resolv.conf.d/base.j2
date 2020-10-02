@@ -1,0 +1,6 @@
+{% for nameserver in network.nameservers %}
+nameserver {{nameserver}}
+{% endfor %}
+{% if network.domain %}
+domain {{network.domain}}
+{% endif %}
