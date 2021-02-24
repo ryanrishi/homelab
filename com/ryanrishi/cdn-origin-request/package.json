@@ -4,14 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "aws-sdk": "^2.851.0",
-    "ts-loader": "^8.0.17",
-    "typescript": "^4.2.2",
-    "webpack": "^5.24.1"
+    "webpack": "^5.24.1",
+    "webpack-cli": "^4.5.0"
+  },
+  "dependencies": {
+    "aws-lambda": "^1.0.6"
   }
 }
