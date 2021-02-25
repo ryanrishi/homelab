@@ -124,6 +124,33 @@ resource "aws_cloudfront_distribution" "labs" {
     viewer_protocol_policy = "redirect-to-https"
   }
 
+  ordered_cache_behavior {
+    path_pattern     = "/_next/image/*"
+    allowed_methods  = ["HEAD", "GET", "OPTIONS"]
+    cached_methods   = ["HEAD", "GET", "OPTIONS"]
+    target_origin_id = local.domain_name
+
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 0
+    max_ttl                = 31536000
+    compress               = true
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+
+    lambda_function_association {
+      event_type   = "origin-request"
+      lambda_arn   = aws_lambda_function.cdn-origin-request-lambda.qualified_arn
+      include_body = false
+    }
+  }
+
   logging_config {
     include_cookies = false
     bucket          = aws_s3_bucket.ryanrishi-com-logs.bucket_domain_name
