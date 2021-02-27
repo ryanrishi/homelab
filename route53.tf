@@ -42,6 +42,18 @@ resource "aws_route53_record" "dns_a" {
   }
 }
 
+resource "aws_route53_record" "labs" {
+  zone_id = aws_route53_zone.zone.zone_id
+  name    = "labs.${local.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.labs.domain_name
+    zone_id                = aws_cloudfront_distribution.labs.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
 resource "aws_route53_record" "mx-gsuite" {
   zone_id = aws_route53_zone.zone.zone_id
   name    = var.root_domain_name
