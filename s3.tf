@@ -57,3 +57,30 @@ POLICY
     Environment = "production"
   }
 }
+
+resource "aws_s3_bucket" "labs" {
+  bucket = "labs.${local.domain_name}"
+  acl    = "public-read"
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AddPerm",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": ["s3:GetObject"],
+      "Resource": ["arn:aws:s3:::labs.${local.domain_name}/*"]
+    }
+  ]
+}
+POLICY
+
+  website {
+    redirect_all_requests_to = "https://${var.root_domain_name}/projects"
+  }
+
+  tags = {
+    Environment = "production"
+  }
+}

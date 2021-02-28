@@ -34,10 +34,18 @@ resource "aws_route53_record" "dns_a" {
   zone_id = aws_route53_zone.zone.zone_id
   name    = local.domain_name
   type    = "A"
+  ttl     = 300
+  records = ["76.76.21.21"]
+}
+
+resource "aws_route53_record" "labs" {
+  zone_id = aws_route53_zone.zone.zone_id
+  name    = "labs.${local.domain_name}"
+  type    = "A"
 
   alias {
-    name                   = aws_cloudfront_distribution.cloudfront_distribution.domain_name
-    zone_id                = aws_cloudfront_distribution.cloudfront_distribution.hosted_zone_id
+    name                   = aws_cloudfront_distribution.labs.domain_name
+    zone_id                = aws_cloudfront_distribution.labs.hosted_zone_id
     evaluate_target_health = false
   }
 }
