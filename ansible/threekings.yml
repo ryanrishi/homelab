@@ -39,3 +39,9 @@
   hosts: wireguard.threekings.ccag119.info
   roles:
     - docker-wireguard
+
+- name: prometheus node exporter
+  hosts: threekings
+  become: true
+  roles:
+    - docker-prometheus-node-exporter
