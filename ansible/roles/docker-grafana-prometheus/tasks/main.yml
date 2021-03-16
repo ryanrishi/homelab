@@ -1,0 +1,40 @@
+- name: Create docker-grafana-prometheus home and subdirectories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_real_user_id }}"
+    group: "{{ ansible_real_group_id }}"
+  with_items:
+    - "{{ docker_grafana_prometheus_home }}"
+    - "{{ docker_grafana_prometheus_home }}/grafana/provisioning/dashboards"
+    - "{{ docker_grafana_prometheus_home }}/grafana/provisioning/datasources"
+    - "{{ docker_grafana_prometheus_home }}/prometheus"
+
+- name: Copy docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_grafana_prometheus_home }}/docker-compose.yml"
+  register: _docker_compose_grafana_prometheus
+
+- name: Copy Grafana provisioning files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ docker_grafana_prometheus_home }}/{{ item.dest }}"
+  with_items:
+    - src: grafana/provisioning/datasources/prometheus.yml
+      dest: grafana/provisioning/datasources/prometheus.yml
+    # - src: grafana/provisioning/dashboards/dashboards.yml
+    #   dest: grafana/provisioning/dashboards/dashboards.yml
+  register: _docker_grafana_provisioning
+
+- name: Copy Prometheus config
+  template:
+    src: prometheus/prometheus.yml
+    dest: "{{ docker_grafana_prometheus_home }}/prometheus/prometheus.yml"
+  register: _prometheus_yml
+
+- name: Start Grafana and Prometheus in docker-compose
+  docker_compose:
+    project_src: "{{ docker_grafana_prometheus_home }}"
+    restarted: true
+  when: _docker_compose_grafana_prometheus.changed or _docker_grafana_provisioning.changed or _prometheus_yml.changed

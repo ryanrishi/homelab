@@ -45,3 +45,9 @@
   become: true
   roles:
     - docker-prometheus-node-exporter
+
+- name: Grafana + Prometheus
+  hosts: monitoring.threekings.ccag119.info
+  become: true
+  roles:
+    - docker-grafana-prometheus

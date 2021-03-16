@@ -1,0 +1,4 @@
+docker_grafana_prometheus_home: /opt/docker-grafana-prometheus
+
+grafana_admin_user: admin
+grafana_admin_password: password
