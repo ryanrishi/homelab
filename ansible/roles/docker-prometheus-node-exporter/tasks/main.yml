@@ -5,5 +5,7 @@
     restart_policy: unless-stopped
     network_mode: host
     pid_mode: host
+    ports:
+      - "9100:9100"
     volumes:
       - "/:/host:ro,rslave"
