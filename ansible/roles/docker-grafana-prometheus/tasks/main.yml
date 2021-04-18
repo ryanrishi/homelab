@@ -14,12 +14,14 @@
   template:
     src: docker-compose.yml.j2
     dest: "{{ docker_grafana_prometheus_home }}/docker-compose.yml"
+    backup: true
   register: _docker_compose_grafana_prometheus
 
 - name: Copy Grafana provisioning files
   template:
     src: "{{ item.src }}"
     dest: "{{ docker_grafana_prometheus_home }}/{{ item.dest }}"
+    backup: true
   with_items:
     - src: grafana/provisioning/datasources/prometheus.yml
       dest: grafana/provisioning/datasources/prometheus.yml
@@ -31,6 +33,7 @@
   template:
     src: prometheus/prometheus.yml.j2
     dest: "{{ docker_grafana_prometheus_home }}/prometheus/prometheus.yml"
+    backup: true
   register: _prometheus_yml
 
 - name: Start Grafana and Prometheus in docker-compose
