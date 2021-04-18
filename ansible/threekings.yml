@@ -1,4 +1,3 @@
-# not sure why I need to specify vars_files in each play when threekings is the name of an inventory group
 ---
 - name: common
   hosts: threekings
@@ -15,12 +14,6 @@
   hosts: ddclient.threekings.ccag119.info
   roles:
     - ddclient
-
-- name: monitoring
-  hosts: monitoring.threekings.ccag119.info
-  become: true
-  roles:
-    - docker-grafana-influxdb
 
 - name: telegraf
   hosts: threekings
