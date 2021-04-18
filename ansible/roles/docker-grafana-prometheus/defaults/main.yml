@@ -2,3 +2,7 @@ docker_grafana_prometheus_home: /opt/docker-grafana-prometheus
 
 grafana_admin_user: admin
 grafana_admin_password: password
+
+prometheus_node_exporter_hosts:
+  - a.example.com
+  - b.example.com

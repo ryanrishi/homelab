@@ -29,7 +29,7 @@
 
 - name: Copy Prometheus config
   template:
-    src: prometheus/prometheus.yml
+    src: prometheus/prometheus.yml.j2
     dest: "{{ docker_grafana_prometheus_home }}/prometheus/prometheus.yml"
   register: _prometheus_yml
 
