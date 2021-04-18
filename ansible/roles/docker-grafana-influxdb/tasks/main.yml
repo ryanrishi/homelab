@@ -1,3 +1,7 @@
+- name: Fail and log deprecation notice
+  fail:
+    msg: "Use docker-grafana-prometheus instead"
+
 - name: Create docker-grafana-influxdb home and subdirectories
   file:
     path: "{{ item }}"

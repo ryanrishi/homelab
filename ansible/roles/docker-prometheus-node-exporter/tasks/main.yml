@@ -1,0 +1,22 @@
+# TODO why do some hosts have node_exporter running via systemd? I don't remember installing it...
+- name: systemd status
+  service_facts:
+  register: services_state
+
+- name: Stop systemd node_exporter if running
+  systemd:
+    name: node_exporter
+    state: stopped
+  when: services_state.ansible_facts.services["node_exporter.service"].state == "running"
+
+- name: Start Prometheus Node Exporter Docker Container
+  docker_container:
+    image: quay.io/prometheus/node-exporter:v1.1.2
+    name: node_exporter
+    restart_policy: unless-stopped
+    network_mode: host
+    pid_mode: host
+    ports:
+      - "9100:9100"
+    volumes:
+      - "/:/host:ro,rslave"
