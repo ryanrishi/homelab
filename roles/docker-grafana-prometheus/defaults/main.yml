@@ -1,6 +1,6 @@
 docker_grafana_prometheus_home: /opt/docker-grafana-prometheus
 
-grafana_version: 7.1.5
+grafana_version: 8.0.2
 grafana_admin_user: admin
 grafana_admin_password: password
 
