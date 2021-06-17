@@ -6,7 +6,7 @@ volumes:
 
 services:
   prometheus:
-    image: prom/prometheus:v2.25.1
+    image: "prom/prometheus:{{ prometheus_version }}"
     container_name: prometheus
     restart: unless-stopped
     ports:
@@ -16,7 +16,7 @@ services:
       - prometheus:/prometheus
 
   grafana:
-    image: grafana/grafana:latest
+    image: "grafana/grafana:{{ grafana_version }}"
     container_name: grafana_prometheus  # TODO change this to "grafana" once I've ripped out Grafana from InfluxDB setup
     restart: unless-stopped
     ports:

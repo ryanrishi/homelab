@@ -1,3 +1,4 @@
 docker_wireguard_home:  /opt/docker-wireguard
 wireguard_server_url:   example.com
 wireguard_server_peers: 2
+lsio_wireguard_version: v1.0.20200827-ls31

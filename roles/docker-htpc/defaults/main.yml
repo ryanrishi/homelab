@@ -4,6 +4,15 @@ downloads_dir:    /mnt/someshare
 vpn_network_cidr: 192.168.1.0/24
 mullvad_account_id: 1234567887654321
 
+# see https://github.com/dperson/openvpn-client/issues/40
+openvpn_version: "sha256:40876b9dd828fef8b44461e03c3f324bdce0184a2cfc16acc7790232e68448e8"
+lsio_deluge_version: 2.0.3-2201906121747ubuntu18.04.1-ls75
+lsio_jackett_version: v0.16.1103-ls15
+lsio_ombi_version: v3.0.5202-ls67
+lsio_sonarr_version: 2.0.0.5344-ls77
+lsio_radarr_version: v0.2.0.1504-ls76
+lsio_plex_version: 1.20.1.3252-a78fef9a9-ls116
+
 deluge_queue_new_to_top:              true
 deluge_allow_remote:                  true
 deluge_prioritize_first_last_pieces:  true
