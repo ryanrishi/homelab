@@ -24,6 +24,7 @@
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.path }}"
+    backup: true
   with_items:
     - src: mullvad_ca_all.conf
       path: "{{ docker_htpc_home }}/vpn/config/mullvad_ca_all.conf"
@@ -34,11 +35,13 @@
   template:
     src: mullvad_userpass.txt.j2
     dest: "{{ docker_htpc_home }}/vpn/config/mullvad_userpass.txt"
+    backup: true
 
 - name: Copy Deluge configurations
   template:
     src: deluge/config/core.conf.j2
     dest: "{{ docker_htpc_home }}/deluge/config/core.conf"
+    backup: true
 
 - name: Copy docker-compose
   template:
