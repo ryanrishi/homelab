@@ -5,7 +5,7 @@
 
 - name: Start docker-wireguard contianer
   docker_container:
-    image: linuxserver/wireguard:latest
+    image: "linuxserver/wireguard:{{ lsio_wireguard_version }}"
     name: wireguard
     restart_policy: unless-stopped
     capabilities:

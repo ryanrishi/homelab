@@ -2,7 +2,7 @@ version: "3.4"
 services:
   vpn:
     container_name: vpn
-    image: dperson/openvpn-client:latest
+    image: "dperson/openvpn-client:{{ openvpn_client_version }}"
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
@@ -19,7 +19,7 @@ services:
 
   deluge:
     container_name: deluge
-    image: linuxserver/deluge:latest
+    image: "linuxserver/deluge:{{ lsio_deluge_version }}"
     restart: unless-stopped
     network_mode: service:vpn
     environment:
@@ -32,7 +32,7 @@ services:
 
   jackett:
     container_name: jackett
-    image: linuxserver/jackett:latest
+    image: "linuxserver/jackett:{{ lsio_jackett_version }}"
     restart: unless-stopped
     network_mode: host
     environment:
@@ -46,7 +46,7 @@ services:
 
   ombi:
     container_name: ombi
-    image: linuxserver/ombi:latest
+    image: "linuxserver/ombi:{{ lsio_ombi_version }}"
     restart: unless-stopped
     environment:
       - PUID={{ ansible_user_uid }}
@@ -59,7 +59,7 @@ services:
 
   sonarr:
     container_name: sonarr
-    image: linuxserver/sonarr:latest
+    image: "linuxserver/sonarr:{{ lsio_sonarr_version }}"
     restart: unless-stopped
     network_mode: host
     environment:
@@ -74,7 +74,7 @@ services:
 
   radarr:
     container_name: radarr
-    image: linuxserver/radarr:latest
+    image: "linuxserver/radarr:{{ lsio_radarr_version }}"
     restart: unless-stopped
     network_mode: host
     environment:
@@ -90,7 +90,7 @@ services:
 
   plex:
     container_name: plex
-    image: linuxserver/plex:latest
+    image: "linuxserver/plex:{{ lsio_plex_version }}"
     restart: unless-stopped
     network_mode: host
     environment:

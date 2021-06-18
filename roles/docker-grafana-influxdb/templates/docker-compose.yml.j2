@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   influxdb:
-    image: influxdb:latest
+    image: "influxdb:{{ influx_version }}"
     container_name: influxdb
     restart: unless-stopped
     ports:
@@ -14,7 +14,7 @@ services:
       - ./influxdb/data:/var/lib/influxdb
 
   grafana:
-    image: grafana/grafana:latest
+    image: "grafana/grafana:{{ grafana_version }}"
     container_name: grafana
     restart: unless-stopped
     ports:

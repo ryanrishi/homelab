@@ -1,7 +1,9 @@
 docker_grafana_influxdb_home: /opt/docker-grafana-influxdb
 
+influx_version: 1.8.2
 influx_admin_user: admin
 influx_admin_password: password
 
+grafana_version: 7.1.5
 grafana_admin_user: admin
 grafana_admin_password: password
