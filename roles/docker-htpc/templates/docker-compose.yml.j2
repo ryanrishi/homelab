@@ -2,7 +2,7 @@ version: "3.4"
 services:
   vpn:
     container_name: vpn
-    image: "dperson/openvpn-client:{{ openvpn_version }}"
+    image: "dperson/openvpn-client:{{ openvpn_client_version }}"
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
