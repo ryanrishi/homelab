@@ -7,6 +7,7 @@ mullvad_account_id: 1234567887654321
 # OpenVPN Client doesn't really support Docker tags
 # see https://github.com/dperson/openvpn-client/issues/40
 openvpn_client_version: latest
+lsio_wireguard_version: v1.0.20210424-ls30
 lsio_deluge_version: 2.0.3-2201906121747ubuntu18.04.1-ls75
 lsio_jackett_version: v0.16.1103-ls15
 lsio_ombi_version: v3.0.5202-ls67

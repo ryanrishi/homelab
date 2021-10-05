@@ -1,27 +1,17 @@
 version: "3.4"
 services:
-  vpn:
-    container_name: vpn
-    image: "dperson/openvpn-client:{{ openvpn_client_version }}"
+  wireguard:
+    container_name: wireguard
+    image: "linuxserver/wireguard:{{ lsio_wireguard_version }}"
     restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
-    sysctls:
-        - net.ipv6.conf.all.disable_ipv6=0
     volumes:
-      - /dev/net:/dev/net:z
-      - "{{ docker_htpc_home }}/vpn/config:/vpn"
-    security_opt:
-      - label:disable
-    ports:
-      - "8112:8112"
-    command: '-d -f "" -r {{ vpn_network_cidr }}'
+      - "{{ docker_htpc_home }}/wireguard/config:/config"
 
   deluge:
     container_name: deluge
     image: "linuxserver/deluge:{{ lsio_deluge_version }}"
     restart: unless-stopped
-    network_mode: service:vpn
+    network_mode: service:wireguard
     environment:
       - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}

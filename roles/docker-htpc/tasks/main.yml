@@ -10,7 +10,7 @@
     group: "{{ ansible_real_group_id }}"
   with_items:
     - path: "{{ docker_htpc_home }}"
-    - path: "{{ docker_htpc_home }}/vpn/config"
+    - path: "{{ docker_htpc_home }}/wireguard/config"
     - path: "{{ docker_htpc_home }}/deluge/config"
     - path: "{{ docker_htpc_home }}/jackett/config"
     - path: "{{ docker_htpc_home }}/sonarr/config"
@@ -20,7 +20,7 @@
       create: include_plex
   when: item.create | default(True) | bool
 
-- name: Copy OpenVPN configurations
+- name: Copy Wireguard configurations
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.path }}"
@@ -36,6 +36,11 @@
     src: mullvad_userpass.txt.j2
     dest: "{{ docker_htpc_home }}/vpn/config/mullvad_userpass.txt"
     backup: true
+
+- name: Install kernel headers
+  apt:
+    name: linux-headers-{{ ansible_facts.ansible_kernel }}
+    state: present
 
 - name: Copy Deluge configurations
   template:
