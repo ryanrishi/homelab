@@ -13,10 +13,7 @@ all:
       hosts:
         ddclient.threekings.ccag119.info:
         media.threekings.ccag119.info:
-          # ansible_python_interpreter: /usr/bin/python3
         monitoring.threekings.ccag119.info:
-          # ansible_python_interpreter: /usr/bin/python3
         nimitz.threekings.ccag119.info:
         pihole.threekings.ccag119.info:
         wireguard.threekings.ccag119.info:
-

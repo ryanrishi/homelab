@@ -37,7 +37,7 @@
   hosts: threekings
   become: true
   roles:
-    - docker-prometheus-node-exporter
+    - cloudalchemy.node_exporter
 
 - name: Grafana + Prometheus
   hosts: monitoring.threekings.ccag119.info
