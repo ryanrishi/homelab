@@ -12,7 +12,7 @@ lsio_jackett_version: v0.16.1103-ls15
 lsio_ombi_version: v3.0.5202-ls67
 lsio_sonarr_version: 2.0.0.5344-ls77
 lsio_radarr_version: v0.2.0.1504-ls76
-lsio_plex_version: 1.20.1.3252-a78fef9a9-ls116
+lsio_plex_version: 1.27.0.5897-3940636f2-ls120
 
 deluge_queue_new_to_top:              true
 deluge_allow_remote:                  true
