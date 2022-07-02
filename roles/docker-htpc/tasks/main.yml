@@ -12,7 +12,7 @@
     - path: "{{ docker_htpc_home }}"
     - path: "{{ docker_htpc_home }}/vpn/config"
     - path: "{{ docker_htpc_home }}/deluge/config"
-    - path: "{{ docker_htpc_home }}/jackett/config"
+    - path: "{{ docker_htpc_home }}/prowlarr/config"
     - path: "{{ docker_htpc_home }}/sonarr/config"
     - path: "{{ docker_htpc_home }}/radarr/config"
     - path: "{{ docker_htpc_home }}/ombi/config"
@@ -53,5 +53,6 @@
 - name: Start docker-compose
   docker_compose:
     project_src: "{{ docker_htpc_home }}"
-    restarted: yes
+    restarted: true
+    remove_orphans: true
   when: _docker_htpc_docker_compose.changed

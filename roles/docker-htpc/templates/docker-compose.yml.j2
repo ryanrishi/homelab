@@ -30,9 +30,9 @@ services:
       - "{{ downloads_dir }}/downloads:/downloads"
       - "{{ docker_htpc_home }}/deluge/config:/config"
 
-  jackett:
-    container_name: jackett
-    image: "linuxserver/jackett:{{ lsio_jackett_version }}"
+  prowlarr:
+    container_name: prowlarr
+    image: "linuxserver/prowlarr:{{ lsio_prowlarr_version }}"
     restart: unless-stopped
     network_mode: host
     environment:
@@ -40,9 +40,7 @@ services:
       - PGID={{ ansible_user_gid }}
       - TZ=Etc/UTC
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - "{{ downloads_dir }}/downloads/torrent-blackhole:/downloads"
-      - "{{ docker_htpc_home }}/jackett/config:/config"
+      - "{{ docker_htpc_home }}/prowlarr/config:/config"
 
   ombi:
     container_name: ombi
