@@ -7,11 +7,11 @@ mullvad_account_id: 1234567887654321
 # OpenVPN Client doesn't really support Docker tags
 # see https://github.com/dperson/openvpn-client/issues/40
 openvpn_client_version: latest
-lsio_deluge_version: 2.0.3-2201906121747ubuntu18.04.1-ls75
-lsio_ombi_version: v3.0.5202-ls67
-lsio_sonarr_version: 2.0.0.5344-ls77
-lsio_radarr_version: v0.2.0.1504-ls76
-lsio_plex_version: 1.27.0.5897-3940636f2-ls120
+lsio_deluge_version: 2.0.5
+lsio_ombi_version: 4.16.12
+lsio_sonarr_version: 3.0.8
+lsio_radarr_version: 4.1.0
+lsio_plex_version: 1.27.1
 lsio_prowlarr_version: develop
 
 deluge_queue_new_to_top:              true
