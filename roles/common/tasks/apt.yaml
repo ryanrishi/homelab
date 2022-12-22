@@ -1,3 +1,40 @@
+- name: Add apt repositories
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+    update_cache: false
+  with_items: "{{ apt_repositories }}"
+  register: _add_apt_repositories
+
+- name: Remove old apt repositories
+  apt_repository:
+    repo: "{{ item }}"
+    state: absent
+    update_cache: false
+  with_items: "{{ old_apt_repositories }}"
+  register: _remove_old_apt_repositories
+
+- name: Perform dist-upgrade
+  apt:
+    upgrade: dist
+  when: _add_apt_repositories.changed or _remove_old_apt_repositories.changed
+  register: _dist_upgrade
+
+- name: Reboot the server
+  ansible.builtin.shell: 'sleep 5 && reboot'
+  async: 1
+  poll: 0
+  when: _dist_upgrade.changed
+  register: _reboot
+
+- name: Wait until server is up
+  ansible.builtin.wait_for_connection:
+    connect_timeout: 10
+    sleep: 5
+    delay: 10
+    timeout: 300
+  when: _reboot.changed
+
 - name: Update apt cache
   apt:
     update_cache: yes

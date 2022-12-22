@@ -5,7 +5,7 @@
 
 - name: Add Influx data APT repository
   apt_repository:
-    repo: 'deb https://repos.influxdata.com/debian buster stable'
+    repo: 'deb https://repos.influxdata.com/debian bullseye stable'
     state: present
 
 - name: Install Telegraf

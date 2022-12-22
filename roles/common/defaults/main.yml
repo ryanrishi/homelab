@@ -1,3 +1,19 @@
+apt_repositories:
+  - deb http://deb.debian.org/debian/ bullseye main
+  - deb-src http://deb.debian.org/debian/ bullseye main
+  - deb http://security.debian.org/debian-security bullseye-security main
+  - deb-src http://security.debian.org/debian-security bullseye-security main
+  - deb http://deb.debian.org/debian bullseye-updates main
+  - deb-src http://deb.debian.org/debian bullseye-updates main
+
+old_apt_repositories:
+  - deb http://deb.debian.org/debian buster main
+  - deb-src http://deb.debian.org/debian buster main
+  - deb http://security.debian.org/debian-security buster/updates main
+  - deb-src http://security.debian.org/debian-security buster/updates main
+  - deb http://deb.debian.org/debian/ buster-updates main
+  - deb-src http://deb.debian.org/debian/ buster-updates main
+
 common_packages:
   - dnsutils
   - gnupg
