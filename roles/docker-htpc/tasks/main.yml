@@ -20,6 +20,7 @@
       create: include_plex
   when: item.create | default(True) | bool
 
+# TODO replace OpenVPN with wireguard
 - name: Copy OpenVPN configurations
   copy:
     src: "{{ item.src }}"
@@ -50,6 +51,7 @@
     backup: true
   register: _docker_htpc_docker_compose
 
+# TODO consider having different docker-compose for VPN? Or healthcheck for VPN to always ensure the external IP is not my real IP
 - name: Start docker-compose
   docker_compose:
     project_src: "{{ docker_htpc_home }}"
