@@ -55,4 +55,5 @@
     project_src: "{{ docker_htpc_home }}"
     restarted: true
     remove_orphans: true
+    build: true
   when: _docker_htpc_docker_compose.changed
