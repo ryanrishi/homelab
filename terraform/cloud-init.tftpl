@@ -1,0 +1,21 @@
+#cloud-config
+hostname: ${hostname}
+timezone: Etc/UTC
+manage_etc_hosts: true
+ssh_pwauth: false
+ssh_authorized_keys:
+%{ for key in ssh_authorized_keys ~}
+  - ${key}
+%{ endfor ~}
+chpasswd:
+  expire: False
+users:
+  - default
+  - name: ryan
+    groups: users,admin,wheel
+    sudo: ALL=(ALL) NOPASSWD:ALL
+package_update: true
+package_upgrade: true
+packages:
+  - htop
+  - tree
