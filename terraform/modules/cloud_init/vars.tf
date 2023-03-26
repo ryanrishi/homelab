@@ -6,11 +6,13 @@ variable "target_node" {
   default = "ryanrishi"
 }
 
-variable "ssh_authorized_keys" {
-  type = list(string)
-  default = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMO+4LbsTRGGW2SO0F5q7WLuOCCGW/wSbMPgIo1wO0/1 ryan@ryanrishi.com"
-  ]
+variable "users" {
+  type = map(any)
+  default = {
+    ryan = {
+      ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMO+4LbsTRGGW2SO0F5q7WLuOCCGW/wSbMPgIo1wO0/1 ryan@ryanrishi.com"
+    }
+  }
 }
 
 variable "cloud_init_template_name" {

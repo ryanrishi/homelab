@@ -21,8 +21,6 @@ resource "proxmox_vm_qemu" "cloud-init-test" {
     model  = "virtio"
   }
 
-  # sshkeys = var.ssh_public_key
-
   depends_on = [
     null_resource.cloud_init_config_files
   ]
@@ -30,8 +28,8 @@ resource "proxmox_vm_qemu" "cloud-init-test" {
 
 resource "local_file" "cloud_init_user_data" {
   content = templatefile("${path.cwd}/cloud-init.tftpl", {
-    ssh_authorized_keys = var.ssh_authorized_keys
-    hostname            = var.name
+    hostname = var.name
+    users    = var.users
   })
   filename = "${path.module}/files/user_data_${var.name}.cfg"
 }
