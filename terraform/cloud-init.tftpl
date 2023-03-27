@@ -6,7 +6,6 @@ ssh_pwauth: false
 chpasswd:
   expire: False
 users:
-  - default
 %{ for name, user in users ~}
   - name: ${name}
     groups: users,admin,wheel
