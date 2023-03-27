@@ -46,4 +46,8 @@ resource "null_resource" "cloud_init_config_files" {
     source      = local_file.cloud_init_user_data.filename
     destination = "/snippets/snippets/user_data_vm-${var.name}.yml"
   }
+
+  triggers = {
+    cloud_init_user_data = local_file.cloud_init_user_data.content_md5
+  }
 }
