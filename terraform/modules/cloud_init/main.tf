@@ -31,7 +31,7 @@ resource "local_file" "cloud_init_user_data" {
     hostname = var.name
     users    = var.users
   })
-  filename = "${path.module}/files/user_data_${var.name}.cfg"
+  filename = "${path.module}/files/user_data_${var.name}.yml"
 }
 
 resource "null_resource" "cloud_init_config_files" {
