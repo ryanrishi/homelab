@@ -15,7 +15,7 @@ Before using this, there needs to be a Proxmox user that has adequate permission
     $ cp env.example .env
     $ cp terraform.tfvars.example terraform.tfvars
     ```
-2. Modify `main.tf` to suit your needs. You may also need to pass in `users` to the module since I've defaulted it to my needs in `modules/cloud_init/vars.tf`. You may also want to modify `cloud-init.tfpl` if you want to customize your cloud-init configuration.
+2. Modify `main.tf` to suit your needs. You may also need to pass in `users` to the module since I've defaulted it to my needs in `modules/cloud_init/vars.tf`. You may also want to modify `modules/cloud_init/cloud-init.tfpl` if you want to customize your cloud-init configuration.
 3. Initialize Terraform
     ```sh
     $ tf init
