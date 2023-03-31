@@ -7,9 +7,14 @@ It's been a long-term goal of mine to move away from this manual and fragile pro
 
 This directory holds Terraform cloud for rendering cloud-init templates and creating virtual machines based on those cloud-init configuration files.
 
-Before using this, there needs to be a Proxmox user that has adequate permissions. I followed [this guide](https://austinsnerdythings.com/2021/09/01/how-to-deploy-vms-in-proxmox-with-terraform/) to create the user.
 
 # Usage
+### Prerequisites
+Before using this, there needs to be a Proxmox user that has adequate permissions. I followed [this guide](https://austinsnerdythings.com/2021/09/01/how-to-deploy-vms-in-proxmox-with-terraform/) to create the user.
+
+There also needs to be a template for cloud-init to use. I followed [this guide](https://www.norocketscience.at/blog/terraform/deploy-proxmox-virtual-machines-using-cloud-init), but used Debian instead of Ubuntu. Searching for "<distro> cloud images" will likely lead you to an appropriate cloud image.
+
+### Run It
 1. Copy the example files to their expected location. Be sure to replace the real values with the user credentials created above.
     ```sh
     $ cp env.example .env
