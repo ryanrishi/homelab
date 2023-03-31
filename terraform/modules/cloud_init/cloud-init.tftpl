@@ -1,0 +1,22 @@
+#cloud-config
+hostname: ${hostname}
+timezone: Etc/UTC
+manage_etc_hosts: true
+ssh_pwauth: false
+chpasswd:
+  expire: False
+users:
+%{ for name, user in users ~}
+  - name: ${name}
+    groups: users,admin,wheel
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${user.ssh_key}
+%{ endfor ~}
+package_update: true
+package_upgrade: true
+packages:
+  - htop
+  - qemu-guest-agent
+  - tree
