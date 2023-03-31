@@ -27,7 +27,7 @@ resource "proxmox_vm_qemu" "cloud-init-test" {
 }
 
 resource "local_file" "cloud_init_user_data" {
-  content = templatefile("${path.cwd}/cloud-init.tftpl", {
+  content = templatefile("${path.module}/cloud-init.tftpl", {
     hostname = var.name
     users    = var.users
   })
