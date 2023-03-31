@@ -27,7 +27,6 @@ Before using this, there needs to be a Proxmox user that has adequate permission
     You should see Terraform at work and eventually a prompt asking "Do you want to perform these actions?". Enter `yes` if you want to do so, and watch Terraform create virtual machines that use cloud-init!
 
 # Resources
-### Resources
 - [Deploy Proxmox virtual machines using Cloud-init](https://www.norocketscience.at/blog/terraform/deploy-proxmox-virtual-machines-using-cloud-init)
 - [cloud-init guide](https://registry.terraform.io/providers/Telmate/proxmox/latest/docs/guides/cloud_init)
 - [Proxmox cloud-init support](https://pve.proxmox.com/wiki/Cloud-Init_Support)
