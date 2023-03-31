@@ -2,3 +2,4 @@
 *.tfstate*
 .env
 *.tfvars
+*.log
