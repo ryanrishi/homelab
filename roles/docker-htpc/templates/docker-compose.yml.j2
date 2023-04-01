@@ -1,27 +1,22 @@
-version: "3.4"
+version: "3.8"
+
 services:
-  vpn:
-    container_name: vpn
-    image: "dperson/openvpn-client:{{ openvpn_client_version }}"
-    restart: unless-stopped
+  gluetun:
+    image: qmcgaw/gluetun:v3.32
     cap_add:
       - NET_ADMIN
-    sysctls:
-        - net.ipv6.conf.all.disable_ipv6=0
-    volumes:
-      - /dev/net:/dev/net:z
-      - "{{ docker_htpc_home }}/vpn/config:/vpn"
-    security_opt:
-      - label:disable
-    ports:
-      - "8112:8112"
-    command: '-d -f "" -r {{ vpn_network_cidr }}'
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY={{ mullvad_wireguard_private_key }}
+      - WIREGUARD_ADDRESSES={{ mullvad_wireguard_addresses }}
+      - SERVER_COUNTRIES={{ mullvad_wireguard_countries }}
 
   deluge:
     container_name: deluge
     image: "linuxserver/deluge:{{ lsio_deluge_version }}"
     restart: unless-stopped
-    network_mode: service:vpn
+    network_mode: service:gluetun
     environment:
       - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}

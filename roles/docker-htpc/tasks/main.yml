@@ -20,8 +20,7 @@
       create: include_plex
   when: item.create | default(True) | bool
 
-# TODO replace OpenVPN with wireguard
-- name: Copy OpenVPN configurations
+- name: Copy Wireguard configurations
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.path }}"
