@@ -1,0 +1,11 @@
+---
+- name: media
+  hosts: media
+  become: true
+  roles:
+    - role: docker-htpc
+      vars:
+        include_plex: true
+        mounts:
+          - src: hangar:/volume1/Plex
+            path: /mnt/Plex
