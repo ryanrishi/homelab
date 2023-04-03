@@ -79,7 +79,6 @@ services:
       - "{{ docker_htpc_home }}/radarr/config:/config"
       - "{{ downloads_dir }}/complete/movies:/movies"
       - "{{ docker_htpc_home }}/deluge/downloads:/downloads"
-{% if include_plex %}
 
   plex:
     container_name: plex
@@ -95,4 +94,3 @@ services:
       - "{{ downloads_dir }}/complete/tv:/tv"
       - "{{ downloads_dir }}/complete/movies:/movies"
       - "{{ downloads_dir }}/complete/concerts:/concerts"
-{% endif %}

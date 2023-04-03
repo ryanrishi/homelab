@@ -17,7 +17,6 @@
     - path: "{{ docker_htpc_home }}/radarr/config"
     - path: "{{ docker_htpc_home }}/ombi/config"
     - path: "{{ docker_htpc_home }}/plex/config"
-      create: include_plex
   when: item.create | default(True) | bool
 
 - name: Copy Wireguard configurations
