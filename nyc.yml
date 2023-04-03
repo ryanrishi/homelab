@@ -5,7 +5,6 @@
   roles:
     - role: docker-htpc
       vars:
-        include_plex: true
         mounts:
           - src: hangar:/volume1/Plex
             path: /mnt/Plex
