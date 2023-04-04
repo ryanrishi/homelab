@@ -13,6 +13,8 @@ services:
       - WIREGUARD_PRIVATE_KEY={{ mullvad_wireguard_private_key }}
       - WIREGUARD_ADDRESSES={{ mullvad_wireguard_addresses }}
       - SERVER_COUNTRIES={{ mullvad_wireguard_countries }}
+    ports:
+      - 8112:8112
 
   deluge:
     container_name: deluge
@@ -26,6 +28,9 @@ services:
     volumes:
       - "{{ downloads_dir }}/downloads:/downloads"
       - "{{ docker_htpc_home }}/deluge/config:/config"
+    depends_on:
+      gluetun:
+        condition: service_healthy
 
   prowlarr:
     container_name: prowlarr
