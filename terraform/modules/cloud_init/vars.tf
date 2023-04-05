@@ -19,8 +19,16 @@ variable "cloud_init_template_name" {
   default = "debian-11-cloudinit-template"
 }
 
+variable "cores" {
+  default = 1
+}
+
 variable "memory" {
   default = 2048
+}
+
+variable "balloon" {
+  default = 0
 }
 
 variable "disk_size" {

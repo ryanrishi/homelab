@@ -2,7 +2,9 @@ resource "proxmox_vm_qemu" "cloud-init-test" {
   target_node      = var.target_node
   name             = var.name
   full_clone       = false
+  cores            = var.cores
   memory           = var.memory
+  balloon          = var.balloon
   automatic_reboot = true
   scsihw           = "virtio-scsi-pci"
   clone            = var.cloud_init_template_name
