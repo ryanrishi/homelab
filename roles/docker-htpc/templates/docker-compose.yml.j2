@@ -97,6 +97,7 @@ services:
       - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
       - TZ=Etc/UTC
+      - PLEX_CLAIM={{ plex.claim }}
     volumes:
       - "{{ docker_htpc_home }}/plex/config:/config"
       - "{{ downloads_dir }}/complete/tv:/tv"
