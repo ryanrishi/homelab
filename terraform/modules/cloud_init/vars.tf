@@ -47,6 +47,14 @@ variable "gateway" {
   default = "192.168.1.1"
 }
 
+variable "nameserver" {
+  default = "192.168.1.2"
+}
+
+variable "searchdomain" {
+  default = "nyc.ccag119.info"
+}
+
 variable "pve_host" {
   default = "192.168.1.192"
 }

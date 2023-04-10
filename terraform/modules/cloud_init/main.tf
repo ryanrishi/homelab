@@ -13,6 +13,9 @@ resource "proxmox_vm_qemu" "vm" {
   ipconfig0        = "ip=${var.ip}/24,gw=${var.gateway}"
   cicustom         = "user=snippets:snippets/user_data_vm-${var.name}.yml"
 
+  nameserver   = var.nameserver
+  searchdomain = var.searchdomain
+
   disk {
     type    = "scsi"
     storage = "local-lvm"
