@@ -10,7 +10,7 @@ lsio_deluge_version: 2.1.1
 lsio_ombi_version: 4.22.5
 lsio_sonarr_version: 3.0.9
 lsio_radarr_version: 4.2.4
-lsio_plex_version: 1.30.0
+lsio_plex_version: 1.32.0
 lsio_prowlarr_version: develop-0.4.11.2143-ls79
 
 deluge_queue_new_to_top:              true
