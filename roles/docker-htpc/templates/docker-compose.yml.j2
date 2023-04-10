@@ -15,6 +15,7 @@ services:
       - SERVER_COUNTRIES={{ mullvad_wireguard_countries }}
     ports:
       - 8112:8112
+      - 9696:9696
 
   deluge:
     container_name: deluge
@@ -36,7 +37,7 @@ services:
     container_name: prowlarr
     image: "linuxserver/prowlarr:{{ lsio_prowlarr_version }}"
     restart: unless-stopped
-    network_mode: host
+    network_mode: service:gluetun
     environment:
       - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
