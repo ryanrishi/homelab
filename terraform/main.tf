@@ -3,6 +3,7 @@ module "media" {
   name   = "media"
   ip     = "192.168.1.201"
 
+  cores     = 8
   disk_size = "8G"
   memory    = 8192
   balloon   = 2048
