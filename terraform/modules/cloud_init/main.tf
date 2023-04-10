@@ -5,6 +5,7 @@ resource "proxmox_vm_qemu" "vm" {
   cores            = var.cores
   memory           = var.memory
   balloon          = var.balloon
+  agent            = var.agent
   automatic_reboot = true
   scsihw           = "virtio-scsi-pci"
   clone            = var.cloud_init_template_name

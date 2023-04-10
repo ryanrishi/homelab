@@ -35,6 +35,10 @@ variable "disk_size" {
   default = "2G"
 }
 
+variable "agent" {
+  default = 1
+}
+
 variable "ip" {
   type = string
 }
