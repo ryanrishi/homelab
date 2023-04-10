@@ -25,7 +25,7 @@ resource "proxmox_vm_qemu" "vm" {
   }
 
   depends_on = [
-    null_resource.cloud_init_config_files
+    null_resource.cloud_init_user_data
   ]
 }
 
@@ -37,7 +37,7 @@ resource "local_file" "cloud_init_user_data" {
   filename = "${path.module}/files/user_data_${var.name}.yml"
 }
 
-resource "null_resource" "cloud_init_config_files" {
+resource "null_resource" "cloud_init_user_data" {
   connection {
     type     = "ssh"
     user     = var.pve_user
