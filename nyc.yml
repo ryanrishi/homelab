@@ -4,7 +4,3 @@
   become: true
   roles:
     - role: docker-htpc
-      vars:
-        mounts:
-          - src: hangar:/volume1/Plex
-            path: /mnt/Plex
