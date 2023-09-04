@@ -16,10 +16,14 @@ variable "users" {
 }
 
 variable "cloud_init_template_name" {
-  default = "debian-11-cloudinit-template"
+  default = "debian-12-generic-amd64"
 }
 
 variable "cores" {
+  default = 1
+}
+
+variable "sockets" {
   default = 1
 }
 
@@ -35,12 +39,25 @@ variable "disk_size" {
   default = "2G"
 }
 
+variable "bios" {
+  default = "ovmf"
+}
+
+variable "onboot" {
+  default = true
+}
+
+variable "oncreate" {
+  default = true
+}
+
 variable "agent" {
   default = 1
 }
 
 variable "ip" {
-  type = string
+  type    = string
+  default = null
 }
 
 variable "gateway" {
