@@ -36,7 +36,7 @@ variable "balloon" {
 }
 
 variable "disk_size" {
-  default = "2G"
+  default = "4G"
 }
 
 variable "bios" {
