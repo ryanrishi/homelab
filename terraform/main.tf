@@ -20,8 +20,7 @@ module "media" {
 module "wireguard" {
   source = "./modules/cloud_init"
   name   = "wireguard"
-
-  oncreate = false
+  ip     = "192.168.1.203"
 
   cores   = 2
   sockets = 2

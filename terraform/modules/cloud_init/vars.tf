@@ -16,7 +16,7 @@ variable "users" {
 }
 
 variable "cloud_init_template_name" {
-  default = "debian-12-generic-amd64"
+  default = "debian-12-generic"
 }
 
 variable "cores" {
