@@ -3,7 +3,7 @@ version: "3.8"
 services:
   gluetun:
     container_name: gluetun
-    image: qmcgaw/gluetun:v3.32
+    image: qmcgaw/gluetun:{{ gluetun_version }}
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
@@ -14,8 +14,10 @@ services:
       - WIREGUARD_ADDRESSES={{ mullvad_wireguard_addresses }}
       - SERVER_COUNTRIES={{ mullvad_wireguard_countries }}
     ports:
-      - 8112:8112
-      - 9696:9696
+      - 7878:7878 # radarr
+      - 8112:8112 # deluge
+      - 8989:8989 # sonarr
+      - 9696:9696 # prowlarr
 
   deluge:
     container_name: deluge
@@ -62,7 +64,7 @@ services:
     container_name: sonarr
     image: "linuxserver/sonarr:{{ lsio_sonarr_version }}"
     restart: unless-stopped
-    network_mode: host
+    network_mode: service:gluetun
     environment:
       - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
@@ -77,7 +79,7 @@ services:
     container_name: radarr
     image: "linuxserver/radarr:{{ lsio_radarr_version }}"
     restart: unless-stopped
-    network_mode: host
+    network_mode: service:gluetun
     environment:
       - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
