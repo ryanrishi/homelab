@@ -4,3 +4,9 @@
   become: true
   roles:
     - role: docker-htpc
+
+- name: wireguard
+  hosts: wireguard
+  become: true
+  roles:
+    - role: docker-wireguard
