@@ -31,4 +31,5 @@ runcmd:
   # qemu-guest-agent is a static service, but it requires a reboot in order to start
   # Since there's not a great way of rebooting via Terraform, manually start the service
   # See https://forum.proxmox.com/threads/qemu-guest-agent-wont-start.75863/#post-337625
+  - systemctl enable qemu-guest-agent
   - systemctl start qemu-guest-agent
