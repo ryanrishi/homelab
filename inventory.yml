@@ -22,3 +22,4 @@ all:
         ansible_host: "{{ inventory_hostname }}.nyc.ccag119.info"
       hosts:
         media:
+        wireguard:
