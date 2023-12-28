@@ -1,8 +1,6 @@
 docker_htpc_home: /opt/docker-htpc
 downloads_dir:    /mnt/someshare
 
-mullvad_account_id: 1234567887654321
-
 # OpenVPN Client doesn't really support Docker tags
 # see https://github.com/dperson/openvpn-client/issues/40
 openvpn_client_version: latest
