@@ -10,3 +10,9 @@
   become: true
   roles:
     - role: docker-wireguard
+
+- name: ddclient
+  hosts: ddclient
+  become: true
+  roles:
+    - role: ddclient
