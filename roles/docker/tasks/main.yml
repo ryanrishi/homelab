@@ -1,0 +1,6 @@
+- name: Create /etc/docker/daemon.json
+  template:
+    src: etc/docker/daemon.json
+    dest: /etc/docker/daemon.json
+    owner: "{{ ansible_real_user_id }}"
+    group: "{{ ansible_real_group_id }}"
