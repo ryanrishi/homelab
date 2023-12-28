@@ -61,11 +61,11 @@ variable "ip" {
 }
 
 variable "gateway" {
-  default = "192.168.1.1"
+  default = "192.168.4.1"
 }
 
 variable "nameserver" {
-  default = "192.168.1.2"
+  default = "192.168.4.1"
 }
 
 variable "searchdomain" {

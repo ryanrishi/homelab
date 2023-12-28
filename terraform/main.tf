@@ -1,7 +1,7 @@
 module "media" {
   source = "./modules/cloud_init"
   name   = "media"
-  ip     = "192.168.1.201"
+  ip     = "192.168.4.201"
 
   cores     = 4
   sockets   = 2
@@ -20,7 +20,7 @@ module "media" {
 module "wireguard" {
   source = "./modules/cloud_init"
   name   = "wireguard"
-  ip     = "192.168.1.203"
+  ip     = "192.168.4.203"
 
   cores   = 2
   sockets = 2
