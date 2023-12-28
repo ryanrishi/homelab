@@ -11,7 +11,7 @@
     - resolvconf
 
 - name: ddclient
-  hosts: ddclient.threekings.ccag119.info
+  hosts: ddclient
   roles:
     - ddclient
 
@@ -22,14 +22,13 @@
     - telegraf
 
 - name: media
-  hosts: media.threekings.ccag119.info
+  hosts: media
+  become: true
   roles:
     - role: docker-htpc
-      vars:
-        include_plex: true
 
 - name: wireguard
-  hosts: wireguard.threekings.ccag119.info
+  hosts: wireguard
   roles:
     - docker-wireguard
 
@@ -40,7 +39,7 @@
     - cloudalchemy.node_exporter
 
 - name: Grafana + Prometheus
-  hosts: monitoring.threekings.ccag119.info
+  hosts: monitoring
   become: true
   roles:
     - docker-grafana-prometheus
