@@ -1,27 +1,29 @@
-version: "3.4"
+version: "3.8"
+
 services:
-  vpn:
-    container_name: vpn
-    image: "dperson/openvpn-client:{{ openvpn_client_version }}"
+  gluetun:
+    container_name: gluetun
+    image: qmcgaw/gluetun:{{ gluetun_version }}
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
-    sysctls:
-        - net.ipv6.conf.all.disable_ipv6=0
-    volumes:
-      - /dev/net:/dev/net:z
-      - "{{ docker_htpc_home }}/vpn/config:/vpn"
-    security_opt:
-      - label:disable
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY={{ mullvad_wireguard_private_key }}
+      - WIREGUARD_ADDRESSES={{ mullvad_wireguard_addresses }}
+      - SERVER_COUNTRIES={{ mullvad_wireguard_countries }}
     ports:
-      - "8112:8112"
-    command: '-d -f "" -r {{ vpn_network_cidr }}'
+      - 7878:7878 # radarr
+      - 8112:8112 # deluge
+      - 8989:8989 # sonarr
+      - 9696:9696 # prowlarr
 
   deluge:
     container_name: deluge
     image: "linuxserver/deluge:{{ lsio_deluge_version }}"
     restart: unless-stopped
-    network_mode: service:vpn
+    network_mode: service:gluetun
     environment:
       - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
@@ -29,12 +31,15 @@ services:
     volumes:
       - "{{ downloads_dir }}/downloads:/downloads"
       - "{{ docker_htpc_home }}/deluge/config:/config"
+    depends_on:
+      gluetun:
+        condition: service_healthy
 
   prowlarr:
     container_name: prowlarr
     image: "linuxserver/prowlarr:{{ lsio_prowlarr_version }}"
     restart: unless-stopped
-    network_mode: host
+    network_mode: service:gluetun
     environment:
       - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
@@ -59,7 +64,7 @@ services:
     container_name: sonarr
     image: "linuxserver/sonarr:{{ lsio_sonarr_version }}"
     restart: unless-stopped
-    network_mode: host
+    network_mode: service:gluetun
     environment:
       - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
@@ -74,7 +79,7 @@ services:
     container_name: radarr
     image: "linuxserver/radarr:{{ lsio_radarr_version }}"
     restart: unless-stopped
-    network_mode: host
+    network_mode: service:gluetun
     environment:
       - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
@@ -84,7 +89,6 @@ services:
       - "{{ docker_htpc_home }}/radarr/config:/config"
       - "{{ downloads_dir }}/complete/movies:/movies"
       - "{{ docker_htpc_home }}/deluge/downloads:/downloads"
-{% if include_plex %}
 
   plex:
     container_name: plex
@@ -95,9 +99,10 @@ services:
       - PUID={{ ansible_user_uid }}
       - PGID={{ ansible_user_gid }}
       - TZ=Etc/UTC
+      - PLEX_CLAIM={{ plex.claim }}
+      - VERSION=public  # see https://github.com/linuxserver/docker-plex#application-setup
     volumes:
       - "{{ docker_htpc_home }}/plex/config:/config"
       - "{{ downloads_dir }}/complete/tv:/tv"
       - "{{ downloads_dir }}/complete/movies:/movies"
       - "{{ downloads_dir }}/complete/concerts:/concerts"
-{% endif %}

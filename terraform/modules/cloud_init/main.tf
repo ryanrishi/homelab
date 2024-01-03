@@ -1,14 +1,25 @@
-resource "proxmox_vm_qemu" "cloud-init-test" {
+resource "proxmox_vm_qemu" "vm" {
   target_node      = var.target_node
   name             = var.name
+  bios             = var.bios
+  qemu_os          = "other"
   full_clone       = false
+  cores            = var.cores
+  sockets          = var.sockets
   memory           = var.memory
+  balloon          = var.balloon
+  agent            = var.agent
   automatic_reboot = true
+  onboot           = var.onboot
+  oncreate         = var.oncreate
   scsihw           = "virtio-scsi-pci"
   clone            = var.cloud_init_template_name
   os_type          = "cloud-init"
-  ipconfig0        = "ip=${var.ip}/24,gw=${var.gateway}"
+  ipconfig0        = var.ip == null ? "ip=dhcp" : "ip=${var.ip}/24,gw=${var.gateway}"
   cicustom         = "user=snippets:snippets/user_data_vm-${var.name}.yml"
+
+  nameserver   = var.nameserver
+  searchdomain = var.searchdomain
 
   disk {
     type    = "scsi"
@@ -22,7 +33,7 @@ resource "proxmox_vm_qemu" "cloud-init-test" {
   }
 
   depends_on = [
-    null_resource.cloud_init_config_files
+    null_resource.cloud_init_user_data
   ]
 }
 
@@ -34,7 +45,7 @@ resource "local_file" "cloud_init_user_data" {
   filename = "${path.module}/files/user_data_${var.name}.yml"
 }
 
-resource "null_resource" "cloud_init_config_files" {
+resource "null_resource" "cloud_init_user_data" {
   connection {
     type     = "ssh"
     user     = var.pve_user

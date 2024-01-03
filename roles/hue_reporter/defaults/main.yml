@@ -1,2 +1,2 @@
-bridge_ip: 192.168.1.2  # TODO make this a hostname instae of IP
+bridge_ip: 192.168.1.2  # TODO make this a hostname instead of IP
 philips_hue_token: So0p3rs3cur3

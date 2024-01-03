@@ -1,0 +1,14 @@
+all:
+  hosts:
+  children:
+    threekings:
+      vars:
+        ansible_host: "{{ inventory_hostname }}.threekings.ccag119.info"
+        ansible_python_interpreter: /usr/bin/python3
+      hosts:
+        # ddclient:
+        media:
+        monitoring:
+        # nimitz:
+        # pihole:
+        wireguard:

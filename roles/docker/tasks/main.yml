@@ -1,12 +1,6 @@
----
-- name: Install python3-pip
-  apt:
-    name: python3-pip
-    state: present
-
-- name: Install docker and docker-compose Python modules
-  pip:
-    name:
-      - docker
-      - docker-compose
-    state: present
+- name: Create /etc/docker/daemon.json
+  template:
+    src: etc/docker/daemon.json
+    dest: /etc/docker/daemon.json
+    owner: "{{ ansible_real_user_id }}"
+    group: "{{ ansible_real_group_id }}"

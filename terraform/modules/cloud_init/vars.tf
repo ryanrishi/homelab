@@ -16,23 +16,60 @@ variable "users" {
 }
 
 variable "cloud_init_template_name" {
-  default = "debian-11-cloudinit-template"
+  default = "debian-12-generic"
+}
+
+variable "cores" {
+  default = 1
+}
+
+variable "sockets" {
+  default = 1
 }
 
 variable "memory" {
   default = 2048
 }
 
+variable "balloon" {
+  default = 0
+}
+
 variable "disk_size" {
-  default = "2G"
+  default = "4G"
+}
+
+variable "bios" {
+  default = "ovmf"
+}
+
+variable "onboot" {
+  default = true
+}
+
+variable "oncreate" {
+  default = true
+}
+
+variable "agent" {
+  default = 1
 }
 
 variable "ip" {
-  type = string
+  type    = string
+  default = null
 }
 
 variable "gateway" {
-  default = "192.168.1.1"
+  default = "192.168.4.1"
+}
+
+variable "nameserver" {
+  default = "192.168.4.1"
+}
+
+variable "searchdomain" {
+  default = "nyc.ccag119.info"
 }
 
 variable "pve_host" {

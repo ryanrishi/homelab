@@ -17,32 +17,18 @@
     - path: "{{ docker_htpc_home }}/radarr/config"
     - path: "{{ docker_htpc_home }}/ombi/config"
     - path: "{{ docker_htpc_home }}/plex/config"
-      create: include_plex
   when: item.create | default(True) | bool
-
-# TODO replace OpenVPN with wireguard
-- name: Copy OpenVPN configurations
-  copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.path }}"
-    backup: true
-  with_items:
-    - src: mullvad_ca_all.conf
-      path: "{{ docker_htpc_home }}/vpn/config/mullvad_ca_all.conf"
-    - src: mullvad_ca.crt
-      path: "{{ docker_htpc_home }}/vpn/config/mullvad_ca.crt"
-
-- name: Copy Mullvad credentials
-  template:
-    src: mullvad_userpass.txt.j2
-    dest: "{{ docker_htpc_home }}/vpn/config/mullvad_userpass.txt"
-    backup: true
 
 - name: Copy Deluge configurations
   template:
-    src: deluge/config/core.conf.j2
-    dest: "{{ docker_htpc_home }}/deluge/config/core.conf"
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
     backup: true
+  with_items:
+    - src: deluge/config/core.conf.j2
+      dest: "{{ docker_htpc_home }}/deluge/config/core.conf"
+    - src: deluge/config/autoadd.conf
+      dest: "{{ docker_htpc_home }}/deluge/config/autoadd.conf"
 
 - name: Copy docker-compose
   template:
