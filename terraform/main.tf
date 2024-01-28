@@ -5,7 +5,7 @@ module "media" {
 
   cores     = 4
   sockets   = 2
-  disk_size = "16G"
+  disk_size = 16
   memory    = 8192
   balloon   = 2048
 
@@ -26,6 +26,8 @@ module "wireguard" {
   sockets = 2
   memory  = 1024
   balloon = 512
+
+  vm_state = "stopped"
 
   # TODO I really don't like passing this in to every VM... is there a better way to get cloud-init configs into PVE?
   pve_host     = var.pve_host

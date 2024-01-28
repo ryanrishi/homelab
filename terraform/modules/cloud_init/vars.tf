@@ -32,11 +32,12 @@ variable "memory" {
 }
 
 variable "balloon" {
-  default = 0
+  default = 512
 }
 
 variable "disk_size" {
-  default = "4G"
+  description = "Disk size, in gigabytes"
+  default     = 4
 }
 
 variable "bios" {
@@ -49,6 +50,10 @@ variable "onboot" {
 
 variable "oncreate" {
   default = true
+}
+
+variable "vm_state" {
+  default = "running"
 }
 
 variable "agent" {

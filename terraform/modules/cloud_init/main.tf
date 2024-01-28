@@ -11,7 +11,7 @@ resource "proxmox_vm_qemu" "vm" {
   agent            = var.agent
   automatic_reboot = true
   onboot           = var.onboot
-  oncreate         = var.oncreate
+  vm_state         = var.vm_state
   scsihw           = "virtio-scsi-pci"
   clone            = var.cloud_init_template_name
   os_type          = "cloud-init"
@@ -21,10 +21,16 @@ resource "proxmox_vm_qemu" "vm" {
   nameserver   = var.nameserver
   searchdomain = var.searchdomain
 
-  disk {
-    type    = "scsi"
-    storage = "local-lvm"
-    size    = var.disk_size
+  disks {
+    scsi {
+      scsi0 {
+        disk {
+          storage   = "local-lvm"
+          size      = var.disk_size
+          replicate = true
+        }
+      }
+    }
   }
 
   network {
