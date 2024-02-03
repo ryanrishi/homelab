@@ -2,3 +2,4 @@ k3s_server_location: "/var/lib/rancher/k3s"
 k3s_version: v1.26.9+k3s1
 systemd_dir: "/etc/systemd/system"
 token: token  # TODO rotate this once you've figured out a better way to store secrets
+extra_server_args:
