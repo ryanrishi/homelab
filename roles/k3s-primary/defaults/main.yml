@@ -1,0 +1,2 @@
+k3s_version: v1.26.9+k3s1
+systemd_dir: "/etc/systemd/system"
