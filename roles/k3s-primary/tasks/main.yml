@@ -37,7 +37,7 @@
         mode: 0644
 
 - name: Init first server node
-  when: inventory_hostname == groups['server'][0]
+  # when: inventory_hostname == groups['server'][0]
   block:
     # - name: Copy K3s service file [Single]
     #   when: groups['server'] | length == 1
