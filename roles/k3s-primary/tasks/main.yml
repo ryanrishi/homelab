@@ -1,0 +1,4 @@
+- name: Touch /tmp/hello-from-ansible-cloud-init
+  file:
+    path: /tmp/hello-from-ansible-cloud-init
+    state: present

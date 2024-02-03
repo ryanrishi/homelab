@@ -59,11 +59,12 @@ module "k3s-primary" {
 
   additional_cloud_init_config = <<-EOT
   ansible:
-    install_method: pip
+    install_method: distro
+    package_name: ansible-core
     pull:
       url: https://github.com/ryanrishi/homelab.git
       checkout: k3s
-      playbook_name: k3s-primary
+      playbook_name: playbooks/k3s-primary.yml
   EOT
 
   # TODO I really don't like passing this in to every VM... is there a better way to get cloud-init configs into PVE?
