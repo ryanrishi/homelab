@@ -18,6 +18,8 @@ resource "proxmox_vm_qemu" "vm" {
   ipconfig0        = var.ip == null ? "ip=dhcp" : "ip=${var.ip}/24,gw=${var.gateway}"
   cicustom         = "user=snippets:snippets/user_data_vm-${var.name}.yml"
 
+  cloudinit_cdrom_storage = "local-lvm"
+
   nameserver   = var.nameserver
   searchdomain = var.searchdomain
 
@@ -41,6 +43,10 @@ resource "proxmox_vm_qemu" "vm" {
   depends_on = [
     null_resource.cloud_init_user_data
   ]
+
+  lifecycle {
+    ignore_changes = [clone]
+  }
 }
 
 resource "local_file" "cloud_init_user_data" {

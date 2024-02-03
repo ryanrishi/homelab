@@ -48,3 +48,32 @@ module "ddclient" {
   pve_user     = var.pve_user
   pve_password = var.pve_password
 }
+
+module "k3s-primary" {
+  source = "./modules/cloud_init"
+  name   = "k3s-primary"
+
+  cores   = 2
+  sockets = 2
+  memory  = 2048
+
+  # TODO I really don't like passing this in to every VM... is there a better way to get cloud-init configs into PVE?
+  pve_host     = var.pve_host
+  pve_user     = var.pve_user
+  pve_password = var.pve_password
+}
+
+module "k3s-workers" {
+  count  = 2
+  source = "./modules/cloud_init"
+  name   = "k3s-replica-${count.index}"
+
+  cores   = 2
+  sockets = 2
+  memory  = 2048
+
+  # TODO I really don't like passing this in to every VM... is there a better way to get cloud-init configs into PVE?
+  pve_host     = var.pve_host
+  pve_user     = var.pve_user
+  pve_password = var.pve_password
+}
