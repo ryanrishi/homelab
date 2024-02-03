@@ -50,10 +50,15 @@ resource "proxmox_vm_qemu" "vm" {
 }
 
 resource "local_file" "cloud_init_user_data" {
-  content = templatefile("${path.module}/cloud-init.tftpl", {
-    hostname = var.name
-    users    = var.users
-  })
+  content = join("", [
+    templatefile("${path.module}/cloud-init.tftpl", {
+      hostname = var.name
+      users    = var.users
+    }),
+    var.additional_cloud_init_config
+    ]
+  )
+
   filename = "${path.module}/files/user_data_${var.name}.yml"
 }
 
