@@ -53,9 +53,10 @@ module "k3s-primary" {
   source = "./modules/cloud_init"
   name   = "k3s-primary"
 
-  cores   = 2
-  sockets = 2
-  memory  = 2048
+  cores     = 2
+  sockets   = 2
+  memory    = 2048
+  disk_size = 20
 
   additional_cloud_init_config = <<-EOT
   ansible:
