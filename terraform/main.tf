@@ -49,9 +49,9 @@ module "ddclient" {
   pve_password = var.pve_password
 }
 
-module "k3s-primary" {
+module "k3s-server" {
   source = "./modules/cloud_init"
-  name   = "k3s-primary"
+  name   = "k3s-server"
 
   cores     = 2
   sockets   = 2
@@ -65,7 +65,7 @@ module "k3s-primary" {
     pull:
       url: https://github.com/ryanrishi/homelab.git
       checkout: k3s
-      playbook_name: k3s-primary.yml
+      playbook_name: k3s-server.yml
 
   # Unfortunately `cloud_final_modules` can't be merged, only overwritten
   # This is the list from /etc/cloud/cloud.cfg with `ansible` added

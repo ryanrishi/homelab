@@ -41,7 +41,8 @@ $ k create deployment hello-world --image hello-world -o yaml > hello-world.yml
 Here is an unprioritized list of some things I want to do next:
 - Store secrets using something like Ansible vault. Need to find a way to put the vault pass in the VM before cloud-init runs
 - See if I can upgrade the Debian base image. I think recent versions of cloud-init have ansible as a final module, so that would eliminate my need to override `cloud_final_modules` in my modules in [`terraform/main.tf`](terraform/main.tf)
-- explore using LXC for k3s hosts to move things a little closer to the metal
-- move "role" VMs (media, monitoring, etc.) into k3s - monitoring should probably have its own namespace
-- be able to pass `role` in Terraform and have it generate the right Ansible cloud-init stuff. DRY things up if I make Ansible cloud-init config a first-class citizen
-- figure out some best practices in deploying k3s resources. Helm? ArgoCD? `k apply -f k3s/*.yml`?
+- Explore using LXC for k3s hosts to move things a little closer to the metal
+- Move "role" VMs (media, monitoring, etc.) into k3s - monitoring should probably have its own namespace
+- Pass `role` in Terraform and have it generate the right Ansible cloud-init stuff. DRY things up if I make Ansible cloud-init config a first-class citizen
+- Figure out some best practices in deploying k3s resources. Helm? ArgoCD? `k apply -f k3s/*.yml`?
+- Get multi-server k3s going. Right now it's just one server and two replicas, which is fine for testing but I don't want anything I actually use running until I have multi-server

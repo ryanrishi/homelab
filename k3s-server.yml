@@ -3,4 +3,4 @@
   connection: local
   become: true
   roles:
-    - k3s-primary
+    - k3s-server
