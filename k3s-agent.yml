@@ -3,4 +3,4 @@
   connection: local
   become: true
   roles:
-    - k3s-replica
+    - k3s-agent
