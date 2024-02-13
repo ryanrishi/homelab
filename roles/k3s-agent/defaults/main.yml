@@ -5,3 +5,4 @@ systemd_dir: "/etc/systemd/system"
 token: token  # TODO rotate this once you've figured out a better way to store secrets
 k3s_primary_endpoint: k3s-primary # TODO don't rely on DNS resolution
 k3s_primary_port: 6443
+extra_agent_args:
