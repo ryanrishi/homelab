@@ -53,6 +53,11 @@ locals {
   k3s_server_count = 3
 }
 
+resource "random_password" "password" {
+  length  = 16
+  special = false
+}
+
 module "k3s-server" {
   count  = local.k3s_server_count
   source = "./modules/cloud_init"
@@ -74,6 +79,7 @@ module "k3s-server" {
       extra_vars:
         cluster_init: ${count.index == 0}
         num_servers: ${local.k3s_server_count}
+        token: ${random_password.password.result}
 
   # Unfortunately `cloud_final_modules` can't be merged, only overwritten
   # This is the list from /etc/cloud/cloud.cfg with `ansible` added
@@ -111,7 +117,7 @@ module "k3s-server" {
 }
 
 module "k3s-agent" {
-  count  = 2
+  count  = 4
   source = "./modules/cloud_init"
   name   = "k3s-replica-${count.index}"
 
@@ -128,6 +134,8 @@ module "k3s-agent" {
       url: https://github.com/ryanrishi/homelab.git
       checkout: k3s
       playbook_name: k3s-agent.yml
+      extra_vars:
+        token: ${random_password.password.result}
 
   # Unfortunately `cloud_final_modules` can't be merged, only overwritten
   # This is the list from /etc/cloud/cloud.cfg with `ansible` added
@@ -163,4 +171,8 @@ module "k3s-agent" {
   pve_host     = var.pve_host
   pve_user     = var.pve_user
   pve_password = var.pve_password
+
+  depends_on = [
+    module.k3s-server
+  ]
 }
