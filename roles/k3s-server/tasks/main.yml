@@ -1,0 +1,103 @@
+---
+- name: Download K3s install script
+  ansible.builtin.get_url:
+    url: https://get.k3s.io/
+    timeout: 120
+    dest: /usr/local/bin/k3s-install.sh
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Download K3s binary
+  ansible.builtin.command:
+    cmd: /usr/local/bin/k3s-install.sh
+  environment:
+    INSTALL_K3S_SKIP_START: "true"
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+  changed_when: true
+
+- name: Add K3s autocomplete to user bashrc
+  ansible.builtin.lineinfile:
+    path: "~{{ ansible_user }}/.bashrc"
+    regexp: '\.\s+<\(k3s completion bash\)'
+    line: ". <(k3s completion bash)  # Added by k3s-ansible"
+
+- name: Setup optional config file
+  when: server_config_yaml is defined
+  block:
+    - name: Make config directory
+      ansible.builtin.file:
+        path: "/etc/rancher/k3s"
+        mode: 0755
+        state: directory
+    - name: Copy config values
+      ansible.builtin.copy:
+        content: "{{ server_config_yaml }}"
+        dest: "/etc/rancher/k3s/config.yaml"
+        mode: 0644
+
+- name: Init first server node
+  when: cluster_init == True
+  block:
+    - name: Copy K3s service file [HA]
+      ansible.builtin.template:
+        src: "k3s-cluster-init.service.j2"
+        dest: "{{ systemd_dir }}/k3s.service"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Add service environment variables
+      when: extra_service_envs is defined
+      ansible.builtin.lineinfile:
+        path: "{{ systemd_dir }}/k3s.service.env"
+        line: "{{ item }}"
+      with_items: "{{ extra_service_envs }}"
+
+    - name: Enable and check K3s service
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: started
+        enabled: true
+
+    - name: Pause to allow first server startup
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Check whether kubectl is installed on control node
+      ansible.builtin.command: 'kubectl'
+      register: kubectl_installed
+      ignore_errors: true
+      delegate_to: 127.0.0.1
+      become: false
+      changed_when: false
+
+- name: Start other server if any and verify status
+  when: cluster_init == False
+  block:
+    - name: Copy K3s service file [HA]
+      ansible.builtin.template:
+        src: "k3s-ha.service.j2"
+        dest: "{{ systemd_dir }}/k3s.service"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Enable and check K3s service
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: started
+        enabled: true
+
+    - name: Verify that all server nodes joined
+      ansible.builtin.command:
+        cmd: >
+          k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
+      register: nodes
+      until: nodes.rc == 0 and (nodes.stdout.split() | length) == {{ num_servers }}
+      retries: 20
+      delay: 10
+      changed_when: false
+

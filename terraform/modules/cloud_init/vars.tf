@@ -77,6 +77,11 @@ variable "searchdomain" {
   default = "nyc.ccag119.info"
 }
 
+variable "additional_cloud_init_config" {
+  type    = string
+  default = ""
+}
+
 variable "pve_host" {
   default = "192.168.1.192"
 }
