@@ -2,7 +2,7 @@
 k3s_server_location: "/var/lib/rancher/k3s"
 k3s_version: v1.26.9+k3s1
 systemd_dir: "/etc/systemd/system"
-token: token  # TODO rotate this once you've figured out a better way to store secrets
+token: token
 cluster_init: False
 num_servers: 1
 k3s_server_endpoint: k3s-server-0 # TODO don't rely on DNS resolution
