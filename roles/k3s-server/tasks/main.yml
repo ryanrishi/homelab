@@ -37,6 +37,7 @@
         mode: 0644
 
 - name: Init first server node
+  when: cluster_init == True
   block:
     - name: Copy K3s service file [HA]
       ansible.builtin.template:
@@ -70,5 +71,33 @@
       ignore_errors: true
       delegate_to: 127.0.0.1
       become: false
+      changed_when: false
+
+- name: Start other server if any and verify status
+  when: cluster_init == False
+  block:
+    - name: Copy K3s service file [HA]
+      ansible.builtin.template:
+        src: "k3s-ha.service.j2"
+        dest: "{{ systemd_dir }}/k3s.service"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Enable and check K3s service
+      ansible.builtin.systemd:
+        name: k3s
+        daemon_reload: true
+        state: started
+        enabled: true
+
+    - name: Verify that all server nodes joined
+      ansible.builtin.command:
+        cmd: >
+          k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
+      register: nodes
+      until: nodes.rc == 0 and (nodes.stdout.split() | length) == {{ num_servers }}
+      retries: 20
+      delay: 10
       changed_when: false
 
