@@ -5,4 +5,6 @@ systemd_dir: "/etc/systemd/system"
 token: token  # TODO rotate this once you've figured out a better way to store secrets
 cluster_init: False
 num_servers: 1
+k3s_server_endpoint: k3s-server # TODO don't rely on DNS resolution
+k3s_server_port: 6443
 extra_server_args:
