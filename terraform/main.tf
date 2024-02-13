@@ -49,9 +49,14 @@ module "ddclient" {
   pve_password = var.pve_password
 }
 
+locals {
+  k3s_server_count = 3
+}
+
 module "k3s-server" {
+  count  = local.k3s_server_count
   source = "./modules/cloud_init"
-  name   = "k3s-server"
+  name   = "k3s-server-${count.index}"
 
   cores     = 2
   sockets   = 2
@@ -66,6 +71,9 @@ module "k3s-server" {
       url: https://github.com/ryanrishi/homelab.git
       checkout: k3s
       playbook_name: k3s-server.yml
+      extra_vars:
+        cluster_init: ${count.index == 0}
+        num_servers: ${local.k3s_server_count}
 
   # Unfortunately `cloud_final_modules` can't be merged, only overwritten
   # This is the list from /etc/cloud/cloud.cfg with `ansible` added
