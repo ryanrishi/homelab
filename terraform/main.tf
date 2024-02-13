@@ -103,7 +103,7 @@ module "k3s-primary" {
 }
 
 module "k3s-agent" {
-  count  = 1
+  count  = 2
   source = "./modules/cloud_init"
   name   = "k3s-replica-${count.index}"
 
