@@ -37,19 +37,8 @@
         mode: 0644
 
 - name: Init first server node
-  # when: inventory_hostname == groups['server'][0]
   block:
-    # - name: Copy K3s service file [Single]
-    #   when: groups['server'] | length == 1
-    #   ansible.builtin.template:
-    #     src: "k3s-single.service.j2"
-    #     dest: "{{ systemd_dir }}/k3s.service"
-    #     owner: root
-    #     group: root
-    #     mode: 0644
-
     - name: Copy K3s service file [HA]
-      # when: groups['server'] | length > 1
       ansible.builtin.template:
         src: "k3s-cluster-init.service.j2"
         dest: "{{ systemd_dir }}/k3s.service"
@@ -72,7 +61,6 @@
         enabled: true
 
     - name: Pause to allow first server startup
-      # when: (groups['server'] | length) > 1
       ansible.builtin.pause:
         seconds: 10
 
@@ -84,114 +72,3 @@
       become: false
       changed_when: false
 
-    # - name: Apply K3S kubeconfig to control node
-    #   when: kubectl_installed.rc == 0
-    #   block:
-    #     - name: Copy kubeconfig to control node
-    #       ansible.builtin.fetch:
-    #         src: /etc/rancher/k3s/k3s.yaml
-    #         dest: "{{ kubeconfig }}"
-    #         flat: true
-
-    #     - name: Change server address in kubeconfig on control node
-    #       ansible.builtin.shell: |
-    #         KUBECONFIG={{ kubeconfig }} kubectl config set-cluster default --server=https://{{ api_endpoint }}:{{ api_port }}
-    #       delegate_to: 127.0.0.1
-    #       become: false
-    #       register: csa_result
-    #       changed_when:
-    #         - csa_result.rc == 0
-
-    #     - name: Setup kubeconfig k3s-ansible context on control node
-    #       when: kubeconfig != "~/.kube/config"
-    #       ansible.builtin.replace:
-    #         path: "{{ kubeconfig }}"
-    #         regexp: 'name: default'
-    #         replace: 'name: k3s-ansible'
-    #       delegate_to: 127.0.0.1
-    #       become: false
-
-    #     - name: Merge with any existing kubeconfig on control node
-    #       when: kubeconfig != "~/.kube/config"
-    #       ansible.builtin.shell: |
-    #         TFILE=$(mktemp)
-    #         KUBECONFIG={{ kubeconfig }} kubectl config set-context k3s-ansible --user=k3s-ansible --cluster=k3s-ansible
-    #         KUBECONFIG={{ kubeconfig }}:~/.kube/config kubectl config view --flatten > ${TFILE}
-    #         mv ${TFILE} ~/.kube/config
-    #         rm {{ kubeconfig }}
-    #       delegate_to: 127.0.0.1
-    #       become: false
-    #       register: mv_result
-    #       changed_when:
-    #         - mv_result.rc == 0
-
-# - name: Start other server if any and verify status
-#   when:
-#     - (groups['server'] | length) > 1
-#     - inventory_hostname != groups['server'][0]
-#   block:
-#     - name: Copy K3s service file [HA]
-#       when: groups['server'] | length > 1
-#       ansible.builtin.template:
-#         src: "k3s-ha.service.j2"
-#         dest: "{{ systemd_dir }}/k3s.service"
-#         owner: root
-#         group: root
-#         mode: 0644
-
-#     - name: Enable and check K3s service
-#       ansible.builtin.systemd:
-#         name: k3s
-#         daemon_reload: true
-#         state: started
-#         enabled: true
-
-#     - name: Verify that all server nodes joined
-#       when: (groups['server'] | length) > 1
-#       ansible.builtin.command:
-#         cmd: >
-#           k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
-#       register: nodes
-#       until: nodes.rc == 0 and (nodes.stdout.split() | length) == (groups['server'] | length)
-#       retries: 20
-#       delay: 10
-#       changed_when: false
-
-# - name: Setup kubectl for user
-#   when: user_kubectl
-#   block:
-
-#     - name: Create kubectl symlink
-#       when: lookup('fileglob', '/usr/local/bin/kubectl', errors='warn') | length == 0
-#       ansible.builtin.file:
-#         src: /usr/local/bin/k3s
-#         dest: /usr/local/bin/kubectl
-#         state: link
-
-#     - name: Create directory .kube
-#       ansible.builtin.file:
-#         path: ~{{ ansible_user }}/.kube
-#         state: directory
-#         owner: "{{ ansible_user }}"
-#         mode: "u=rwx,g=rx,o="
-
-#     - name: Copy config file to user home directory
-#       ansible.builtin.copy:
-#         src: /etc/rancher/k3s/k3s.yaml
-#         dest: ~{{ ansible_user }}/.kube/config
-#         remote_src: true
-#         owner: "{{ ansible_user }}"
-#         mode: "u=rw,g=,o="
-
-#     - name: Configure default KUBECONFIG for user
-#       ansible.builtin.lineinfile:
-#         path: ~{{ ansible_user }}/.bashrc
-#         regexp: 'export KUBECONFIG=~/.kube/config'
-#         line: 'export KUBECONFIG=~/.kube/config # Added by k3s-ansible'
-#         state: present
-
-#     - name: Configure kubectl autocomplete
-#       ansible.builtin.lineinfile:
-#         path: ~{{ ansible_user }}/.bashrc
-#         regexp: '\.\s+<\(kubectl completion bash\)'
-#         line: ". <(kubectl completion bash)  # Added by k3s-ansible"
