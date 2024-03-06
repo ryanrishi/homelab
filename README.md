@@ -45,4 +45,3 @@ Here is an unprioritized list of some things I want to do next:
 - Move "role" VMs (media, monitoring, etc.) into k3s - monitoring should probably have its own namespace
 - Pass `role` in Terraform and have it generate the right Ansible cloud-init stuff. DRY things up if I make Ansible cloud-init config a first-class citizen
 - Figure out some best practices in deploying k3s resources. Helm? ArgoCD? `k apply -f k3s/*.yml`?
-- Get multi-server k3s going. Right now it's just one server and two replicas, which is fine for testing but I don't want anything I actually use running until I have multi-server
