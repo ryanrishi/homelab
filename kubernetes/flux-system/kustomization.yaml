@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
 - gotk-components.yaml
 - gotk-sync.yaml
-- helm/prometheus-community.yaml
+- sources/helm/prometheus-community.yaml
