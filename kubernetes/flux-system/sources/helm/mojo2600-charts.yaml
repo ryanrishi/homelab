@@ -5,5 +5,5 @@ metadata:
   name: mojo2600-charts
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 1h
   url: https://mojo2600.github.io/pihole-kubernetes
