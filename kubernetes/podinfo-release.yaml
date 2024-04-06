@@ -4,6 +4,7 @@ metadata:
   namespace: default
   name: podinfo-release
 spec:
+  interval: 1m
   chart:
     spec:
       chart: metallb
