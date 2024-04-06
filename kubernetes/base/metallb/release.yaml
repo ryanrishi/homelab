@@ -17,8 +17,6 @@ spec:
         namespace: metallb-system
       version: 0.14.3
   values:
-    addresses:
-      - "${METALLB_ADDRESS}/32"
     controller:
       resources:
         requests:
