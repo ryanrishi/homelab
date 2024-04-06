@@ -4,6 +4,8 @@ kind: Kustomization
 metadata:
   name: podinfo
   namespace: flux-system
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.4.100
 spec:
   interval: 30m0s
   path: ./kustomize
