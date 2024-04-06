@@ -7,7 +7,7 @@ spec:
   interval: 1m
   chart:
     spec:
-      chart: metallb
+      chart: podinfo
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: HelmRepository
