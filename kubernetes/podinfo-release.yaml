@@ -16,5 +16,7 @@ spec:
         namespace: flux-system
       version: 6.6.1
   values:
-    podAnnotations:
-      metallb.universe.tf/loadBalancerIPs: 10.0.60.5
+    service:
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 10.0.60.5
+      type: LoadBalancer
