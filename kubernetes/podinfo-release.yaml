@@ -17,5 +17,6 @@ spec:
       version: 6.6.1
   values:
     service:
+      type: LoadBalancer
       annotations:
         metallb.universe.tf/loadBalancerIPs: 10.0.60.5
