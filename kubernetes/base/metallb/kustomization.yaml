@@ -7,3 +7,5 @@ resources:
   - namespace.yaml
   - repository.yaml
   - release.yaml
+  - ip-address-pool.yaml
+  - l2-advertisement.yaml
