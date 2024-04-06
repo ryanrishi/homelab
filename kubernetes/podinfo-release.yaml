@@ -4,6 +4,16 @@ metadata:
   namespace: default
   name: podinfo-release
 spec:
-  service:
-    annotations:
-      metallb.universe.tf/loadBalancerIPs: 10.0.60.5
+  chart:
+    spec:
+      chart: metallb
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: podinfo
+        namespace: default
+      version: 6.6.1
+  values:
+    service:
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 10.0.60.5
