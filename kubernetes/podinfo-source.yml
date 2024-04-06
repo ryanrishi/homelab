@@ -6,4 +6,4 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  url: https://github.com/stefanprodan/podinfo
+  url: https://stefanprodan.github.io/podinfo
