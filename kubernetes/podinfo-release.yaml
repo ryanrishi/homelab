@@ -19,3 +19,4 @@ spec:
     service:
       annotations:
         metallb.universe.tf/address-pool: default
+      type: LoadBalancer
