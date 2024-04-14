@@ -27,7 +27,7 @@ To create a secret:
 ```sh
 $ touch values.yaml
 # fill out key1: value1, etc.
-$ k create secret generic --from-file values.yaml $SECRET_NAME --dry-run=client -o yaml
+$ k create secret generic --namespace $NAMESPACE --from-file values.yaml $SECRET_NAME --dry-run=client -o yaml
 # copy/pasta or pipe that into a file, eg. pihole-secrets.yaml
 $ sops --encrypt pihole-secrets.yaml > pihole-secrets.sops.yaml
 $ git add pihole-secrets.sops.yaml
