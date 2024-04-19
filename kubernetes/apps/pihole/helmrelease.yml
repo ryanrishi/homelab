@@ -17,12 +17,12 @@ spec:
   values:
     serviceDns:
       type: LoadBalancer
-      loadBalancerIP: ${SECRET_PIHOLE_IP}
+      loadBalancerIP: ${SVC_PIHOLE_IP}
       annotations:
         metallb.universe.tf/allow-shared-ip: pihole-svc
     serviceWeb:
       type: LoadBalancer
-      loadBalancerIP: ${SECRET_PIHOLE_IP}
+      loadBalancerIP: ${SVC_PIHOLE_IP}
       annotations:
         metallb.universe.tf/allow-shared-ip: pihole-svc
     persistentVolumeClaim:
