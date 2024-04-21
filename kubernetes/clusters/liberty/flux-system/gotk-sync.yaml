@@ -21,7 +21,7 @@ metadata:
 spec:
   interval: 10m
   timeout: 1m
-  path: ./kubernetes
+  path: ./kubernetes/clusters/liberty
   prune: true
   sourceRef:
     kind: GitRepository
