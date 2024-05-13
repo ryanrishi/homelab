@@ -8,7 +8,7 @@ spec:
   interval: 10m
   retryInterval: 1m
   dependsOn:
-    - name: metallb
+    - name: infrastructure
   sourceRef:
     kind: GitRepository
     name: flux-system
