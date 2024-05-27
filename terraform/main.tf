@@ -74,7 +74,7 @@ module "k3s-server" {
     package_name: ansible-core
     pull:
       url: https://github.com/ryanrishi/homelab.git
-      checkout: k3s
+      checkout: main
       playbook_name: k3s-server.yml
       extra_vars:
         cluster_init: ${count.index == 0}
@@ -132,7 +132,7 @@ module "k3s-agent" {
     package_name: ansible-core
     pull:
       url: https://github.com/ryanrishi/homelab.git
-      checkout: k3s
+      checkout: main
       playbook_name: k3s-agent.yml
       extra_vars:
         token: ${random_password.password.result}
