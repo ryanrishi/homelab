@@ -10,7 +10,7 @@ apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   name: metallb
-  namespace: metallb-system
+  namespace: flux-system
 spec:
   interval: 5m0s
   url: https://metallb.github.io/metallb
@@ -30,7 +30,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: metallb
-        namespace: metallb-system
+        namespace: flux-system
       version: 0.14.4
   values:
     controller:
@@ -65,4 +65,3 @@ metadata:
 spec:
   ipAddressPools:
     - default
-
