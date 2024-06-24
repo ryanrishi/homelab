@@ -28,6 +28,7 @@ spec:
         metallb.universe.tf/allow-shared-ip: pihole-svc
     persistentVolumeClaim:
       enabled: true
+      storageClass: pihole
     adminPassword: ${SECRET_PIHOLE_ADMIN_PASSWORD}
     extraEnvVars:
       RATE_LIMIT: "0/0"
