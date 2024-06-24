@@ -13,7 +13,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
-    path: /Volume 1/k3s/pihole
+    path: /volume1/k3s/pihole
   mountOptions:
     - nfsvers=4.1
     - hard
