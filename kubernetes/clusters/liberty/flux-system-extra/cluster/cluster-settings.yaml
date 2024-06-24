@@ -5,4 +5,5 @@ metadata:
   namespace: flux-system
   name: cluster-settings
 data:
+  NFS_SERVER_IP: 192.168.4.127
   SVC_PIHOLE_IP: 192.168.4.253
