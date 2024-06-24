@@ -6,12 +6,14 @@ metadata:
   namespace: default
 spec:
   storageClassName: pihole
+  capacity:
+    storage: 500Mi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
     path: /Volume 1/k3s/pihole
-  resources:
-    requests:
-      storage: 500Mi
+  mountOptions:
+    - nfsvers=4.1
+    - hard
