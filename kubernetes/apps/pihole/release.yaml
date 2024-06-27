@@ -32,3 +32,6 @@ spec:
     adminPassword: ${SECRET_PIHOLE_ADMIN_PASSWORD}
     extraEnvVars:
       RATE_LIMIT: "0/0"
+    valuesFrom:
+      - kind: ConfigMap
+        name: pihole-config

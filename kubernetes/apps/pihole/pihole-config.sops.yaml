@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: pihole-config
+data:
+    dnsmasq: ENC[AES256_GCM,data:J6A9RF/GgO+WLkHpsUh05RlXQJXcjec6j/I+2wR+XD1oEFGxSMn+t5f42irHAiqwMAkVm/gdoIJCGufDBez71D811C2SfmV5cZ8JTQ14iW1VG6as0diFdgaEUCg8GBJQAgQI+huzN9yq1jRcjVi2xQA9o0E5uXf9JRMAoA==,iv:GLNj/YY1f9ZANJWjIXSpX/PRa/ZkfyZK2KsnXnM6qsc=,tag:ywZykPvkJsZT777jOkx/aQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2024-06-27T01:53:53Z"
+    mac: ENC[AES256_GCM,data:nGnha41MPTS4Jh/PVAJ0TsXpimJj9W6zMhTCDTSRI6xWAsKKqCLMFo2IauqefXSNmgO9piuNlXAC3GNmgFJSty06FCX7W60ud3AuwEZOt6g1SsH81DTAk3J1QttKvMDbcE4ga4z/4dGVzLzs/SCNnblvpALFptHVULOEMrjkj8I=,iv:i87G4d77nR3T/sd8Mr7sPhjB+G86aYm0lRGXz0Yv7IM=,tag:s9vaMbZGzs9sxAB+hRJnkg==,type:str]
+    pgp:
+        - created_at: "2024-06-27T01:52:57Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA5FN4wzd9SHJAQ//VZuKrNT+sc2TMkT9cLAYzSpwCNwmkLXxA0WUnXf2fyjK
+            ehKfBdHAoHfvAtSwde5Cqgt+T3pGomtRRzCWUrxUWIls5mMjdvjxb7ILyMmV0QNV
+            ViWPeAX0iad3l8z9NYXrayG+buaauSiENO+JctEiVuVxIJsSt7aoWFkfdFU1FC/J
+            e9WiqirdoPDBQLKgXr6TbWBoVfh6mLxollXJ4WsSZnIw0/WQjiSKHtpgQuQm/09o
+            XduRaamg8FWrrq2+LAw+DUN2ZWgoR2pb4O+XG4LxwTZmPqO0XgKY4bkhZlAP7UOo
+            ksbEXTf9OOnpgnu/TsGgEhiKQ50a1gSJVoZA+FZzv2mNXpHGKpxqbpLfioMYLz9N
+            I7MW//JOWCbWA0/vTyLcfDQkBvzT3c16m5XRIRN++UxorgzyeTQkaP6OO3VRhaqZ
+            0cwVhrP9Upno4lcADIdvqd3YBuyZAg7sjDWwkKURd3XGObmRXkG6tudVcxLMgRoa
+            +PIkv2yorIM/t3mGRTu5AZZKAnHEN7ztKb2HPZ3bbw7kzA5ZSjanW+PDGPYK1VwG
+            URcpelkD/v43rPlLRFzOGk20XK0YCvo5Cw8NouqkGct+kqWZ/okJ0UlL2SCQKRTJ
+            GY7SYRCYKR1Xh/RgxqPpcv70DYoI1wnUd1NSs20ObB4O5k+VPA1t4Bie5yXtSoPU
+            ZgEJAhB9dfxA9nHNknbtPg8VaQhPDgUHgLhoaYqfXksj+g142fjWWHrMZ6n3lydp
+            tJ5TuOlsChZXteUFiDNgYemhnClGWs8VUL9F6h7HDPZFTkrv0QxCxkIHXbOFX/hP
+            6edCZ+pepg==
+            =vOvw
+            -----END PGP MESSAGE-----
+          fp: 32C1F8EB0F2C663985FEB304D42593FC4B1C16EF
+    encrypted_regex: ^(data|stringData)$
+    version: 3.8.1

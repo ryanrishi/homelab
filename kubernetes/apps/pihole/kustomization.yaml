@@ -6,3 +6,4 @@ resources:
   - repository.yaml
   - release.yaml
   - pihole-secrets.sops.yaml
+  - pihole-config.sops.yaml
