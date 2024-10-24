@@ -3,3 +3,4 @@ kind: Kustomization
 namespace: paperless-ng
 resources:
   - namespace.yaml
+  - postgres
