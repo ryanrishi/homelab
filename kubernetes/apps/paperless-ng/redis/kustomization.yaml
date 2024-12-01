@@ -3,4 +3,4 @@ kind: Kustomization
 namespace: paperless-ng
 resources:
   - repository.yaml
-  - release.yaml
+  # release.yaml is in ../postgres
