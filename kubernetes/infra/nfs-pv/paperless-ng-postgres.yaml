@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-paperless-ng-postgres-pv
+  namespace: default
+spec:
+  storageClassName: paperless-ng-postgres
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/k3s/paperless-ng/postgres
+  mountOptions:
+    - nfsvers=4.1
+    - hard
