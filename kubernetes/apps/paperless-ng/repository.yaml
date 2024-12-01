@@ -6,4 +6,4 @@ metadata:
   namespace: paperless-ng
 spec:
   interval: 8h
-  url: https://charts.gabe565.com/bitnami
+  url: https://charts.gabe565.com
