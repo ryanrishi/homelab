@@ -15,7 +15,4 @@ spec:
         kind: HelmRepository
         name: bitnami
         namespace: paperless-ng
-  values:
-    global:
-      defaultStorageClass: nfs-paperless-ng-postgres-pv
 
