@@ -4,5 +4,6 @@ namespace: paperless-ng
 resources:
   - namespace.yaml
   - postgres
+  - redis
   - repository.yaml
   - release.yaml
