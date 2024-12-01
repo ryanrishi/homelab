@@ -5,5 +5,5 @@ metadata:
   name: pihole
   namespace: pihole
 spec:
-  interval: 1h
+  interval: 12h
   url: https://mojo2600.github.io/pihole-kubernetes

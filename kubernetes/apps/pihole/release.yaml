@@ -5,7 +5,7 @@ metadata:
   name: pihole
   namespace: pihole
 spec:
-  interval: 5m
+  interval: 8h
   timeout: 15m
   chart:
     spec:
