@@ -53,8 +53,11 @@ spec:
       
     # Grafana configuration
     grafana:
-      # Enable admin user
-      adminPassword: homelab-admin-password
+      # Enable admin user with secret reference
+      admin:
+        existingSecret: grafana-admin-secret
+        userKey: admin-user
+        passwordKey: admin-password
       
       # Service configuration for external access
       service:

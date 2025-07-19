@@ -15,7 +15,7 @@ This directory contains the monitoring stack for the homelab Kubernetes cluster.
 After deployment, the following services will be available via MetalLB LoadBalancer:
 
 - **Grafana**: `http://<grafana-external-ip>:3000`
-  - Admin credentials: `admin` / `homelab-admin-password`
+  - Admin credentials stored in SOPS-encrypted secret
   - Anonymous access enabled (read-only)
 
 - **Prometheus**: `http://<prometheus-external-ip>:9090`
