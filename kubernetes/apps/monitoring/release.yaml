@@ -28,7 +28,7 @@ spec:
             memory: 200Mi
             cpu: 50m
           limits:
-            memory: 1Gi
+            memory: 800Mi
             cpu: 300m
         # Retention settings (reduced for performance)
         retention: 7d
@@ -88,8 +88,6 @@ spec:
         auth.anonymous:
           enabled: true
           org_role: Viewer
-        dashboards:
-          default_home_dashboard_path: /tmp/dashboards/kubernetes-cluster-monitoring_rev1.json
     
     # AlertManager configuration
     alertmanager:

@@ -9,6 +9,21 @@ This is a homelab infrastructure management repository that uses three main tech
 - **Terraform** for VM provisioning on Proxmox
 - **Kubernetes (k3s)** for container orchestration with Flux CD
 
+## ⚠️ CRITICAL: Resource Constraints
+
+**HOMELAB SETUP**: Single Intel NUC with 16GB RAM total across all k3s nodes
+- **BE EXTREMELY CAREFUL** with memory limits and resource requests
+- **ALWAYS CHECK** current node memory allocation before increasing limits
+- **NEVER** increase memory limits without checking cluster capacity first
+- **PiHole is CRITICAL** - DNS outages affect entire home network
+- Memory increases can trigger SystemOOM → MetalLB crashes → IP reassignments → DNS outages
+
+**Before any resource changes:**
+```bash
+kubectl describe nodes | grep -A10 "Allocated resources"
+kubectl top nodes
+```
+
 ## Key Commands
 
 ### Ansible
