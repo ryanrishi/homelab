@@ -7,4 +7,4 @@ cluster_init: False
 num_servers: 1
 k3s_server_endpoint: k3s-server-0 # TODO don't rely on DNS resolution
 k3s_server_port: 6443
-extra_server_args:
+extra_server_args: "--disable servicelb"

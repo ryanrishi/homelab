@@ -5,4 +5,4 @@ systemd_dir: "/etc/systemd/system"
 token: token
 k3s_server_endpoint: k3s-server-0 # TODO don't rely on DNS resolution
 k3s_server_port: 6443
-extra_agent_args:
+extra_agent_args: "--disable servicelb"
