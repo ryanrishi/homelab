@@ -1,0 +1,149 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: monitoring
+spec:
+  interval: 8h
+  timeout: 15m
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      version: 65.1.1
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: monitoring
+  values:
+    # Prometheus configuration
+    prometheus:
+      prometheusSpec:
+        # Reduce scrape frequency for homelab
+        evaluationInterval: 60s
+        scrapeInterval: 60s
+        # Resource limits for homelab (balanced)
+        resources:
+          requests:
+            memory: 200Mi
+            cpu: 50m
+          limits:
+            memory: 600Mi
+            cpu: 300m
+        # Retention settings (reduced for performance)
+        retention: 7d
+        retentionSize: 5GB
+        # Reduce TSDB settings for lower CPU usage
+        tsdb:
+          outOfOrderTimeWindow: 0s
+        # Disable remote write features
+        remoteWrite: []
+        # Storage configuration
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: local-path
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 15Gi
+        # Service configuration for external access
+        service:
+          type: LoadBalancer
+      
+    # Grafana configuration
+    grafana:
+      # Enable admin user
+      adminPassword: homelab-admin-password
+      
+      # Service configuration for external access
+      service:
+        type: LoadBalancer
+      
+      # Resource limits for homelab (reduced)
+      resources:
+        requests:
+          memory: 64Mi
+          cpu: 25m
+        limits:
+          memory: 128Mi
+          cpu: 100m
+      
+      # Persistence for dashboards
+      persistence:
+        enabled: true
+        storageClassName: local-path
+        size: 2Gi
+      
+      # Default dashboards
+      defaultDashboardsEnabled: true
+      
+      # Grafana configuration
+      grafana.ini:
+        server:
+          root_url: http://grafana.homelab.local
+        auth.anonymous:
+          enabled: true
+          org_role: Viewer
+        dashboards:
+          default_home_dashboard_path: /tmp/dashboards/kubernetes-cluster-monitoring_rev1.json
+    
+    # AlertManager configuration
+    alertmanager:
+      alertmanagerSpec:
+        # Resource limits for homelab
+        resources:
+          requests:
+            memory: 64Mi
+            cpu: 50m
+          limits:
+            memory: 128Mi
+            cpu: 100m
+        # Storage configuration
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: local-path
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 2Gi
+        # Service configuration
+        service:
+          type: LoadBalancer
+    
+    # Node exporter configuration (optimized for homelab)
+    nodeExporter:
+      enabled: true
+      # Reduce resource usage
+      resources:
+        requests:
+          memory: 8Mi
+          cpu: 5m
+        limits:
+          memory: 16Mi
+          cpu: 25m
+      
+    # kube-state-metrics configuration
+    kubeStateMetrics:
+      enabled: true
+      
+    # Disable components not needed for homelab
+    kubeEtcd:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeControllerManager:
+      enabled: false
+    kubeProxy:
+      enabled: false
+    
+    # Disable default prometheus rules that might be noisy
+    defaultRules:
+      create: true
+      rules:
+        # Disable some noisy rules for homelab
+        etcd: false
+        kubeScheduler: false
+        kubeControllerManager: false
+        kubeProxy: false
