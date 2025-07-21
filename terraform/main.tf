@@ -6,7 +6,7 @@ module "media" {
   cores     = 4
   sockets   = 2
   disk_size = 16
-  memory    = 8192
+  memory    = 4096
   balloon   = 2048
 
   cloud_init_template_name = "debian-11-cloudinit-template"
@@ -117,13 +117,13 @@ module "k3s-server" {
 }
 
 module "k3s-agent" {
-  count  = 4
+  count  = 2
   source = "./modules/cloud_init"
   name   = "k3s-replica-${count.index}"
 
   cores     = 2
   sockets   = 2
-  memory    = 2048
+  memory    = 4096
   disk_size = 20
 
   additional_cloud_init_config = <<-EOT
