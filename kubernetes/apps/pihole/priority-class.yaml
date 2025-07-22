@@ -1,0 +1,24 @@
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: critical-dns
+value: 1000
+globalDefault: false
+description: "Priority class for critical DNS services like PiHole that must start first"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: system-infrastructure
+value: 500
+globalDefault: false
+description: "Priority class for system infrastructure like MetalLB"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: monitoring-stack
+value: 100
+globalDefault: false
+description: "Priority class for monitoring stack - starts after critical services"

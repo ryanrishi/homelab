@@ -32,6 +32,8 @@ spec:
     adminPassword: ${SECRET_PIHOLE_ADMIN_PASSWORD}
     extraEnvVars:
       RATE_LIMIT: "0/0"
+    # High priority to ensure PiHole starts before other services
+    priorityClassName: critical-dns
     valuesFrom:
       - kind: ConfigMap
         name: pihole-config

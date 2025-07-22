@@ -4,6 +4,7 @@ namespace: pihole
 resources:
   - namespace.yaml
   - repository.yaml
+  - priority-class.yaml
   - release.yaml
   - pihole-secrets.sops.yaml
   - pihole-config.sops.yaml

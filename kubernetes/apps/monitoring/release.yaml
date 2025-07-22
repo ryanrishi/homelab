@@ -19,6 +19,21 @@ spec:
     # Prometheus configuration
     prometheus:
       prometheusSpec:
+        # Lower priority than critical services
+        priorityClassName: monitoring-stack
+        # Init container to wait for MetalLB
+        initContainers:
+          - name: wait-for-metallb
+            image: busybox:1.35
+            command: ['sh', '-c']
+            args:
+              - |
+                echo "Waiting for MetalLB controller to be ready..."
+                until nslookup metallb-webhook-service.metallb-system.svc.cluster.local; do
+                  echo "MetalLB not ready, sleeping..."
+                  sleep 10
+                done
+                echo "MetalLB is ready!"
         # Reduce scrape frequency for homelab
         evaluationInterval: 60s
         scrapeInterval: 60s
@@ -28,7 +43,7 @@ spec:
             memory: 200Mi
             cpu: 50m
           limits:
-            memory: 800Mi
+            memory: 600Mi
             cpu: 300m
         # Retention settings (reduced for performance)
         retention: 7d
@@ -53,6 +68,8 @@ spec:
       
     # Grafana configuration
     grafana:
+      # Lower priority than critical services
+      priorityClassName: monitoring-stack
       # Enable admin user with secret reference
       admin:
         existingSecret: grafana-admin-secret
@@ -92,14 +109,16 @@ spec:
     # AlertManager configuration
     alertmanager:
       alertmanagerSpec:
-        # Resource limits for homelab
+        # Lower priority than critical services
+        priorityClassName: monitoring-stack
+        # Resource limits for homelab (reduced for better scheduling)
         resources:
           requests:
+            memory: 32Mi
+            cpu: 25m
+          limits:
             memory: 64Mi
             cpu: 50m
-          limits:
-            memory: 128Mi
-            cpu: 100m
         # Storage configuration
         storage:
           volumeClaimTemplate:
