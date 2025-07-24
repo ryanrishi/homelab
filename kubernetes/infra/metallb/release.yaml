@@ -21,9 +21,10 @@ spec:
       resources:
         requests:
           cpu: 10m
-          memory: 20Mi
+          memory: 64Mi
         limits:
-          memory: 32Mi
+          cpu: 100m
+          memory: 128Mi
     speaker:
       resources:
         requests:
