@@ -15,8 +15,25 @@ This is a homelab infrastructure management repository that uses three main tech
 - **BE EXTREMELY CAREFUL** with memory limits and resource requests
 - **ALWAYS CHECK** current node memory allocation before increasing limits
 - **NEVER** increase memory limits without checking cluster capacity first
-- **PiHole is CRITICAL** - DNS outages affect entire home network
+- **PiHole is CRITICAL** - DNS outages affect entire home network  
 - Memory increases can trigger SystemOOM → MetalLB crashes → IP reassignments → DNS outages
+
+## ⚠️ CRITICAL: PiHole DNS Stability
+
+**PiHole provides DNS for entire home network** - outages are unacceptable!
+
+- **NEVER drain nodes** without first checking: `kubectl get pods -n pihole -o wide`
+- **If PiHole is on target node**: Move it first with node selectors/affinity
+- **IP pinning configured**: PiHole services pinned to 192.168.4.253
+- **During cluster changes**: Expect brief IP reassignments during MetalLB restarts
+- **Emergency access**: Use `kubectl port-forward -n pihole svc/pihole-web 8080:80`
+
+**Check PiHole status:**
+```bash
+kubectl get pods -n pihole
+kubectl get svc -n pihole  
+nslookup google.com 192.168.4.253  # Test DNS
+```
 
 **Before any resource changes:**
 ```bash
@@ -127,6 +144,19 @@ kubectl create cm my-config --from-literal=key1=value1 --dry-run=client -o yaml
 - Cloud-init may not run on first boot in Proxmox
 - Regenerate cloud-init image in Proxmox UI and reboot if needed
 - Cloud-init logs: `cloud-init collect-logs` then examine the tarball
+
+## Terraform Infrastructure Notes
+
+### Dual-Node Setup
+- **NUC**: Media server, k3s-server-0 (cluster init), ddclient, wireguard, k3s-replica-0
+- **M720s**: k3s-server-1, k3s-server-2, k3s-replica-1, k3s-replica-2, k3s-replica-3
+
+### Provider Configuration
+- `proxmox.nuc`: 192.168.4.200 (ryanrishi node)
+- `proxmox.m720s`: 192.168.4.201 (pve001 node)
+
+### Template Requirements
+Both nodes need `debian-12-cloudinit-template` created via `/terraform/scripts/create-debian-template.sh`
 
 ## Security Notes
 
