@@ -18,6 +18,7 @@ spec:
   values:
     # Prometheus configuration
     prometheus:
+      enabled: false  # temporarily disable because I'm getting OOM killed
       prometheusSpec:
         # Lower priority than critical services
         priorityClassName: monitoring-stack
@@ -68,6 +69,7 @@ spec:
       
     # Grafana configuration
     grafana:
+      enabled: false  # temporarily disable because I'm getting OOM killed
       # Lower priority than critical services
       priorityClassName: monitoring-stack
       # Enable admin user with secret reference
@@ -108,6 +110,7 @@ spec:
     
     # AlertManager configuration
     alertmanager:
+      enabled: false  # temporarily disable because I'm getting OOM killed
       alertmanagerSpec:
         # Lower priority than critical services
         priorityClassName: monitoring-stack
