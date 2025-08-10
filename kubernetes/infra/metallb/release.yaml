@@ -31,4 +31,21 @@ spec:
           cpu: 25m
           memory: 32Mi
         limits:
+          cpu: 100m
           memory: 64Mi
+      frr:
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+      frrMetrics:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
