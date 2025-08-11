@@ -6,4 +6,5 @@ roles/*/group_vars/*.yml
 # Development/IDE directories
 .vscode/
 .ansible/
+.claude/settings.local.json
 values.yaml
