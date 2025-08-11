@@ -10,10 +10,10 @@ description: "Priority class for critical DNS services like PiHole that must sta
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
-  name: system-infrastructure
+  name: infrastructure-priority
 value: 500
 globalDefault: false
-description: "Priority class for system infrastructure like MetalLB"
+description: "Priority class for infrastructure services like MetalLB"
 ---
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
