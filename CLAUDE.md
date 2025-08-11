@@ -164,3 +164,70 @@ Both nodes need `debian-12-cloudinit-template` created via `/terraform/scripts/c
 - Ansible vault not currently implemented
 - Cloud-init templates contain sensitive data via Terraform variables
 - Never commit `.tfvars` files or unencrypted secrets
+
+## Troubleshooting Notes
+
+### Proxmox Cluster Issues
+
+#### pmxcfs Filesystem Hanging
+**Symptom**: `/etc/pve/nodes/[nodename]` directory access hangs, preventing SSL certificate access
+**Root Cause**: Cluster filesystem communication errors, often after node restarts or network issues
+**Solution**: 
+```bash
+# Stop all PVE services
+systemctl stop pve-cluster pve-ha-crm pve-ha-lrm pvedaemon pveproxy
+
+# Force kill pmxcfs and unmount filesystem
+pkill -9 pmxcfs
+umount -l /etc/pve
+
+# Restart cluster service cleanly
+systemctl start pve-cluster
+
+# Verify directory access works
+timeout 5 ls -la /etc/pve/nodes/[nodename]/
+```
+
+#### pveproxy Startup Hanging
+**Symptom**: `pvecm updatecerts --silent` hangs during pveproxy startup, preventing web interface access
+**Root Cause**: Certificate update command hangs due to cluster communication issues
+**Solution**: Create systemd override to skip the problematic pre-start command:
+```bash
+systemctl edit pveproxy
+# Add these lines:
+# [Service]
+# ExecStartPre=
+
+systemctl daemon-reload
+systemctl start pveproxy
+```
+
+#### Unkillable Processes in D State
+**Symptom**: Processes stuck in uninterruptible sleep (D state), survive SIGKILL
+**Root Cause**: Processes waiting for kernel I/O operations that will never complete
+**Solution**: Reboot required to clear kernel I/O wait states
+```bash
+# Check for D state processes
+ps aux | grep -E " D " 
+
+# Only solution is reboot
+systemctl reboot
+```
+
+### Cluster Communication Diagnostics
+```bash
+# Check cluster status
+pvecm status
+pvecm nodes
+
+# Check corosync communication
+corosync-cmapctl | grep members
+
+# Verify cluster filesystem access
+ls -la /etc/pve/nodes/
+timeout 5 ls -la /etc/pve/nodes/[nodename]/
+
+# Check SSL certificates
+openssl x509 -in /etc/pve/nodes/[nodename]/pve-ssl.pem -text -noout | grep "Subject:"
+openssl rsa -in /etc/pve/nodes/[nodename]/pve-ssl.key -check
+```

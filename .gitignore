@@ -2,3 +2,8 @@ roles/*/vars/main.yml
 group_vars
 roles/*/group_vars/*.yml
 .env
+
+# Development/IDE directories
+.vscode/
+.ansible/
+values.yaml
