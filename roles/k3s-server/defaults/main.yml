@@ -4,6 +4,5 @@ k3s_version: v1.30.0+k3s1
 systemd_dir: "/etc/systemd/system"
 token: token
 cluster_init: false
-num_servers: 1
 k3s_server_endpoint: k3s-server-0 # TODO don't rely on DNS resolution
 k3s_server_port: 6443

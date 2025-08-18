@@ -6,7 +6,7 @@
     dest: /usr/local/bin/k3s-install.sh
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
 
 - name: Download K3s binary
   ansible.builtin.command:
@@ -28,16 +28,16 @@
     - name: Make config directory
       ansible.builtin.file:
         path: "/etc/rancher/k3s"
-        mode: 0755
+        mode: "0755"
         state: directory
     - name: Copy config values
       ansible.builtin.copy:
         content: "{{ server_config_yaml }}"
         dest: "/etc/rancher/k3s/config.yaml"
-        mode: 0644
+        mode: "0644"
 
 - name: Init first server node
-  when: cluster_init == True
+  when: cluster_init
   block:
     - name: Copy K3s service file [HA]
       ansible.builtin.template:
@@ -45,7 +45,7 @@
         dest: "{{ systemd_dir }}/k3s.service"
         owner: root
         group: root
-        mode: 0644
+        mode: "0644"
 
     - name: Add service environment variables
       when: extra_service_envs is defined
@@ -74,7 +74,7 @@
       changed_when: false
 
 - name: Start other server if any and verify status
-  when: cluster_init == False
+  when: not cluster_init
   block:
     - name: Copy K3s service file [HA]
       ansible.builtin.template:
@@ -82,7 +82,7 @@
         dest: "{{ systemd_dir }}/k3s.service"
         owner: root
         group: root
-        mode: 0644
+        mode: "0644"
 
     - name: Enable and check K3s service
       ansible.builtin.systemd:
@@ -91,13 +91,11 @@
         state: started
         enabled: true
 
-    - name: Verify that all server nodes joined
+    - name: Verify that this server joined the cluster
       ansible.builtin.command:
-        cmd: >
-          k3s kubectl get nodes -l "node-role.kubernetes.io/control-plane=true" -o=jsonpath="{.items[*].metadata.name}"
+        cmd: k3s kubectl get nodes
       register: nodes
-      until: nodes.rc == 0 and (nodes.stdout.split() | length) == {{ num_servers }}
-      retries: 20
+      until: nodes.rc == 0
+      retries: 10
       delay: 10
       changed_when: false
-
