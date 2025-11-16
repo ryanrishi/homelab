@@ -38,4 +38,5 @@ spec:
       - name: ddclient-config
         secret:
           secretName: ddclient-config
+          defaultMode: 0755
       restartPolicy: Always
