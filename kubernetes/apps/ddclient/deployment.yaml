@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ddclient
+  namespace: ddclient
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ddclient
+  template:
+    metadata:
+      labels:
+        app: ddclient
+    spec:
+      containers:
+      - name: ddclient
+        image: ddclient/ddclient:latest
+        volumeMounts:
+        - name: ddclient-config
+          mountPath: /etc/ddclient/ddclient.conf
+          subPath: ddclient.conf
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "10m"
+          limits:
+            memory: "64Mi"
+            cpu: "50m"
+      volumes:
+      - name: ddclient-config
+        secret:
+          secretName: ddclient-config
+      restartPolicy: Always
