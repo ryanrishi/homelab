@@ -26,8 +26,7 @@ spec:
           value: "Etc/UTC"
         volumeMounts:
         - name: ddclient-config
-          mountPath: /config/ddclient.conf
-          subPath: ddclient.conf
+          mountPath: /config
         resources:
           requests:
             memory: "16Mi"
