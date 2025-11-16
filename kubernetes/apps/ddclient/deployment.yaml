@@ -16,10 +16,17 @@ spec:
     spec:
       containers:
       - name: ddclient
-        image: ddclient/ddclient:latest
+        image: lscr.io/linuxserver/ddclient:4.0.0
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "Etc/UTC"
         volumeMounts:
         - name: ddclient-config
-          mountPath: /etc/ddclient/ddclient.conf
+          mountPath: /config/ddclient.conf
           subPath: ddclient.conf
         resources:
           requests:
