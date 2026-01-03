@@ -1,0 +1,43 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: home-assistant
+  namespace: home-assistant
+spec:
+  interval: 8h
+  timeout: 15m
+  chart:
+    spec:
+      chart: home-assistant
+      sourceRef:
+        kind: HelmRepository
+        name: home-assistant
+        namespace: home-assistant
+      interval: 12h
+  values:
+    # Persistent storage configuration - uses NFS via home-assistant StorageClass
+    persistence:
+      enabled: true
+      storageClass: home-assistant
+      accessMode: ReadWriteOnce
+      size: 10Gi
+
+    # Home Assistant configuration
+    config:
+      # Set timezone (adjust to your location)
+      TZ: America/New_York
+
+    # Service configuration - LoadBalancer with static IP
+    service:
+      type: LoadBalancer
+      loadBalancerIP: 192.168.4.232
+
+    # Resource limits (conservative for 16GB total cluster memory)
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 100m
+      limits:
+        memory: 1Gi
+        cpu: 1000m

@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-home-assistant-pv
+  namespace: default
+spec:
+  storageClassName: home-assistant
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/k3s/home-assistant
+  mountOptions:
+    - nfsvers=4.1
+    - hard
