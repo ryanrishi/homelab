@@ -66,8 +66,8 @@ bootcmd:
   - ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
   - systemctl restart systemd-resolved
 runcmd:
-  # qemu-guest-agent is a static service, but it requires a reboot in order to start
-  # Since there's not a great way of rebooting via Terraform, manually start the service
+  # qemu-guest-agent is installed via the packages list above
+  # It's a static systemd unit (no [Install] section), so it's automatically enabled
+  # Just start it immediately to avoid waiting for reboot
   # See https://forum.proxmox.com/threads/qemu-guest-agent-wont-start.75863/#post-337625
-  - systemctl enable qemu-guest-agent
   - systemctl start qemu-guest-agent
