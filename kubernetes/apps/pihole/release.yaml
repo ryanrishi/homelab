@@ -16,6 +16,7 @@ spec:
         name: pihole
         namespace: pihole
   values:
+    replicaCount: 3
     serviceDns:
       type: LoadBalancer
       loadBalancerIP: ${SVC_PIHOLE_IP}
@@ -26,9 +27,6 @@ spec:
       loadBalancerIP: ${SVC_PIHOLE_IP}
       annotations:
         metallb.universe.tf/allow-shared-ip: pihole-svc
-    persistentVolumeClaim:
-      enabled: true
-      storageClass: pihole
     adminPassword: ${SECRET_PIHOLE_ADMIN_PASSWORD}
     extraEnvVars:
       RATE_LIMIT: "0/0"

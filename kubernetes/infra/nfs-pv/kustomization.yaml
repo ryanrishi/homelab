@@ -4,5 +4,4 @@ kind: Kustomization
 metadata:
   name: nfs-pv
 resources:
-  - pihole.yaml
   - home-assistant.yaml
