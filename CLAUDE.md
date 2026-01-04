@@ -298,11 +298,62 @@ systemctl start pveproxy
 **Solution**: Reboot required to clear kernel I/O wait states
 ```bash
 # Check for D state processes
-ps aux | grep -E " D " 
+ps aux | grep -E " D "
 
 # Only solution is reboot
 systemctl reboot
 ```
+
+#### Intel e1000e NIC Hardware Hang (RECURRING ISSUE)
+**Symptom**:
+- Entire network freezes/becomes unresponsive
+- k3s nodes go NotReady simultaneously
+- MetalLB speakers restart when network recovers
+- PiHole IPs get reassigned (192.168.4.253 → random → 192.168.4.253)
+- DNS outage during IP reassignment
+- May coincide with high CPU usage and load average spikes
+
+**Root Cause**:
+- Intel e1000e NIC driver (0000:00:1f.6 eno1) hardware unit hang
+- Triggered by high multicast traffic (mDNS/SSDP)
+- Home Assistant using host networking for Sonos discovery generates multicast traffic
+- Known issue with e1000e driver under multicast load
+
+**Occurrences**:
+- First incident: ~2025-12-07 20:33 (required physical reboot)
+- Second incident: 2026-01-04 17:12:22 (NIC auto-recovered after reset)
+
+**Diagnostics**:
+```bash
+# Check Proxmox host for e1000e hangs
+ssh root@192.168.4.200 'dmesg -T | grep -iE "e1000e|hang"'
+
+# Look for:
+# e1000e 0000:00:1f.6 eno1: Detected Hardware Unit Hang
+# e1000e 0000:00:1f.6 eno1: Reset adapter unexpectedly
+
+# Check k3s cluster for IP reassignments
+kubectl get events -A --sort-by='.lastTimestamp' | grep -E "IPAllocated|ClearAssignment"
+```
+
+**Potential Solutions** (in order of preference):
+1. **Update e1000e driver** - May have fixes for multicast handling
+   ```bash
+   ssh root@192.168.4.200
+   ethtool -i eno1  # Check current driver version
+   # Update Proxmox kernel (includes driver updates)
+   apt update && apt upgrade pve-kernel-*
+   ```
+
+2. **Update NIC firmware** - Check Intel website for firmware updates
+
+3. **Disable host networking for Home Assistant** - Eliminates multicast traffic but loses Sonos discovery
+
+4. **Replace NIC** - Use different NIC hardware or driver (e.g., Intel I350, Broadcom)
+
+5. **Driver parameters** - Try tuning e1000e parameters (not recommended without deep understanding)
+
+**Current Configuration**: Home Assistant host networking ENABLED for Sonos discovery - accepting periodic outages while investigating driver/firmware updates
 
 ### Cluster Communication Diagnostics
 ```bash
