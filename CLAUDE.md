@@ -158,6 +158,73 @@ kubectl create cm my-config --from-literal=key1=value1 --dry-run=client -o yaml
 ### Template Requirements
 Both nodes need `debian-12-cloudinit-template` created via `/terraform/scripts/create-debian-template.sh`
 
+## Recreating k3s Nodes
+
+### Important: Server vs Agent Nodes
+
+**Agent nodes (k3s-replica-*)**: Can be freely destroyed and recreated with just terraform
+- No special cleanup needed
+- Just `terraform destroy/apply` the replica module
+
+**Server nodes (k3s-server-*)**: Require etcd member cleanup before recreation
+- Server nodes are etcd cluster members
+- `kubectl delete node` does NOT remove the etcd member
+- If you skip this step, the new node will fail with: `etcd cluster join failed: duplicate node name found`
+
+### Workflow for Recreating Server Nodes
+
+```bash
+# 1. Cordon the node
+kubectl cordon k3s-server-1
+
+# 2. Check if PiHole is on this node (CRITICAL!)
+kubectl get pods -n pihole -o wide
+
+# 3. Drain the node
+kubectl drain k3s-server-1 --ignore-daemonsets --delete-emptydir-data
+
+# 4. Delete from Kubernetes
+kubectl delete node k3s-server-1
+
+# 5. Remove from etcd cluster (REQUIRED for server nodes!)
+# SSH to any working server node that has etcdctl installed
+ssh ryan@<working-node-ip>
+
+# Find the member ID for the node being removed
+sudo ETCDCTL_API=3 \
+  ETCDCTL_CACERT=/var/lib/rancher/k3s/server/tls/etcd/server-ca.crt \
+  ETCDCTL_CERT=/var/lib/rancher/k3s/server/tls/etcd/server-client.crt \
+  ETCDCTL_KEY=/var/lib/rancher/k3s/server/tls/etcd/server-client.key \
+  etcdctl --endpoints=https://127.0.0.1:2379 member list
+
+# Remove the member (use the ID from above)
+sudo ETCDCTL_API=3 \
+  ETCDCTL_CACERT=/var/lib/rancher/k3s/server/tls/etcd/server-ca.crt \
+  ETCDCTL_CERT=/var/lib/rancher/k3s/server/tls/etcd/server-client.crt \
+  ETCDCTL_KEY=/var/lib/rancher/k3s/server/tls/etcd/server-client.key \
+  etcdctl --endpoints=https://127.0.0.1:2379 member remove <member-id>
+
+# 6. Destroy and recreate with terraform
+cd terraform
+terraform destroy -target='module.k3s-servers[1]'  # Adjust index as needed
+terraform apply -target='module.k3s-servers[1]'
+```
+
+### Installing etcdctl (if needed)
+
+On Debian-based nodes:
+```bash
+sudo apt-get update && sudo apt-get install -y etcd-client
+```
+
+### Why This Happens
+
+- When you recreate a server node VM, the IP address often changes (DHCP)
+- The hostname stays the same (e.g., k3s-server-1)
+- Etcd sees: "There's already a member named k3s-server-1 but with a different IP"
+- Result: "duplicate node name" error and k3s won't start
+- Solution: Remove the old etcd member before creating the new one
+
 ## Security Notes
 
 - SOPS encrypted secrets use GPG key pair
