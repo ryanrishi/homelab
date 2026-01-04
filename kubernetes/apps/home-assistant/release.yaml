@@ -38,6 +38,16 @@ spec:
     # This allows Home Assistant to discover Sonos and other devices across VLANs
     hostNetwork: true
 
+    # Install HACS (Home Assistant Community Store) via init container
+    # Downloads and installs HACS into /config before Home Assistant starts
+    initContainers:
+      - name: init-hacs
+        image: bash
+        command: ["bash", "-c", "cd /config && wget -O - https://get.hacs.xyz | bash -"]
+        volumeMounts:
+          - mountPath: /config
+            name: home-assistant
+
     # Resource limits (conservative for 16GB total cluster memory)
     resources:
       requests:
