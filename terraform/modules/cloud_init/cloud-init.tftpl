@@ -5,6 +5,9 @@ manage_etc_hosts: true
 ssh_pwauth: false
 chpasswd:
   expire: False
+# Send cloud-init output to console so we can see it during boot
+output:
+  all: '| tee -a /var/log/cloud-init-output.log /dev/console'
 users:
 %{ for name, user in users ~}
   - name: ${name}
