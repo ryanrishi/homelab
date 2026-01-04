@@ -28,6 +28,40 @@ packages:
   - python3-pip
   - qemu-guest-agent
   - tree
+write_files:
+  # Debian 13 workaround: Override netplan config with proper DNS settings
+  # Proxmox's cloud-init network config doesn't set DNS properly in netplan
+  # This file is written early and applied before package installation
+  - path: /etc/netplan/51-custom-dns.yaml
+    permissions: '0644'
+    content: |
+      network:
+        version: 2
+        ethernets:
+          eth0:
+            nameservers:
+              addresses:
+                - 192.168.4.1
+              search:
+                - nyc.ccag119.info
+  # Debian 13 systemd-resolved stub listener bug workaround
+  # Disable the stub listener at 127.0.0.53 which refuses connections despite showing as listening
+  # This is a known bug in Debian 13 (Trixie) as of Dec 2024
+  # See: https://forum.proxmox.com/threads/proxmox-9-cloud-init-and-debian-13-trixie-fails-to-set-dns.170804/
+  - path: /etc/systemd/resolved.conf.d/disable-stub.conf
+    permissions: '0644'
+    content: |
+      [Resolve]
+      DNSStubListener=no
+bootcmd:
+  # Debian 13 systemd-resolved stub listener bug workaround
+  # The stub listener at 127.0.0.53 shows as listening but refuses all connections
+  # Point /etc/resolv.conf directly to the real DNS config instead of the broken stub
+  # This must run in bootcmd (not runcmd) to execute before networking starts
+  # and before package installation/ansible provisioning
+  - rm -f /etc/resolv.conf
+  - ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+  - systemctl restart systemd-resolved
 runcmd:
   # qemu-guest-agent is a static service, but it requires a reboot in order to start
   # Since there's not a great way of rebooting via Terraform, manually start the service
