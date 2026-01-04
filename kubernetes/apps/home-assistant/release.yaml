@@ -34,6 +34,10 @@ spec:
       annotations:
         metallb.io/loadBalancerIPs: 192.168.4.232
 
+    # Use host networking for IoT device discovery (mDNS/SSDP)
+    # This allows Home Assistant to discover Sonos and other devices across VLANs
+    hostNetwork: true
+
     # Resource limits (conservative for 16GB total cluster memory)
     resources:
       requests:
