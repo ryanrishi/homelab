@@ -167,6 +167,29 @@ Both nodes need `debian-12-cloudinit-template` created via `/terraform/scripts/c
 
 ## Troubleshooting Notes
 
+### Debugging k3s Nodes
+
+**Philosophy**: Debug via `kubectl` from outside the cluster, not by SSH'ing into nodes.
+
+**Minimal cloud-init packages**: VMs are provisioned with only essential packages (`nfs-common`, `qemu-guest-agent`).
+
+**If you need to debug on a node**, install packages temporarily:
+```bash
+# SSH to the node
+ssh ryan@<node-ip>
+
+# Install debugging tools as needed
+sudo apt-get update && sudo apt-get install -y \
+  bind9-dnsutils \  # DNS debugging (dig, nslookup)
+  htop \            # Resource monitoring
+  jq \              # JSON parsing
+  lsof \            # Port/file descriptor debugging
+  netcat-openbsd \  # Network testing
+  nmap              # Network scanning
+```
+
+These tools are intentionally NOT in cloud-init to encourage debugging from outside the cluster.
+
 ### Proxmox Cluster Issues
 
 #### pmxcfs Filesystem Hanging

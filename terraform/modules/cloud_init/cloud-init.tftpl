@@ -20,17 +20,8 @@ users:
 package_update: true
 package_upgrade: true
 packages:
-  - dnsutils
-  - htop
-  - jq
-  - git
-  - lsof
-  - netcat-openbsd
-  - nmap
-  - python-is-python3
-  - python3-pip
+  - nfs-common
   - qemu-guest-agent
-  - tree
 write_files:
   # Debian 13 workaround: Override netplan config with proper DNS settings
   # Proxmox's cloud-init network config doesn't set DNS properly in netplan
