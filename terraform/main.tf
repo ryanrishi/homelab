@@ -25,22 +25,6 @@ module "wireguard" {
 
   vm_state    = "stopped"
   target_node = "ryanrishi"
-}
-
-module "ddclient" {
-  source = "./modules/cloud_init"
-  name   = "ddclient"
-
-  cores       = 1
-  sockets     = 1
-  memory      = 512
-  balloon     = 0
-  target_node = "ryanrishi"
-
-  cloud_init_template_name = "debian-13-cloudinit-template"
-
-  # Match template disk size so the cloned root disk attaches to scsi0
-  disk_size = 8
 
   pve_user     = var.pve_user
   pve_password = var.pve_password
