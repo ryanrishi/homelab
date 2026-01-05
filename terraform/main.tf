@@ -36,24 +36,32 @@ module "ddclient" {
   memory      = 512
   balloon     = 0
   target_node = "ryanrishi"
+
+  cloud_init_template_name = "debian-13-cloudinit-template"
+
+  # Match template disk size so the cloned root disk attaches to scsi0
+  disk_size = 8
+
+  pve_user     = var.pve_user
+  pve_password = var.pve_password
 }
 
 locals {
-  k3s_server_count  = 4  # Temporarily increase to 4
+  k3s_server_count  = 4
   k3s_replica_count = 2
 
   # K3s server configurations
   k3s_servers = {
-    0 = { target_node = "ryanrishi", cluster_init = true, template = "debian-12-cloudinit-template", storage = "local-lvm" }
-    1 = { target_node = "pve001", cluster_init = false, template = "debian-12-cloudinit-template", storage = "local" }
-    2 = { target_node = "ryanrishi", cluster_init = false, template = "debian-12-cloudinit-template", storage = "local-lvm" }  # Keep existing
-    3 = { target_node = "pve001", cluster_init = false, template = "debian-13-cloudinit-template", storage = "local" }   # New replacement
+    0 = { target_node = "ryanrishi", cluster_init = false, ip = "192.168.4.65" }
+    1 = { target_node = "pve001" }
+    2 = { target_node = "ryanrishi" }
+    3 = { target_node = "pve001" }
   }
 
   # K3s replica configurations
   k3s_replicas = {
-    0 = { target_node = "ryanrishi", storage = "local-lvm" }
-    1 = { target_node = "pve001", storage = "local" }
+    0 = { target_node = "ryanrishi" }
+    1 = { target_node = "pve001" }
   }
 
   # Common cloud-init modules list
@@ -69,8 +77,6 @@ locals {
     "mcollective",
     "salt-minion",
     "reset_rmc",
-    "refresh_rmc_and_interface",
-    "rightscale_userdata",
     "scripts-vendor",
     "scripts-per-once",
     "scripts-per-boot",
@@ -97,18 +103,19 @@ module "k3s-servers" {
 
   name        = "k3s-server-${count.index}"
   target_node = local.k3s_servers[count.index].target_node
+  ip          = lookup(local.k3s_servers[count.index], "ip", null)
 
   cores     = 2
   sockets   = 2
   memory    = 2048
   disk_size = 20
   balloon   = 0
-  
-  cloud_init_template_name = lookup(local.k3s_servers[count.index], "template", "debian-12-cloudinit-template")
-  storage = lookup(local.k3s_servers[count.index], "storage", "local-lvm")
-  
-  pve_host = var.pve_host
-  pve_user = var.pve_user  
+
+  cloud_init_template_name = lookup(local.k3s_servers[count.index], "template", "debian-13-cloudinit-template")
+  storage                  = lookup(local.k3s_servers[count.index], "storage", "local-lvm")
+
+  pve_host     = var.pve_host
+  pve_user     = var.pve_user
   pve_password = var.pve_password
 
   additional_cloud_init_config = yamlencode({
@@ -120,7 +127,7 @@ module "k3s-servers" {
         checkout      = "main"
         playbook_name = "k3s-server.yml"
         extra_vars = {
-          cluster_init = local.k3s_servers[count.index].cluster_init
+          cluster_init = lookup(local.k3s_servers[count.index], "cluster_init", false)
           token        = random_password.password.result
         }
       }
@@ -138,15 +145,16 @@ module "k3s-replicas" {
   source = "./modules/cloud_init"
   count  = local.k3s_replica_count
 
-  name        = "k3s-replica-${count.index}"
-  target_node = local.k3s_replicas[count.index].target_node
+  name                     = "k3s-replica-${count.index}"
+  target_node              = local.k3s_replicas[count.index].target_node
+  cloud_init_template_name = lookup(local.k3s_replicas[count.index], "template", "debian-13-cloudinit-template")
 
   cores     = 2
   sockets   = 2
   memory    = 4096
   disk_size = 20
-  balloon   = 0 # Ballooning disabled
-  
+  balloon   = 0
+
   storage = lookup(local.k3s_replicas[count.index], "storage", "local-lvm")
 
   additional_cloud_init_config = yamlencode({
@@ -169,4 +177,7 @@ module "k3s-replicas" {
   })
 
   depends_on = [module.k3s-servers[0]]
+
+  pve_user     = var.pve_user
+  pve_password = var.pve_password
 }
