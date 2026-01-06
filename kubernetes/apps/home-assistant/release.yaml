@@ -28,13 +28,28 @@ spec:
       # Set timezone (adjust to your location)
       TZ: America/New_York
 
-    # Mount configuration.yaml from ConfigMap
-    configmap:
-      configuration.yaml:
-        enabled: true
-        mountPath: /config/configuration.yaml
-        subPath: configuration.yaml
-        data: home-assistant-config
+    # Configure Home Assistant via template
+    configuration:
+      enabled: true
+      templateConfig: |-
+        # Loads default set of integrations. Do not remove.
+        default_config:
+
+        # Load frontend themes from the themes folder
+        frontend:
+          themes: !include_dir_merge_named themes
+
+        # HTTP configuration for reverse proxy support
+        http:
+          use_x_forwarded_for: true
+          trusted_proxies:
+            - 10.42.0.0/16      # k8s pod network (cloudflared pods)
+            - 192.168.4.0/24    # home network
+            - 127.0.0.1         # localhost
+
+        automation: !include automations.yaml
+        script: !include scripts.yaml
+        scene: !include scenes.yaml
 
     # Service configuration - LoadBalancer with static IP via MetalLB annotation
     service:
