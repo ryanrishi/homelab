@@ -4,16 +4,16 @@ resource "random_id" "tunnel_secret" {
 }
 
 # Create the Cloudflare Tunnel
-resource "cloudflare_tunnel" "homeassistant" {
+resource "cloudflare_zero_trust_tunnel_cloudflared" "homeassistant" {
   account_id = var.cloudflare_account_id
   name       = var.tunnel_name
   secret     = random_id.tunnel_secret.b64_std
 }
 
 # Configure the tunnel to route traffic to Home Assistant
-resource "cloudflare_tunnel_config" "homeassistant" {
+resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homeassistant" {
   account_id = var.cloudflare_account_id
-  tunnel_id  = cloudflare_tunnel.homeassistant.id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.homeassistant.id
 
   config {
     ingress_rule {
@@ -32,7 +32,7 @@ resource "cloudflare_tunnel_config" "homeassistant" {
 resource "cloudflare_record" "homeassistant" {
   zone_id = var.cloudflare_zone_id
   name    = var.subdomain
-  value   = "${cloudflare_tunnel.homeassistant.id}.cfargotunnel.com"
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.homeassistant.id}.cfargotunnel.com"
   type    = "CNAME"
   proxied = true
   comment = "Cloudflare Tunnel for Home Assistant"
