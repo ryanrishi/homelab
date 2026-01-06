@@ -1,0 +1,21 @@
+# Cloudflare API credentials
+# Get API token from: https://dash.cloudflare.com/profile/api-tokens
+# Required permissions:
+#   - Account - Cloudflare Tunnel: Edit
+#   - Zone - DNS: Edit
+#   - Zone - Zone: Read
+cloudflare_api_token = "your-api-token-here"
+
+# Cloudflare account ID (find in Cloudflare dashboard URL or domain overview)
+cloudflare_account_id = "your-account-id"
+
+# Cloudflare zone ID (find in domain overview page)
+cloudflare_zone_id = "your-zone-id"
+
+# Domain configuration
+domain = "example.com"
+subdomain = "homeassistant.location"
+
+# Home Assistant configuration
+homeassistant_url = "http://192.168.4.231:8123"
+tunnel_name = "homeassistant-tunnel"
