@@ -28,6 +28,14 @@ spec:
       # Set timezone (adjust to your location)
       TZ: America/New_York
 
+    # Mount configuration.yaml from ConfigMap
+    configmap:
+      configuration.yaml:
+        enabled: true
+        mountPath: /config/configuration.yaml
+        subPath: configuration.yaml
+        data: home-assistant-config
+
     # Service configuration - LoadBalancer with static IP via MetalLB annotation
     service:
       type: LoadBalancer
