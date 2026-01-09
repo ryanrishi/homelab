@@ -34,3 +34,13 @@ spec:
     extraEnvVars:
       RATE_LIMIT: "0/0"
     priorityClassName: critical-dns
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - pihole
+            topologyKey: kubernetes.io/hostname
