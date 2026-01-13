@@ -16,7 +16,7 @@ variable "users" {
 }
 
 variable "cloud_init_template_name" {
-  default = "debian-12-generic"
+  default = "debian-13-cloudinit-template"
 }
 
 variable "cores" {
@@ -91,5 +91,15 @@ variable "pve_user" {
 }
 
 variable "pve_password" {
-  default = "password"
+  type      = string
+  sensitive = true
+}
+
+variable "node_ip_map" {
+  description = "Map of node names to IP addresses for cloud-init file uploads"
+  type        = map(string)
+  default = {
+    "ryanrishi" = "192.168.4.200"
+    "pve001"    = "192.168.4.201"
+  }
 }

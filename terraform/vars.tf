@@ -7,5 +7,6 @@ variable "pve_user" {
 }
 
 variable "pve_password" {
-  default = "password"
+  type      = string
+  sensitive = true
 }

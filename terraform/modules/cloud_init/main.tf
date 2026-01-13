@@ -23,6 +23,8 @@ resource "proxmox_vm_qemu" "vm" {
   nameserver   = var.nameserver
   searchdomain = var.searchdomain
 
+  # Important: size must be >= template disk size so the provider can adopt
+  # the cloned disk and resize it, rather than creating a new blank disk.
   disks {
     scsi {
       scsi0 {
@@ -46,6 +48,9 @@ resource "proxmox_vm_qemu" "vm" {
 
   lifecycle {
     ignore_changes = [clone]
+    replace_triggered_by = [
+      null_resource.cloud_init_user_data
+    ]
   }
 }
 
@@ -67,7 +72,7 @@ resource "null_resource" "cloud_init_user_data" {
     type     = "ssh"
     user     = var.pve_user
     password = var.pve_password
-    host     = var.pve_host
+    host     = var.node_ip_map[var.target_node]
   }
 
   provisioner "file" {

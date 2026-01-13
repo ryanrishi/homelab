@@ -6,25 +6,11 @@ module "media" {
   cores     = 4
   sockets   = 2
   disk_size = 16
-  memory    = 4096
+  memory    = 8192
   balloon   = 0
 
   cloud_init_template_name = "debian-11-cloudinit-template"
   target_node              = "ryanrishi"
-}
-
-module "wireguard" {
-  source = "./modules/cloud_init"
-  name   = "wireguard"
-  ip     = "192.168.4.203"
-
-  cores   = 2
-  sockets = 2
-  memory  = 1024
-  balloon = 0
-
-  vm_state    = "stopped"
-  target_node = "ryanrishi"
 
   pve_user     = var.pve_user
   pve_password = var.pve_password
@@ -32,7 +18,7 @@ module "wireguard" {
 
 locals {
   k3s_server_count  = 4
-  k3s_replica_count = 2
+  k3s_replica_count = 3
 
   # K3s server configurations
   k3s_servers = {
@@ -46,6 +32,7 @@ locals {
   k3s_replicas = {
     0 = { target_node = "ryanrishi" }
     1 = { target_node = "pve001" }
+    2 = { target_node = "ryanrishi" }
   }
 
   # Common cloud-init modules list
@@ -95,9 +82,6 @@ module "k3s-servers" {
   disk_size = 20
   balloon   = 0
 
-  cloud_init_template_name = lookup(local.k3s_servers[count.index], "template", "debian-13-cloudinit-template")
-  storage                  = lookup(local.k3s_servers[count.index], "storage", "local-lvm")
-
   pve_host     = var.pve_host
   pve_user     = var.pve_user
   pve_password = var.pve_password
@@ -129,17 +113,14 @@ module "k3s-replicas" {
   source = "./modules/cloud_init"
   count  = local.k3s_replica_count
 
-  name                     = "k3s-replica-${count.index}"
-  target_node              = local.k3s_replicas[count.index].target_node
-  cloud_init_template_name = lookup(local.k3s_replicas[count.index], "template", "debian-13-cloudinit-template")
+  name        = "k3s-replica-${count.index}"
+  target_node = local.k3s_replicas[count.index].target_node
 
   cores     = 2
   sockets   = 2
   memory    = 4096
   disk_size = 20
   balloon   = 0
-
-  storage = lookup(local.k3s_replicas[count.index], "storage", "local-lvm")
 
   additional_cloud_init_config = yamlencode({
     ansible = {
