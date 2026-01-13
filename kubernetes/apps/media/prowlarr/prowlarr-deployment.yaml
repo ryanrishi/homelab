@@ -57,7 +57,7 @@ spec:
               cpu: 100m
       containers:
         - name: prowlarr
-          image: linuxserver/prowlarr:1.6.3
+          image: linuxserver/prowlarr:2.3.0
           env:
             - name: PUID
               value: "1000"

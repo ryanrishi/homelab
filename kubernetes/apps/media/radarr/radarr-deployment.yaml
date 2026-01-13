@@ -57,7 +57,7 @@ spec:
               cpu: 100m
       containers:
         - name: radarr
-          image: linuxserver/radarr:4.2.4
+          image: linuxserver/radarr:6.0.4
           env:
             - name: PUID
               value: "1000"

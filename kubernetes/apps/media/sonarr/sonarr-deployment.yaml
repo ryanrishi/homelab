@@ -57,7 +57,7 @@ spec:
               cpu: 100m
       containers:
         - name: sonarr
-          image: linuxserver/sonarr:3.0.9
+          image: linuxserver/sonarr:4.0.16
           env:
             - name: PUID
               value: "1000"
