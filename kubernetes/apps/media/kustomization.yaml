@@ -6,6 +6,8 @@ resources:
   - namespace.yaml
   - media-vpn-secret.sops.yaml
   - services.yaml
+  - middleware.yaml
+  - ingress-routes.yaml
   - prowlarr/prowlarr-pvc.yaml
   - prowlarr/prowlarr-deployment.yaml
   - deluge/deluge-pvc.yaml
