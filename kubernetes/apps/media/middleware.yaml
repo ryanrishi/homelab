@@ -1,0 +1,67 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-prefix-radarr
+  namespace: media
+spec:
+  stripPrefix:
+    prefixes:
+      - /radarr
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-prefix-sonarr
+  namespace: media
+spec:
+  stripPrefix:
+    prefixes:
+      - /sonarr
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-prefix-prowlarr
+  namespace: media
+spec:
+  stripPrefix:
+    prefixes:
+      - /prowlarr
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-prefix-deluge
+  namespace: media
+spec:
+  stripPrefix:
+    prefixes:
+      - /deluge
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-prefix-ombi
+  namespace: media
+spec:
+  stripPrefix:
+    prefixes:
+      - /ombi
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: security-headers
+  namespace: media
+spec:
+  headers:
+    frameDeny: true
+    browserXssFilter: true
+    contentTypeNosniff: true
+    forceSTSHeader: true
+    stsIncludeSubdomains: true
+    stsPreload: true
+    stsSeconds: 31536000
+    customResponseHeaders:
+      X-Forwarded-Proto: https

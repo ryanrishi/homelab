@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - ddclient
   - home-assistant
+  - media
   - monitoring
   - pihole

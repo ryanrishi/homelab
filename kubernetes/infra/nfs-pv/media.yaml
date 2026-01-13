@@ -1,0 +1,152 @@
+---
+# Shared downloads PV (ReadWriteMany for all services)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-media-downloads-pv
+spec:
+  storageClassName: media-downloads
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/k3s/media/downloads
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+---
+# TV media PV (ReadWriteMany for Sonarr)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-media-tv-pv
+spec:
+  storageClassName: media-tv
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/k3s/media/media/tv
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+---
+# Movies media PV (ReadWriteMany for Radarr)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-media-movies-pv
+spec:
+  storageClassName: media-movies
+  capacity:
+    storage: 2Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/k3s/media/media/movies
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+---
+# Deluge config PV
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-media-deluge-config-pv
+spec:
+  storageClassName: media-deluge-config
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/k3s/media/config/deluge
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+---
+# Prowlarr config PV
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-media-prowlarr-config-pv
+spec:
+  storageClassName: media-prowlarr-config
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/k3s/media/config/prowlarr
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+---
+# Radarr config PV
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-media-radarr-config-pv
+spec:
+  storageClassName: media-radarr-config
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/k3s/media/config/radarr
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+---
+# Sonarr config PV
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-media-sonarr-config-pv
+spec:
+  storageClassName: media-sonarr-config
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/k3s/media/config/sonarr
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+---
+# Ombi config PV
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-media-ombi-config-pv
+spec:
+  storageClassName: media-ombi-config
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/k3s/media/config/ombi
+  mountOptions:
+    - nfsvers=4.1
+    - hard

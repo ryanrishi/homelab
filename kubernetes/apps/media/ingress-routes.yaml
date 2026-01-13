@@ -1,0 +1,106 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: media-tls
+  namespace: media
+spec:
+  secretName: media-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - ${SECRET_MEDIA_DOMAIN}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: media-ingress
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/radarr`)
+      kind: Rule
+      services:
+        - name: radarr
+          port: 7878
+      middlewares:
+        - name: strip-prefix-radarr
+        - name: security-headers
+    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/sonarr`)
+      kind: Rule
+      services:
+        - name: sonarr
+          port: 8989
+      middlewares:
+        - name: strip-prefix-sonarr
+        - name: security-headers
+    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/prowlarr`)
+      kind: Rule
+      services:
+        - name: prowlarr
+          port: 9696
+      middlewares:
+        - name: strip-prefix-prowlarr
+        - name: security-headers
+    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/deluge`)
+      kind: Rule
+      services:
+        - name: deluge
+          port: 8112
+      middlewares:
+        - name: strip-prefix-deluge
+        - name: security-headers
+    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/ombi`)
+      kind: Rule
+      services:
+        - name: ombi
+          port: 3579
+      middlewares:
+        - name: strip-prefix-ombi
+        - name: security-headers
+  tls:
+    secretName: media-tls
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard
+  namespace: traefik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && (PathPrefix(`/traefik/dashboard`) || PathPrefix(`/traefik/api`))
+      kind: Rule
+      services:
+        - name: api@internal
+          kind: TraefikService
+      middlewares:
+        - name: dashboard-auth
+  tls:
+    secretName: traefik-dashboard-tls
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: dashboard-auth
+  namespace: traefik
+spec:
+  basicAuth:
+    secret: traefik-dashboard-auth
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: traefik-dashboard-tls
+  namespace: traefik
+spec:
+  secretName: traefik-dashboard-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - ${SECRET_MEDIA_DOMAIN}

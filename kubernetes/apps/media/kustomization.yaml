@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: media
+resources:
+  - namespace.yaml
+  - media-vpn-secret.sops.yaml
+  - services.yaml
+  - middleware.yaml
+  - ingress-routes.yaml
+  - prowlarr/prowlarr-pvc.yaml
+  - prowlarr/prowlarr-deployment.yaml
+  - deluge/deluge-pvc.yaml
+  - deluge/deluge-deployment.yaml
+  - radarr/radarr-pvc.yaml
+  - radarr/radarr-deployment.yaml
+  - sonarr/sonarr-pvc.yaml
+  - sonarr/sonarr-deployment.yaml
+  - ombi/ombi-pvc.yaml
+  - ombi/ombi-deployment.yaml
