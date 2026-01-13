@@ -41,6 +41,31 @@ kubectl describe nodes | grep -A10 "Allocated resources"
 kubectl top nodes
 ```
 
+## ⚠️ CRITICAL: Sensitive Information
+
+**NEVER expose sensitive information in code or commits:**
+
+- **Domain names**: NEVER hardcode domain names in files or commit messages
+  - Use Terraform variables for all domain references
+  - Keep actual values in `.tfvars` files (gitignored)
+  - Use generic descriptions in commit messages
+
+- **API tokens/keys**: NEVER commit API tokens, credentials, or secrets
+  - Use SOPS encryption for Kubernetes secrets
+  - Use Terraform variables marked as `sensitive = true`
+  - Ensure `.tfvars` files are gitignored
+
+- **IP addresses**: Avoid exposing internal IPs in public commits
+  - Use variables or configuration files for network configuration
+
+- **Account/Zone IDs**: Use Terraform variables, never hardcode
+
+**Before committing:**
+- Review commit diff for any sensitive values
+- Check commit message doesn't reference domains/IPs
+- Verify `.tfvars` files are gitignored
+- Ensure secrets are encrypted with SOPS
+
 ## Key Commands
 
 ### Ansible
@@ -304,7 +329,7 @@ ps aux | grep -E " D "
 systemctl reboot
 ```
 
-#### Intel e1000e NIC Hardware Hang (RECURRING ISSUE)
+#### Intel e1000e NIC Hardware Hang (CRITICAL RECURRING ISSUE - BOTH HOSTS AFFECTED)
 **Symptom**:
 - Entire network freezes/becomes unresponsive
 - k3s nodes go NotReady simultaneously
@@ -312,48 +337,84 @@ systemctl reboot
 - PiHole IPs get reassigned (192.168.4.253 → random → 192.168.4.253)
 - DNS outage during IP reassignment
 - May coincide with high CPU usage and load average spikes
+- In fatal cases: NIC never recovers, requires physical reboot
 
 **Root Cause**:
 - Intel e1000e NIC driver (0000:00:1f.6 eno1) hardware unit hang
 - Triggered by high multicast traffic (mDNS/SSDP)
 - Home Assistant using host networking for Sonos discovery generates multicast traffic
 - Known issue with e1000e driver under multicast load
+- **BOTH Proxmox hosts have Intel I219-V NICs with this bug**
+
+**Hardware Details**:
+- **pve (NUC)**: Intel I219-V (10th gen), driver 6.5.11-7-pve, hangs but usually recovers
+- **pve001 (M720s)**: Intel I219-V (7th gen), driver 6.8.12-9-pve, fatal hangs that don't recover
+- Newer driver (6.8.12-9-pve) appears WORSE - cannot recover from hangs
 
 **Occurrences**:
 - First incident: ~2025-12-07 20:33 (required physical reboot)
-- Second incident: 2026-01-04 17:12:22 (NIC auto-recovered after reset)
+- Jan 4 2026: Multiple hangs on pve (02:57, 17:12, 18:05, 19:45, 23:45) - all recovered
+- **Jan 5-6 2026 MAJOR OUTAGE**:
+  - Jan 5 23:16:02: pve001 fatal NIC hang started
+  - Hung for 8h 32min until hard reboot at Jan 6 07:47:50
+  - Proxmox cluster lost quorum: `cfs-lock error: no quorum!`
+  - k3s lost 2/4 server nodes → etcd lost quorum
+  - Workloads rescheduled to pve → triggered hangs on pve too
+  - Network-wide DNS outage due to PiHole IP reassignment
 
 **Diagnostics**:
 ```bash
-# Check Proxmox host for e1000e hangs
+# Check BOTH Proxmox hosts for e1000e hangs
 ssh root@192.168.4.200 'dmesg -T | grep -iE "e1000e|hang"'
+ssh root@192.168.4.201 'dmesg -T | grep -iE "e1000e|hang"'
 
 # Look for:
 # e1000e 0000:00:1f.6 eno1: Detected Hardware Unit Hang
-# e1000e 0000:00:1f.6 eno1: Reset adapter unexpectedly
+# e1000e 0000:00:1f.6 eno1: Reset adapter unexpectedly (recoverable)
+# If no "Reset adapter" message → fatal hang, requires reboot
 
 # Check k3s cluster for IP reassignments
 kubectl get events -A --sort-by='.lastTimestamp' | grep -E "IPAllocated|ClearAssignment"
 ```
 
-**Potential Solutions** (in order of preference):
-1. **Update e1000e driver** - May have fixes for multicast handling
+**Solutions** (in order of preference):
+1. **⚠️ DO NOT UPDATE DRIVERS** - Newer driver (6.8.12-9-pve) has FATAL hangs
+   - Older driver (6.5.11-7-pve) at least recovers
+   - Keep pve on current kernel 6.5.11-7-pve
+
+2. **Replace NICs** (ONLY REAL FIX)
+   - Add PCIe NIC cards: Intel I350, Intel X710, Broadcom BCM5720
+   - Temporary: USB-to-Ethernet adapter (e.g., Plugable USB3-E1000)
+   - Both onboard Intel I219-V NICs are fundamentally broken
+
+3. **Temporary mitigation: Disable Home Assistant host networking**
+   ```yaml
+   # kubernetes/apps/home-assistant/release.yaml
+   hostNetwork: false  # Reduces mDNS traffic
+   ```
+   - Loses Sonos discovery but stops triggering hangs
+   - Can add Sonos devices manually
+
+4. **Add NIC hang monitoring** (on both hosts)
    ```bash
-   ssh root@192.168.4.200
-   ethtool -i eno1  # Check current driver version
-   # Update Proxmox kernel (includes driver updates)
-   apt update && apt upgrade pve-kernel-*
+   # /etc/cron.d/nic-monitor
+   */5 * * * * root if dmesg -T | tail -100 | grep -q "e1000e.*Hardware Unit Hang"; then logger -t nic-monitor "ALERT: e1000e hang detected on $(hostname)"; fi
    ```
 
-2. **Update NIC firmware** - Check Intel website for firmware updates
+5. **Automatic NIC reset script** (may help pve, won't help pve001)
+   ```bash
+   # /usr/local/bin/reset-nic-on-hang.sh
+   #!/bin/bash
+   if dmesg -T | tail -50 | grep -q "e1000e.*Hardware Unit Hang"; then
+       count=$(dmesg -T | tail -100 | grep "e1000e.*Hardware Unit Hang" | grep "$(date +"%b %_d %H:%M")" | wc -l)
+       if [ "$count" -gt 5 ]; then
+           logger -t nic-reset "Resetting eno1 due to persistent e1000e hang"
+           ip link set eno1 down && sleep 2 && ip link set eno1 up
+       fi
+   fi
+   ```
 
-3. **Disable host networking for Home Assistant** - Eliminates multicast traffic but loses Sonos discovery
-
-4. **Replace NIC** - Use different NIC hardware or driver (e.g., Intel I350, Broadcom)
-
-5. **Driver parameters** - Try tuning e1000e parameters (not recommended without deep understanding)
-
-**Current Configuration**: Home Assistant host networking ENABLED for Sonos discovery - accepting periodic outages while investigating driver/firmware updates
+**Current Status**: Home Assistant host networking ENABLED - accepting outage risk until NICs can be replaced. Hardware replacement is the only reliable solution.
 
 ### Cluster Communication Diagnostics
 ```bash
