@@ -3,3 +3,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: media
+  labels:
+    # Baseline mode: prevents privilege escalation but allows NET_ADMIN for VPN
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
