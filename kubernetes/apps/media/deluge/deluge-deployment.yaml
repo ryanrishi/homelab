@@ -57,7 +57,7 @@ spec:
               cpu: 100m
       containers:
         - name: deluge
-          image: linuxserver/deluge:2.2.0
+          image: lscr.io/linuxserver/deluge:2.2.0
           env:
             - name: PUID
               value: "1000"

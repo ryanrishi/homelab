@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: ombi
-          image: linuxserver/ombi:4.47.1
+          image: lscr.io/linuxserver/ombi:4.47.1
           env:
             - name: PUID
               value: "1000"
