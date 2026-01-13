@@ -3,15 +3,16 @@
 # create-debian-template.sh
 # Creates a Debian cloud-init template for Terraform automation
 #
-# Usage: ./create-debian-template.sh [11|12]
-# Default: Debian 12
+# Usage: ./create-debian-template.sh [11|12|13] [VMID]
+# Defaults: Debian 12, VMID 9000
 #
 
 set -euo pipefail
 
 # Configuration
+# Inputs
 DEBIAN_VERSION=${1:-12}
-VM_ID=9000
+VM_ID=${2:-9000}
 TEMPLATE_NAME="debian-${DEBIAN_VERSION}-cloudinit-template"
 MEMORY=1024
 CORES=1
@@ -24,8 +25,11 @@ if [[ "$DEBIAN_VERSION" == "11" ]]; then
 elif [[ "$DEBIAN_VERSION" == "12" ]]; then
     IMAGE_URL="https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2"
     IMAGE_FILE="debian-12-generic-amd64.qcow2"
+elif [[ "$DEBIAN_VERSION" == "13" ]]; then
+    IMAGE_URL="https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2"
+    IMAGE_FILE="debian-13-generic-amd64.qcow2"
 else
-    echo "Error: Unsupported Debian version. Use 11 or 12."
+    echo "Error: Unsupported Debian version. Use 11, 12, or 13."
     exit 1
 fi
 
@@ -50,8 +54,8 @@ else
     echo "Image already exists, skipping download."
 fi
 
-# Create VM
-echo "Creating VM ${VM_ID}..."
+# Create VM (OVMF/UEFI with persistent efivars)
+echo "Creating VM ${VM_ID} (OVMF/UEFI)..."
 qm create ${VM_ID} \
   --name "${TEMPLATE_NAME}" \
   --memory ${MEMORY} \
@@ -62,17 +66,16 @@ qm create ${VM_ID} \
   --boot order=scsi0 \
   --serial0 socket \
   --agent enabled=1 \
-  --ostype l26
+  --ostype l26 \
+  --bios ovmf \
+  --efidisk0 local-lvm:0,efitype=4m
 
 # Resize disk
 echo "Resizing disk to ${DISK_SIZE}..."
 qm disk resize ${VM_ID} scsi0 ${DISK_SIZE}
 
-# Set cloud-init defaults
+# Set minimal cloud-init defaults (accounts/keys provided at clone time via Terraform)
 echo "Configuring cloud-init defaults..."
-qm set ${VM_ID} --ciuser root
-qm set ${VM_ID} --cipassword password
-qm set ${VM_ID} --sshkeys ~/.ssh/authorized_keys || echo "Warning: No SSH keys found"
 qm set ${VM_ID} --ipconfig0 ip=dhcp
 
 # Convert to template
