@@ -73,7 +73,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && (PathPrefix(`/traefik`) || PathPrefix(`/api`))
+    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && (PathPrefix(`/traefik/dashboard`) || PathPrefix(`/traefik/api`))
       kind: Rule
       services:
         - name: api@internal
