@@ -1,0 +1,102 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deluge
+  namespace: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: deluge
+  template:
+    metadata:
+      labels:
+        app: deluge
+    spec:
+      initContainers:
+        - name: gluetun
+          image: qmcgaw/gluetun:v3.35
+          restartPolicy: Always
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+          env:
+            - name: VPN_SERVICE_PROVIDER
+              value: mullvad
+            - name: VPN_TYPE
+              value: wireguard
+            - name: WIREGUARD_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: media-vpn-secret
+                  key: wireguard_private_key
+            - name: WIREGUARD_ADDRESSES
+              valueFrom:
+                secretKeyRef:
+                  name: media-vpn-secret
+                  key: wireguard_addresses
+            - name: SERVER_COUNTRIES
+              valueFrom:
+                secretKeyRef:
+                  name: media-vpn-secret
+                  key: server_countries
+            - name: DNS_KEEP_NAMESERVER
+              value: "on"
+            - name: FIREWALL_OUTBOUND_SUBNETS
+              value: "10.42.0.0/15,192.168.4.0/24"
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 10m
+            limits:
+              memory: 128Mi
+              cpu: 100m
+      containers:
+        - name: deluge
+          image: linuxserver/deluge:2.1.1
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Etc/UTC"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+          resources:
+            requests:
+              memory: 192Mi
+              cpu: 50m
+            limits:
+              memory: 384Mi
+              cpu: 500m
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8112
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8112
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: deluge-config
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: media-downloads
