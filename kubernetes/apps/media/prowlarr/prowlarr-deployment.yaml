@@ -21,9 +21,17 @@ spec:
           image: qmcgaw/gluetun:v3.35
           restartPolicy: Always
           securityContext:
+            runAsUser: 0
+            runAsGroup: 0
             capabilities:
               add:
                 - NET_ADMIN
+          startupProbe:
+            exec:
+              command: ["wget", "-q", "-O-", "http://127.0.0.1:8000/v1/publicip/ip"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
           env:
             - name: VPN_SERVICE_PROVIDER
               value: mullvad
