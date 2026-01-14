@@ -84,7 +84,3 @@ spec:
         enabled: true
         publishedService:
           enabled: true
-
-    additionalArguments:
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https

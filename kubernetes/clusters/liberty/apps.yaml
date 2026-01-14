@@ -9,7 +9,6 @@ spec:
   retryInterval: 1m
   dependsOn:
     - name: infrastructure
-    - name: infrastructure-config
   sourceRef:
     kind: GitRepository
     name: flux-system
