@@ -79,10 +79,13 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
+              subPath: media/config/radarr
             - name: downloads
               mountPath: /downloads
+              subPath: media/downloads
             - name: movies
               mountPath: /movies
+              subPath: media/media/movies
           resources:
             requests:
               memory: 128Mi
