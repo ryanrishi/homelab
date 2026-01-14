@@ -102,10 +102,6 @@ spec:
               port: 8989
             initialDelaySeconds: 30
             periodSeconds: 10
-      securityContext:
-        fsGroup: 1000
-        runAsUser: 1000
-        runAsGroup: 1000
       volumes:
         - name: config
           persistentVolumeClaim:
