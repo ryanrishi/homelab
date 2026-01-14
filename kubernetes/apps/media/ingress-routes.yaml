@@ -14,7 +14,6 @@ spec:
         - name: radarr
           port: 7878
       middlewares:
-        - name: strip-prefix-radarr
         - name: security-headers
     - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/sonarr`)
       kind: Rule
@@ -22,7 +21,6 @@ spec:
         - name: sonarr
           port: 8989
       middlewares:
-        - name: strip-prefix-sonarr
         - name: security-headers
     - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/prowlarr`)
       kind: Rule
@@ -30,7 +28,6 @@ spec:
         - name: prowlarr
           port: 9696
       middlewares:
-        - name: strip-prefix-prowlarr
         - name: security-headers
     - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/deluge`)
       kind: Rule
@@ -38,7 +35,6 @@ spec:
         - name: deluge
           port: 8112
       middlewares:
-        - name: strip-prefix-deluge
         - name: security-headers
     - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/ombi`)
       kind: Rule
@@ -46,5 +42,4 @@ spec:
         - name: ombi
           port: 3579
       middlewares:
-        - name: strip-prefix-ombi
         - name: security-headers

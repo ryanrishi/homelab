@@ -76,6 +76,8 @@ spec:
               value: "1000"
             - name: TZ
               value: "Etc/UTC"
+            - name: PROWLARR__SERVER__URLBASE
+              value: "/prowlarr"
           volumeMounts:
             - name: config
               mountPath: /config
@@ -88,13 +90,13 @@ spec:
               cpu: 200m
           livenessProbe:
             httpGet:
-              path: /
+              path: /prowlarr
               port: 9696
             initialDelaySeconds: 60
             periodSeconds: 30
           readinessProbe:
             httpGet:
-              path: /
+              path: /prowlarr
               port: 9696
             initialDelaySeconds: 30
             periodSeconds: 10

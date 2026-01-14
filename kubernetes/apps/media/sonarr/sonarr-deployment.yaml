@@ -76,6 +76,8 @@ spec:
               value: "1000"
             - name: TZ
               value: "Etc/UTC"
+            - name: SONARR__SERVER__URLBASE
+              value: "/sonarr"
           volumeMounts:
             - name: config
               mountPath: /config
@@ -92,13 +94,13 @@ spec:
               cpu: 300m
           livenessProbe:
             httpGet:
-              path: /
+              path: /sonarr
               port: 8989
             initialDelaySeconds: 60
             periodSeconds: 30
           readinessProbe:
             httpGet:
-              path: /
+              path: /sonarr
               port: 8989
             initialDelaySeconds: 30
             periodSeconds: 10

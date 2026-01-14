@@ -29,6 +29,8 @@ spec:
               value: "1000"
             - name: TZ
               value: "Etc/UTC"
+            - name: BASE_URL
+              value: "/ombi"
           volumeMounts:
             - name: config
               mountPath: /config
@@ -44,13 +46,13 @@ spec:
               name: http
           livenessProbe:
             httpGet:
-              path: /
+              path: /ombi
               port: 3579
             initialDelaySeconds: 60
             periodSeconds: 30
           readinessProbe:
             httpGet:
-              path: /
+              path: /ombi
               port: 3579
             initialDelaySeconds: 30
             periodSeconds: 10
