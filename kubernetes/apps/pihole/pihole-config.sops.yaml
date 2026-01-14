@@ -3,10 +3,10 @@ kind: ConfigMap
 metadata:
     name: pihole-config
 data:
-    values.yaml: ENC[AES256_GCM,data:Bi9V3o6NMMzDh9G8ErQnaIoa0ecyye9Xb/Hb6LuCU27nX0ae7DQwk+RShTBVySg7JgD4v+UQUOh/FeAXOLSe+dFLDGq4ptX4V8H3gh4t0Ah5obtXOhKyEECqWJUcuQ3CLerG7ZG5RaNl+zskETQk7BLU6xJ/Ey6BOBf29l5zzeDLGjiSaMj1ZBx/9g80K+FAwUiJm4FIxjojv+/5gViGWVrL3cMF18fOqvLhxoXVB12wEoLtAo6qbKKFrIFp3Q0+h/YZnJH5og+tCxAL5uAzQI7x+UpdieRATfvUqW652Z7zgErhLjIL+fNvSfbjq04TZvr6vUoe8gLU9j1c3fryyeI0Irbn9xLNd+JQmJnfUuF/kG51UlFXlRlpJuzKi5UYXdVa1MtbjM0txqTg5v0QAD6/hFaCMXQhsZYSUJ5n2V9xtl3rNDsg2wfeO0+dx53EZbNsjlY2zC9+l/5VEfReUCVpz0BohQL5woZYB/QjgfauXKtcbHxZhK571XXkaBAPVhZzI14UUvmKBiSi3jNc5ZoHTtt7sQLfRwU=,iv:FAwZgurBdt9agU61V2wQmx32KFojRW2CpL6LvChW5jc=,tag:xsMv1fjIfPhdGTvxf9zTrw==,type:str]
+    values.yaml: ENC[AES256_GCM,data:mE895v3Z+EKi7wIuH9vY9yEXC7s3dKvr8hPlDOYpEajFx6nQdL7Vjjk3WkQ6HkakD6GYgX2BypfH9p0cZIMeQEnowuK/rDsNfPRYfZLnlbO0iyEkf2Ya2z8K7uyEvLKNAjUqsuzN7wcSj9U0FHVZC49l9NXEDetbbbd8Cpwa4WCnSnRiYC66I49DIsdlrOSTSQ9MBSg2gqCU6BKXhuwx6GfzwNmn3MdHuU+iRHhXjA0UBqSNBYFtG1iMOJuzfAIXHW7hEJCp9J9Vgpvw83le2QAuUU6YVWKDfBrQbFi4m6YjWlqVQMSlW/au04/01x/g08OVHChpbxuK9I6FDBhhd5YLqReZ5ygaUgOlLJz5Gag0LnaYqVxQq9PVYC22RSixpgll9WEabrnLQH0rK09BweYsunvfxPQfX8LQbobfBse+TAipxTiljSegwZ8RyubwHrTIooetA9WXL8bhQ+eBAl2Axu+FU1m6VK+MpYTiJX18TjGSoNVdHMiHun6Fb+YQuKjmdivQK0vOQzSnPZE0leUy9nbdNIPTtZg=,iv:vH21nd7LLbxjGGvqKSSxX71c+lWNeD/UNI2ZaNEEAqo=,tag:N8iX6xi3KKIVvJ6pGvLqAg==,type:str]
 sops:
-    lastmodified: "2026-01-04T23:17:52Z"
-    mac: ENC[AES256_GCM,data:8DnhvZFTZS9tmjwHeCA0JPI8nglAU5FZeE62B5ZisvXCeUtzB1WIHd89sk5u+hZBfNfaZulWNtW+9i6R3E0NEEgCkcvpcomGQn6ggLSXNQwmJ5MfhpBtzM1SqIXQ4piaync2ZJPnBeUrscqIGkx65fJKlO5CZKDZSPmAWWg7//k=,iv:L5eovJ/RTr/Wx0Qxylt94XuD7k0QLZEEUhmbRyJ4j6g=,tag:u1Xp2VkQK2Q+iryXL6Xp9g==,type:str]
+    lastmodified: "2026-01-14T13:40:56Z"
+    mac: ENC[AES256_GCM,data:aQSbRdI3HE5lpIy+rzfXyq05tQ1C1MS4nUwgvl6334yALnoJHZewBZH5OY/Sdgad2fB4csZ/an77OIlR0/O7pD5x2EzyjPdHJniAcBzRdIeTqPYen5SwnmhQ8JhaKOlHI/yfSGSXwJGBctLM12SH6mlRa0YiQxsvS6pO6nHTUTI=,iv:LN6ZokDf3HZpzmHL0o81ZNlkEjioXB68ikjK8NrP58Q=,tag:e3kk2F2ZxAt/wVWzwjwcJw==,type:str]
     pgp:
         - created_at: "2026-01-04T23:17:52Z"
           enc: |-
