@@ -79,7 +79,6 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
-              subPath: media/config/prowlarr
           resources:
             requests:
               memory: 96Mi

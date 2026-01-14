@@ -79,10 +79,8 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
-              subPath: media/config/deluge
             - name: downloads
               mountPath: /downloads
-              subPath: media/downloads
           resources:
             requests:
               memory: 192Mi

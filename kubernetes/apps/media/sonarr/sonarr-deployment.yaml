@@ -79,13 +79,10 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
-              subPath: media/config/sonarr
             - name: downloads
               mountPath: /downloads
-              subPath: media/downloads
             - name: tv
               mountPath: /tv
-              subPath: media/media/tv
           resources:
             requests:
               memory: 128Mi

@@ -13,7 +13,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
-    path: /volume1/k3s
+    path: /volume1/k3s/media/downloads
   mountOptions:
     - nfsvers=4.1
     - hard
@@ -32,7 +32,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
-    path: /volume1/k3s
+    path: /volume1/k3s/media/media/tv
   mountOptions:
     - nfsvers=4.1
     - hard
@@ -51,7 +51,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
-    path: /volume1/k3s
+    path: /volume1/k3s/media/media/movies
   mountOptions:
     - nfsvers=4.1
     - hard
@@ -70,7 +70,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
-    path: /volume1/k3s
+    path: /volume1/k3s/media/config/deluge
   mountOptions:
     - nfsvers=4.1
     - hard
@@ -89,7 +89,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
-    path: /volume1/k3s
+    path: /volume1/k3s/media/config/prowlarr
   mountOptions:
     - nfsvers=4.1
     - hard
@@ -108,7 +108,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
-    path: /volume1/k3s
+    path: /volume1/k3s/media/config/radarr
   mountOptions:
     - nfsvers=4.1
     - hard
@@ -127,7 +127,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
-    path: /volume1/k3s
+    path: /volume1/k3s/media/config/sonarr
   mountOptions:
     - nfsvers=4.1
     - hard
@@ -146,7 +146,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
-    path: /volume1/k3s
+    path: /volume1/k3s/media/config/ombi
   mountOptions:
     - nfsvers=4.1
     - hard

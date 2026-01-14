@@ -32,7 +32,6 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
-              subPath: media/config/ombi
           resources:
             requests:
               memory: 128Mi
