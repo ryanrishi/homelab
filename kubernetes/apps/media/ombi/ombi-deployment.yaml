@@ -19,6 +19,9 @@ spec:
       containers:
         - name: ombi
           image: lscr.io/linuxserver/ombi:4.47.1
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
           env:
             - name: PUID
               value: "1000"
@@ -26,8 +29,6 @@ spec:
               value: "1000"
             - name: TZ
               value: "Etc/UTC"
-            - name: S6_YES_I_WANT_A_WORLD_WRITABLE_RUN_BECAUSE_KUBERNETES
-              value: "1"
           volumeMounts:
             - name: config
               mountPath: /config
