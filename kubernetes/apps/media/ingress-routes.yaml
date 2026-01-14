@@ -1,17 +1,4 @@
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: media-tls
-  namespace: media
-spec:
-  secretName: media-tls
-  issuerRef:
-    name: letsencrypt-prod
-    kind: ClusterIssuer
-  dnsNames:
-    - ${SECRET_MEDIA_DOMAIN}
----
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -19,7 +6,7 @@ metadata:
   namespace: media
 spec:
   entryPoints:
-    - websecure
+    - web
   routes:
     - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/radarr`)
       kind: Rule
@@ -61,5 +48,3 @@ spec:
       middlewares:
         - name: strip-prefix-ombi
         - name: security-headers
-  tls:
-    secretName: media-tls
