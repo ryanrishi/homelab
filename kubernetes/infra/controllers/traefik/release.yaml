@@ -31,6 +31,11 @@ spec:
                       - traefik
               topologyKey: kubernetes.io/hostname
 
+    ingressClass:
+      enabled: true
+      name: traefik-external
+      isDefaultClass: false
+
     resources:
       requests:
         cpu: 50m
