@@ -26,6 +26,8 @@ spec:
               value: "1000"
             - name: TZ
               value: "Etc/UTC"
+            - name: S6_YES_I_WANT_A_WORLD_WRITABLE_RUN_BECAUSE_KUBERNETES
+              value: "1"
           volumeMounts:
             - name: config
               mountPath: /config
