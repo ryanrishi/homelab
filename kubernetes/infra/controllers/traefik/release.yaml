@@ -50,15 +50,12 @@ spec:
     ports:
       web:
         port: 80
-        expose: true
       websecure:
         port: 443
-        expose: true
         http3:
           enabled: true
       metrics:
         port: 9100
-        expose: false
 
     ingressRoute:
       dashboard:
