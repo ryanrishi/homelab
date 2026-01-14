@@ -4,7 +4,8 @@ kind: Namespace
 metadata:
   name: media
   labels:
-    # Baseline mode: prevents privilege escalation but allows NET_ADMIN for VPN
-    pod-security.kubernetes.io/enforce: baseline
+    # Privileged enforcement required for VPN sidecar NET_ADMIN capability
+    # Still audit/warn on restricted policy for security awareness
+    pod-security.kubernetes.io/enforce: privileged
     pod-security.kubernetes.io/audit: restricted
     pod-security.kubernetes.io/warn: restricted
