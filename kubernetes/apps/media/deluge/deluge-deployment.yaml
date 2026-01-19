@@ -76,8 +76,6 @@ spec:
               value: "1000"
             - name: TZ
               value: "Etc/UTC"
-            - name: DELUGE_WEB_ARGS
-              value: "--base=/deluge"
           volumeMounts:
             - name: config
               mountPath: /config
@@ -92,13 +90,13 @@ spec:
               cpu: 500m
           livenessProbe:
             httpGet:
-              path: /deluge
+              path: /
               port: 8112
             initialDelaySeconds: 60
             periodSeconds: 30
           readinessProbe:
             httpGet:
-              path: /deluge
+              path: /
               port: 8112
             initialDelaySeconds: 30
             periodSeconds: 10

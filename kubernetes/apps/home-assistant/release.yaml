@@ -68,6 +68,8 @@ spec:
       - name: init-hacs
         image: bash
         command: ["bash", "-c", "cd /config && wget -O - https://get.hacs.xyz | bash -"]
+        securityContext:
+          runAsUser: 0
         volumeMounts:
           - mountPath: /config
             name: home-assistant

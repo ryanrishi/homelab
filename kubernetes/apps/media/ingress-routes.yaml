@@ -35,6 +35,7 @@ spec:
         - name: deluge
           port: 8112
       middlewares:
+        - name: strip-prefix-deluge
         - name: security-headers
     - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/ombi`)
       kind: Rule
