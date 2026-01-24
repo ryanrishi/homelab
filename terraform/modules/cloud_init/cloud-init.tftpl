@@ -24,21 +24,6 @@ packages:
   - nfs-common
   - qemu-guest-agent
 write_files:
-  # Debian 13 workaround: Override netplan config with proper DNS settings
-  # Proxmox's cloud-init network config doesn't set DNS properly in netplan
-  # This file is written early and applied before package installation
-  - path: /etc/netplan/51-custom-dns.yaml
-    permissions: '0644'
-    content: |
-      network:
-        version: 2
-        ethernets:
-          eth0:
-            nameservers:
-              addresses:
-                - 192.168.4.1
-              search:
-                - nyc.ccag119.info
   # Debian 13 systemd-resolved stub listener bug workaround
   # Disable the stub listener at 127.0.0.53 which refuses connections despite showing as listening
   # This is a known bug in Debian 13 (Trixie) as of Dec 2024
@@ -49,14 +34,27 @@ write_files:
       [Resolve]
       DNSStubListener=no
 bootcmd:
+  # Debian 13 workaround: Write netplan DNS config BEFORE network stage runs
+  # write_files runs too late (after network stage), so we create it here
+  - |
+    mkdir -p /etc/netplan
+    cat > /etc/netplan/51-custom-dns.yaml << 'EOF'
+    network:
+      version: 2
+      ethernets:
+        eth0:
+          nameservers:
+            addresses:
+              - 192.168.4.1
+            search:
+              - nyc.ccag119.info
+    EOF
+    chmod 600 /etc/netplan/51-custom-dns.yaml
   # Debian 13 systemd-resolved stub listener bug workaround
   # The stub listener at 127.0.0.53 shows as listening but refuses all connections
   # Point /etc/resolv.conf directly to the real DNS config instead of the broken stub
-  # This must run in bootcmd (not runcmd) to execute before networking starts
-  # and before package installation/ansible provisioning
   - rm -f /etc/resolv.conf
   - ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
-  - systemctl restart systemd-resolved
 runcmd:
   # qemu-guest-agent is installed via the packages list above
   # It's a static systemd unit (no [Install] section), so it's automatically enabled

@@ -101,5 +101,6 @@ variable "node_ip_map" {
   default = {
     "ryanrishi" = "192.168.4.200"
     "pve001"    = "192.168.4.201"
+    "pve002"    = "192.168.4.202"
   }
 }

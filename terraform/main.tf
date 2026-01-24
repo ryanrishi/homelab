@@ -17,22 +17,19 @@ module "media" {
 }
 
 locals {
-  k3s_server_count  = 4
-  k3s_replica_count = 3
-
   # K3s server configurations
   k3s_servers = {
     0 = { target_node = "ryanrishi", cluster_init = false, ip = "192.168.4.65" }
-    1 = { target_node = "pve001" }
+    1 = { target_node = "pve002" }
     2 = { target_node = "ryanrishi" }
-    3 = { target_node = "pve001" }
   }
 
   # K3s replica configurations
   k3s_replicas = {
     0 = { target_node = "ryanrishi" }
-    1 = { target_node = "pve001" }
+    1 = { target_node = "pve002" }
     2 = { target_node = "ryanrishi" }
+    3 = { target_node = "pve002" }
   }
 
   # Common cloud-init modules list
@@ -70,7 +67,7 @@ resource "random_password" "password" {
 # K3s server nodes
 module "k3s-servers" {
   source = "./modules/cloud_init"
-  count  = local.k3s_server_count
+  count  = length(local.k3s_servers)
 
   name        = "k3s-server-${count.index}"
   target_node = local.k3s_servers[count.index].target_node
@@ -111,7 +108,7 @@ module "k3s-servers" {
 # K3s replica nodes (agents)
 module "k3s-replicas" {
   source = "./modules/cloud_init"
-  count  = local.k3s_replica_count
+  count  = length(local.k3s_replicas)
 
   name        = "k3s-replica-${count.index}"
   target_node = local.k3s_replicas[count.index].target_node
@@ -119,7 +116,7 @@ module "k3s-replicas" {
   cores     = 2
   sockets   = 2
   memory    = 4096
-  disk_size = 20
+  disk_size = 80
   balloon   = 0
 
   additional_cloud_init_config = yamlencode({
