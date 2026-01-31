@@ -16,6 +16,26 @@ module "media" {
   pve_password = var.pve_password
 }
 
+module "molt" {
+  source = "./modules/cloud_init"
+  name   = "molt"
+
+  additional_cloud_init_config = yamlencode({
+    ansible = {
+      install_method = "distro"
+      package_name   = "ansible-core"
+      pull = {
+        url           = "https://github.com/ryanrishi/homelab.git?ref=molt"
+        checkout      = "main"
+        playbook_name = "molt.yml"
+      }
+    }
+  })
+
+  pve_user     = var.pve_user
+  pve_password = var.pve_password
+}
+
 locals {
   # K3s server configurations
   k3s_servers = {
