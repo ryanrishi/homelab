@@ -1,6 +1,6 @@
 ---
 k3s_server_location: "/var/lib/rancher/k3s"
-k3s_version: v1.30.0+k3s1
+k3s_version: v1.32.12+k3s1
 systemd_dir: "/etc/systemd/system"
 token: token
 k3s_server_endpoint: k3s-server-0 # TODO don't rely on DNS resolution
