@@ -7,15 +7,18 @@ metadata:
 spec:
   interval: 8h
   timeout: 15m
+  # TODO: Switch back to HelmRepository after https://github.com/pajikos/home-assistant-helm-chart/pull/158 is merged
   chart:
     spec:
-      chart: home-assistant
+      chart: charts/home-assistant
       sourceRef:
-        kind: HelmRepository
-        name: home-assistant
+        kind: GitRepository
+        name: home-assistant-chart
         namespace: home-assistant
       interval: 12h
   values:
+    podReplacementPolicy: "Always"
+
     # Persistent storage configuration - uses NFS via home-assistant StorageClass
     persistence:
       enabled: true
