@@ -73,6 +73,11 @@ spec:
           - mountPath: /config
             name: home-assistant
 
+    dnsConfig:
+      options:
+        - name: ndots
+          value: "1"
+
     # Resource limits (conservative for 16GB total cluster memory)
     resources:
       requests:
