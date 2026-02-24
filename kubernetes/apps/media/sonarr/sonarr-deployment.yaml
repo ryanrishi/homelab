@@ -16,53 +16,6 @@ spec:
       labels:
         app: sonarr
     spec:
-      initContainers:
-        - name: gluetun
-          image: qmcgaw/gluetun:v3.35
-          restartPolicy: Always
-          securityContext:
-            runAsUser: 0
-            runAsGroup: 0
-            capabilities:
-              add:
-                - NET_ADMIN
-          startupProbe:
-            exec:
-              command: ["wget", "-q", "-O-", "http://127.0.0.1:8000/v1/publicip/ip"]
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            failureThreshold: 30
-          env:
-            - name: VPN_SERVICE_PROVIDER
-              value: mullvad
-            - name: VPN_TYPE
-              value: wireguard
-            - name: WIREGUARD_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: media-vpn-secret
-                  key: wireguard_private_key
-            - name: WIREGUARD_ADDRESSES
-              valueFrom:
-                secretKeyRef:
-                  name: media-vpn-secret
-                  key: wireguard_addresses
-            - name: SERVER_COUNTRIES
-              valueFrom:
-                secretKeyRef:
-                  name: media-vpn-secret
-                  key: server_countries
-            - name: DNS_KEEP_NAMESERVER
-              value: "on"
-            - name: FIREWALL_OUTBOUND_SUBNETS
-              value: "10.42.0.0/15,192.168.4.0/24"
-          resources:
-            requests:
-              memory: 64Mi
-              cpu: 10m
-            limits:
-              memory: 128Mi
-              cpu: 100m
       containers:
         - name: sonarr
           image: lscr.io/linuxserver/sonarr:4.0.16
