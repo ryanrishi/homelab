@@ -1,11 +1,9 @@
 ---
 apiVersion: source.toolkit.fluxcd.io/v1
-kind: GitRepository
+kind: HelmRepository
 metadata:
   name: home-assistant-chart
   namespace: home-assistant
 spec:
   interval: 12h
-  url: https://github.com/ryanrishi/home-assistant-helm-chart
-  ref:
-    branch: feature/pod-replacement-policy
+  url: https://pajikos.github.io/home-assistant-helm-chart/

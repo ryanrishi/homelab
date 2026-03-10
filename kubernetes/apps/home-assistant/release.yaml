@@ -7,12 +7,12 @@ metadata:
 spec:
   interval: 8h
   timeout: 15m
-  # TODO: Switch back to HelmRepository after https://github.com/pajikos/home-assistant-helm-chart/pull/158 is merged
   chart:
     spec:
-      chart: charts/home-assistant
+      chart: home-assistant
+      version: "0.3.47"
       sourceRef:
-        kind: GitRepository
+        kind: HelmRepository
         name: home-assistant-chart
         namespace: home-assistant
       interval: 12h
