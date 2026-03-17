@@ -29,13 +29,13 @@ spec:
           port: 9696
       middlewares:
         - name: security-headers
-    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/deluge`)
+    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/qbittorrent`)
       kind: Rule
       services:
-        - name: deluge
-          port: 8112
+        - name: qbittorrent
+          port: 8080
       middlewares:
-        - name: strip-prefix-deluge
+        - name: strip-prefix-qbittorrent
         - name: security-headers
     - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/ombi`)
       kind: Rule

@@ -10,8 +10,8 @@ resources:
   - ingress-routes.yaml
   - prowlarr/prowlarr-pvc.yaml
   - prowlarr/prowlarr-deployment.yaml
-  - deluge/deluge-pvc.yaml
-  - deluge/deluge-deployment.yaml
+  - qbittorrent/qbittorrent-pvc.yaml
+  - qbittorrent/qbittorrent-deployment.yaml
   - radarr/radarr-pvc.yaml
   - radarr/radarr-deployment.yaml
   - sonarr/sonarr-pvc.yaml

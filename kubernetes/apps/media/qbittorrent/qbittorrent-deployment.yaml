@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: deluge
+  name: qbittorrent
   namespace: media
 spec:
   replicas: 1
@@ -10,12 +10,16 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: deluge
+      app: qbittorrent
   template:
     metadata:
       labels:
-        app: deluge
+        app: qbittorrent
     spec:
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       initContainers:
         - name: gluetun
           image: qmcgaw/gluetun:v3.41.1
@@ -64,8 +68,8 @@ spec:
               memory: 128Mi
               cpu: 100m
       containers:
-        - name: deluge
-          image: lscr.io/linuxserver/deluge:2.2.0
+        - name: qbittorrent
+          image: lscr.io/linuxserver/qbittorrent:5.1.4
           securityContext:
             runAsUser: 0
             runAsGroup: 0
@@ -91,19 +95,19 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: 8112
+              port: 8080
             initialDelaySeconds: 60
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /
-              port: 8112
+              port: 8080
             initialDelaySeconds: 30
             periodSeconds: 10
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: deluge-config
+            claimName: qbittorrent-config
         - name: downloads
           persistentVolumeClaim:
             claimName: media-downloads

@@ -56,13 +56,13 @@ spec:
     - nfsvers=4.1
     - hard
 ---
-# Deluge config PV
+# qBittorrent config PV
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: nfs-media-deluge-config-pv
+  name: nfs-media-qbittorrent-config-pv
 spec:
-  storageClassName: media-deluge-config
+  storageClassName: media-qbittorrent-config
   capacity:
     storage: 1Gi
   accessModes:
@@ -70,7 +70,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
-    path: /volume1/k3s/media/config/deluge
+    path: /volume1/k3s/media/config/qbittorrent
   mountOptions:
     - nfsvers=4.1
     - hard
