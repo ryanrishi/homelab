@@ -18,8 +18,10 @@ spec:
   values:
     # Prometheus configuration
     prometheus:
-      enabled: false  # temporarily disable because I'm getting OOM killed
+      enabled: true
       prometheusSpec:
+        nodeSelector:
+          lab.ryanrishi.com/longhorn-enabled: "true"
         # Lower priority than critical services
         priorityClassName: monitoring-stack
         # Init container to wait for MetalLB
@@ -58,7 +60,7 @@ spec:
         storageSpec:
           volumeClaimTemplate:
             spec:
-              storageClassName: local-path
+              storageClassName: longhorn
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
@@ -66,10 +68,12 @@ spec:
         # Service configuration for external access
         service:
           type: LoadBalancer
-      
+
     # Grafana configuration
     grafana:
-      enabled: false  # temporarily disable because I'm getting OOM killed
+      enabled: true
+      nodeSelector:
+        lab.ryanrishi.com/longhorn-enabled: "true"
       # Lower priority than critical services
       priorityClassName: monitoring-stack
       # Enable admin user with secret reference
@@ -94,7 +98,7 @@ spec:
       # Persistence for dashboards
       persistence:
         enabled: true
-        storageClassName: local-path
+        storageClassName: longhorn
         size: 2Gi
       
       # Default dashboards
@@ -110,8 +114,10 @@ spec:
     
     # AlertManager configuration
     alertmanager:
-      enabled: false  # temporarily disable because I'm getting OOM killed
+      enabled: true
       alertmanagerSpec:
+        nodeSelector:
+          lab.ryanrishi.com/longhorn-enabled: "true"
         # Lower priority than critical services
         priorityClassName: monitoring-stack
         # Resource limits for homelab (reduced for better scheduling)
@@ -126,7 +132,7 @@ spec:
         storage:
           volumeClaimTemplate:
             spec:
-              storageClassName: local-path
+              storageClassName: longhorn
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
