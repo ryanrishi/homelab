@@ -40,14 +40,13 @@ spec:
         # Reduce scrape frequency for homelab
         evaluationInterval: 60s
         scrapeInterval: 60s
-        # Resource limits for homelab (balanced)
         resources:
           requests:
-            memory: 200Mi
-            cpu: 50m
+            memory: 500Mi
+            cpu: 100m
           limits:
-            memory: 600Mi
-            cpu: 300m
+            memory: 1500Mi
+            cpu: 500m
         # Retention settings (reduced for performance)
         retention: 7d
         retentionSize: 5GB
