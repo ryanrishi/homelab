@@ -59,3 +59,29 @@ To edit a secret (I haven't figured out a great way to do this):
 # encrypt the secret
 ```
 
+## Storage
+
+Two storage classes available:
+- `local-path` (default): node-local, dies with the node. Fine for ephemeral or per-node caches.
+- `longhorn`: distributed block storage, 2 replicas across agent nodes. Use for anything that needs durability or RWO with rescheduling tolerance.
+
+Longhorn lives only on the agent (replica) nodes — server nodes don't run the manager because they don't have `iscsiadm`. Any pod with a `longhorn` PVC must therefore land on an agent. We enforce this per-workload (no cluster-wide taint) so servers stay schedulable for everything else.
+
+Every Deployment/StatefulSet whose PVC uses `storageClassName: longhorn` needs:
+
+```yaml
+spec:
+  template:
+    spec:
+      nodeSelector:
+        lab.ryanrishi.com/longhorn-enabled: "true"
+```
+
+When bringing up a new agent, label it for both Longhorn (disk creation) and homelab (workload scheduling):
+
+```sh
+kubectl label node <new-replica> \
+  node.longhorn.io/create-default-disk=true \
+  lab.ryanrishi.com/longhorn-enabled=true
+```
+
