@@ -60,7 +60,7 @@ spec:
         storageSpec:
           volumeClaimTemplate:
             spec:
-              storageClassName: longhorn
+              storageClassName: longhorn-single
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
@@ -98,7 +98,7 @@ spec:
       # Persistence for dashboards
       persistence:
         enabled: true
-        storageClassName: longhorn
+        storageClassName: longhorn-single
         size: 2Gi
       
       # Default dashboards
@@ -132,7 +132,7 @@ spec:
         storage:
           volumeClaimTemplate:
             spec:
-              storageClassName: longhorn
+              storageClassName: longhorn-single
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
