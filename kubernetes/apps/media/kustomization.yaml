@@ -18,4 +18,4 @@ resources:
   - sonarr/sonarr-deployment.yaml
   - ombi/ombi-pvc.yaml
   - ombi/ombi-deployment.yaml
-  - flaresolverr/flaresolverr-deployment.yaml
+  - byparr/byparr-deployment.yaml
