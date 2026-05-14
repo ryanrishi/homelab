@@ -173,12 +173,12 @@ kubectl create cm my-config --from-literal=key1=value1 --dry-run=client -o yaml
 ## Terraform Infrastructure Notes
 
 ### Dual-Node Setup
-- **NUC**: Media server, k3s-server-0 (cluster init), ddclient, wireguard, k3s-replica-0
-- **M720s**: k3s-server-1, k3s-server-2, k3s-replica-1, k3s-replica-2, k3s-replica-3
+- **NUC (pve)**: Media server, k3s-server-0 (cluster init), ddclient, wireguard, k3s-replica-0
+- **M920q (pve002)**: k3s-server-1, k3s-server-2, k3s-replica-1, k3s-replica-2, k3s-replica-3
 
 ### Provider Configuration
-- `proxmox.nuc`: 192.168.4.200 (ryanrishi node)
-- `proxmox.m720s`: 192.168.4.201 (pve001 node)
+- `proxmox.nuc`: 192.168.4.200 (pve)
+- `proxmox.m920q`: 192.168.4.202 (pve002)
 
 ### Template Requirements
 Both nodes need `debian-12-cloudinit-template` created via `/terraform/scripts/create-debian-template.sh`
@@ -257,6 +257,22 @@ sudo apt-get update && sudo apt-get install -y etcd-client
 - Cloud-init templates contain sensitive data via Terraform variables
 - Never commit `.tfvars` files or unencrypted secrets
 
+## Code Comment Guidelines
+
+**Don't put "data" in comments** - information that can become outdated causes confusion.
+
+This includes:
+- **Specific values** defined elsewhere (RAM, disk sizes, counts)
+- **Context-specific reasons** for current state (why something is disabled, temporary workarounds)
+
+Examples:
+- **Bad**: `# Schedule on nodes with 4GB RAM and 80GB disk`
+- **Bad**: `enabled: false  # Disabled until storage and media stack are working`
+- **Good**: `# Schedule on agent nodes which have more resources`
+- **Good**: `enabled: false`
+
+The code should speak for itself. If someone later changes `enabled: false` to `enabled: true`, any comment explaining why it was disabled is now wrong and misleading.
+
 ## Troubleshooting Notes
 
 ### Debugging k3s Nodes
@@ -281,6 +297,34 @@ sudo apt-get update && sudo apt-get install -y \
 ```
 
 These tools are intentionally NOT in cloud-init to encourage debugging from outside the cluster.
+
+### Proxmox Node Maintenance Mode
+
+Before performing maintenance on a Proxmox node (updates, hardware changes, etc.), put it in maintenance mode to gracefully migrate VMs to other nodes.
+
+```bash
+# Enable maintenance mode (VMs will live-migrate to other nodes)
+ha-manager crm-command node-maintenance enable <node-name>
+
+# Check HA status
+ha-manager status
+
+# Disable maintenance mode when done
+ha-manager crm-command node-maintenance disable <node-name>
+```
+
+**What it does:**
+- Gracefully live-migrates HA-managed VMs to other cluster nodes
+- Minimal disruption (sub-second interruption during migration)
+- Prevents new VMs from being scheduled on the node
+- Safer than manually draining/migrating VMs
+
+**Requirements:**
+- Node must be part of a Proxmox cluster
+- VMs must be configured for HA (High Availability)
+- Shared storage required for live migration
+
+**Note:** No GUI for this feature yet - CLI only.
 
 ### Proxmox Cluster Issues
 
@@ -329,92 +373,30 @@ ps aux | grep -E " D "
 systemctl reboot
 ```
 
-#### Intel e1000e NIC Hardware Hang (CRITICAL RECURRING ISSUE - BOTH HOSTS AFFECTED)
-**Symptom**:
-- Entire network freezes/becomes unresponsive
-- k3s nodes go NotReady simultaneously
-- MetalLB speakers restart when network recovers
-- PiHole IPs get reassigned (192.168.4.253 → random → 192.168.4.253)
-- DNS outage during IP reassignment
-- May coincide with high CPU usage and load average spikes
-- In fatal cases: NIC never recovers, requires physical reboot
+#### Intel e1000e NIC Hardware Hang
+**Symptom**: Host becomes unreachable; k3s nodes go NotReady; NIC may not recover without physical reboot
 
-**Root Cause**:
-- Intel e1000e NIC driver (0000:00:1f.6 eno1) hardware unit hang
-- Triggered by high multicast traffic (mDNS/SSDP)
-- Home Assistant using host networking for Sonos discovery generates multicast traffic
-- Known issue with e1000e driver under multicast load
-- **BOTH Proxmox hosts have Intel I219-V NICs with this bug**
+**Root Cause**: Intel I219-V NIC driver bug triggered by high multicast traffic (mDNS/SSDP)
 
-**Hardware Details**:
-- **pve (NUC)**: Intel I219-V (10th gen), driver 6.5.11-7-pve, hangs but usually recovers
-- **pve001 (M720s)**: Intel I219-V (7th gen), driver 6.8.12-9-pve, fatal hangs that don't recover
-- Newer driver (6.8.12-9-pve) appears WORSE - cannot recover from hangs
+**Hardware**:
+- **pve** (NUC): kernel 6.5.11-7-pve — hangs but usually recovers on its own
+- **pve002** (M920q): kernel 6.8.12-9-pve — fatal hangs, requires physical reboot
 
-**Occurrences**:
-- First incident: ~2025-12-07 20:33 (required physical reboot)
-- Jan 4 2026: Multiple hangs on pve (02:57, 17:12, 18:05, 19:45, 23:45) - all recovered
-- **Jan 5-6 2026 MAJOR OUTAGE**:
-  - Jan 5 23:16:02: pve001 fatal NIC hang started
-  - Hung for 8h 32min until hard reboot at Jan 6 07:47:50
-  - Proxmox cluster lost quorum: `cfs-lock error: no quorum!`
-  - k3s lost 2/4 server nodes → etcd lost quorum
-  - Workloads rescheduled to pve → triggered hangs on pve too
-  - Network-wide DNS outage due to PiHole IP reassignment
+**Fix**: Disable TSO/GSO to avoid stuck transmit path:
+```bash
+ethtool -K eno1 tso off gso off
+```
+Persist by adding `post-up ethtool -K eno1 tso off gso off` to the `iface eno1` stanza in `/etc/network/interfaces`. Applied to pve002; consider applying to pve as well.
+
+**Long-term fix**: Replace onboard NICs with PCIe cards (Intel I350, X710, or Broadcom BCM5720)
 
 **Diagnostics**:
 ```bash
-# Check BOTH Proxmox hosts for e1000e hangs
-ssh root@192.168.4.200 'dmesg -T | grep -iE "e1000e|hang"'
-ssh root@192.168.4.201 'dmesg -T | grep -iE "e1000e|hang"'
+# Check for hangs in current boot
+journalctl -b | grep "Hardware Unit Hang"
 
-# Look for:
-# e1000e 0000:00:1f.6 eno1: Detected Hardware Unit Hang
-# e1000e 0000:00:1f.6 eno1: Reset adapter unexpectedly (recoverable)
-# If no "Reset adapter" message → fatal hang, requires reboot
-
-# Check k3s cluster for IP reassignments
-kubectl get events -A --sort-by='.lastTimestamp' | grep -E "IPAllocated|ClearAssignment"
+# "Reset adapter" message = recoverable; no reset message = fatal, needs physical reboot
 ```
-
-**Solutions** (in order of preference):
-1. **⚠️ DO NOT UPDATE DRIVERS** - Newer driver (6.8.12-9-pve) has FATAL hangs
-   - Older driver (6.5.11-7-pve) at least recovers
-   - Keep pve on current kernel 6.5.11-7-pve
-
-2. **Replace NICs** (ONLY REAL FIX)
-   - Add PCIe NIC cards: Intel I350, Intel X710, Broadcom BCM5720
-   - Temporary: USB-to-Ethernet adapter (e.g., Plugable USB3-E1000)
-   - Both onboard Intel I219-V NICs are fundamentally broken
-
-3. **Temporary mitigation: Disable Home Assistant host networking**
-   ```yaml
-   # kubernetes/apps/home-assistant/release.yaml
-   hostNetwork: false  # Reduces mDNS traffic
-   ```
-   - Loses Sonos discovery but stops triggering hangs
-   - Can add Sonos devices manually
-
-4. **Add NIC hang monitoring** (on both hosts)
-   ```bash
-   # /etc/cron.d/nic-monitor
-   */5 * * * * root if dmesg -T | tail -100 | grep -q "e1000e.*Hardware Unit Hang"; then logger -t nic-monitor "ALERT: e1000e hang detected on $(hostname)"; fi
-   ```
-
-5. **Automatic NIC reset script** (may help pve, won't help pve001)
-   ```bash
-   # /usr/local/bin/reset-nic-on-hang.sh
-   #!/bin/bash
-   if dmesg -T | tail -50 | grep -q "e1000e.*Hardware Unit Hang"; then
-       count=$(dmesg -T | tail -100 | grep "e1000e.*Hardware Unit Hang" | grep "$(date +"%b %_d %H:%M")" | wc -l)
-       if [ "$count" -gt 5 ]; then
-           logger -t nic-reset "Resetting eno1 due to persistent e1000e hang"
-           ip link set eno1 down && sleep 2 && ip link set eno1 up
-       fi
-   fi
-   ```
-
-**Current Status**: Home Assistant host networking ENABLED - accepting outage risk until NICs can be replaced. Hardware replacement is the only reliable solution.
 
 ### Cluster Communication Diagnostics
 ```bash
