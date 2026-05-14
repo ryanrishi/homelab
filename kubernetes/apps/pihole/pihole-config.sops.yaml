@@ -3,10 +3,10 @@ kind: ConfigMap
 metadata:
     name: pihole-config
 data:
-    values.yaml: ENC[AES256_GCM,data:mE895v3Z+EKi7wIuH9vY9yEXC7s3dKvr8hPlDOYpEajFx6nQdL7Vjjk3WkQ6HkakD6GYgX2BypfH9p0cZIMeQEnowuK/rDsNfPRYfZLnlbO0iyEkf2Ya2z8K7uyEvLKNAjUqsuzN7wcSj9U0FHVZC49l9NXEDetbbbd8Cpwa4WCnSnRiYC66I49DIsdlrOSTSQ9MBSg2gqCU6BKXhuwx6GfzwNmn3MdHuU+iRHhXjA0UBqSNBYFtG1iMOJuzfAIXHW7hEJCp9J9Vgpvw83le2QAuUU6YVWKDfBrQbFi4m6YjWlqVQMSlW/au04/01x/g08OVHChpbxuK9I6FDBhhd5YLqReZ5ygaUgOlLJz5Gag0LnaYqVxQq9PVYC22RSixpgll9WEabrnLQH0rK09BweYsunvfxPQfX8LQbobfBse+TAipxTiljSegwZ8RyubwHrTIooetA9WXL8bhQ+eBAl2Axu+FU1m6VK+MpYTiJX18TjGSoNVdHMiHun6Fb+YQuKjmdivQK0vOQzSnPZE0leUy9nbdNIPTtZg=,iv:vH21nd7LLbxjGGvqKSSxX71c+lWNeD/UNI2ZaNEEAqo=,tag:N8iX6xi3KKIVvJ6pGvLqAg==,type:str]
+    values.yaml: ENC[AES256_GCM,data:WCQzI3EMgxOWRSljU5AaClPHQL00pEkAOS9fCuYxzB+N/IWAXBlLz5bBKo8ZKZ2U85hWNvMffttpXUkvP1aQJIuN6ooABIGAplaqDPf4e4GPtrA85NcoVsY4ZpJBDKDbxF+0HdPtVVtMY2oPIhL6PK5b5nkArOb3Gz5F13bQPQNfW2fGVp41l/tycw+KY/NhS5Mrkt/6BkGDmeGLvNS7KDsGmBq+4o6Pb7wxzIppEnePkVUD7Py8VRzW1cI7AGCuBco66BWL8HGlnJ/Y/JF1N5NNIXPlQAUeV4b0/5GZTwNLVEJmqOIcH1zook4Bk/pV1xsVUX+OTRaUjmdYNPPMPShfWiHO1dju3y4gM1MiYYdOi8mwrltX5XRu2G53joex3KmSI2j24ZEi1IqD4RVg7S0n9tNwRlZ5aAEluyP7c/QxYwEE/cNUwxsLs7dZlaR5BwquUC3Uuu7ljT+TIiAZn+tQVdNuwHq5CLhBAxbz8/MliBRrwe/u6ePGSxthNCE0SFtGuD/gzHa0eNc6XSPCxAFuZIFHI7WJejkII8y072x3/J7KBvSl4Gk4/IJGtmWtczfDl76lAvw1H3ga87r3ap9Iv0VLuTadgPVc7b9LDaM09vZ/Szwl,iv:Ac1vYFL8r2QALeLT0BDQNDJXClE6VGR9y/l5/7ZbtXo=,tag:df4XlSzOvfB596gFM0paLQ==,type:str]
 sops:
-    lastmodified: "2026-01-14T13:40:56Z"
-    mac: ENC[AES256_GCM,data:aQSbRdI3HE5lpIy+rzfXyq05tQ1C1MS4nUwgvl6334yALnoJHZewBZH5OY/Sdgad2fB4csZ/an77OIlR0/O7pD5x2EzyjPdHJniAcBzRdIeTqPYen5SwnmhQ8JhaKOlHI/yfSGSXwJGBctLM12SH6mlRa0YiQxsvS6pO6nHTUTI=,iv:LN6ZokDf3HZpzmHL0o81ZNlkEjioXB68ikjK8NrP58Q=,tag:e3kk2F2ZxAt/wVWzwjwcJw==,type:str]
+    lastmodified: "2026-05-14T15:22:05Z"
+    mac: ENC[AES256_GCM,data:PsIWKcvJK3tA+Iuf++FPIceXHKhd947ljLixUFleayLB5m1lkrgttu9Iw72oPI0hEjDtNdxPsH6bEQE/DpJbSoPi0G+b1GUc/59haWWzTUbvowcWzxAiNwSrIObe9p3bxjaqvDFz0EBjWkLd+6mhyQrzSgycAzmzhS8qXlZprF8=,iv:BnwxsAkfLFC8+uzZyLqbVD2eOEydumU4AjR4XZmKOYM=,tag:pIKIVKhpcM4ogBPVk28kRg==,type:str]
     pgp:
         - created_at: "2026-01-04T23:17:52Z"
           enc: |-
@@ -30,4 +30,4 @@ sops:
             -----END PGP MESSAGE-----
           fp: 32C1F8EB0F2C663985FEB304D42593FC4B1C16EF
     encrypted_regex: ^(data|stringData)$
-    version: 3.11.0
+    version: 3.12.1
