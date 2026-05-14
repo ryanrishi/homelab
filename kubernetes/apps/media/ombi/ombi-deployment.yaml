@@ -16,6 +16,8 @@ spec:
       labels:
         app: ombi
     spec:
+      nodeSelector:
+        lab.ryanrishi.com/longhorn-enabled: "true"
       containers:
         - name: ombi
           image: lscr.io/linuxserver/ombi:4.47.1

@@ -5,7 +5,7 @@ metadata:
   name: prowlarr-config
   namespace: media
 spec:
-  storageClassName: media-prowlarr-config
+  storageClassName: longhorn
   accessModes:
     - ReadWriteOnce
   resources:

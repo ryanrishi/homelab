@@ -5,7 +5,7 @@ metadata:
   name: ombi-config
   namespace: media
 spec:
-  storageClassName: media-ombi-config
+  storageClassName: longhorn
   accessModes:
     - ReadWriteOnce
   resources:

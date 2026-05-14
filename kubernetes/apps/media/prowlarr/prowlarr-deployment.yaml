@@ -16,6 +16,8 @@ spec:
       labels:
         app: prowlarr
     spec:
+      nodeSelector:
+        lab.ryanrishi.com/longhorn-enabled: "true"
       dnsConfig:
         options:
           - name: ndots

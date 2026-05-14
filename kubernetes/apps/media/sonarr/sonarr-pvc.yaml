@@ -5,7 +5,7 @@ metadata:
   name: sonarr-config
   namespace: media
 spec:
-  storageClassName: media-sonarr-config
+  storageClassName: longhorn
   accessModes:
     - ReadWriteOnce
   resources:
