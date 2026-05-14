@@ -61,7 +61,7 @@ spec:
     service:
       type: LoadBalancer
       annotations:
-        metallb.io/loadBalancerIPs: 192.168.4.232
+        metallb.universe.tf/loadBalancerIPs: 192.168.4.231
 
     # Install HACS (Home Assistant Community Store) via init container
     # Downloads and installs HACS into /config before Home Assistant starts

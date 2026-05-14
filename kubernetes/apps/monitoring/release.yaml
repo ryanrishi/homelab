@@ -84,7 +84,9 @@ spec:
       # Service configuration for external access
       service:
         type: LoadBalancer
-      
+        annotations:
+          metallb.universe.tf/loadBalancerIPs: 192.168.4.234
+
       # Resource limits for homelab (reduced)
       resources:
         requests:
