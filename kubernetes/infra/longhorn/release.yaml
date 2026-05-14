@@ -1,0 +1,32 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: longhorn
+  namespace: longhorn-system
+spec:
+  interval: 8h
+  timeout: 15m
+  chart:
+    spec:
+      chart: longhorn
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: longhorn
+        namespace: flux-system
+      version: 1.11.2
+  values:
+    defaultSettings:
+      defaultReplicaCount: 2
+      createDefaultDiskLabeledNodes: true
+    persistence:
+      defaultClass: false
+      defaultClassReplicaCount: 2
+    ingress:
+      enabled: false
+    csi:
+      attacherReplicaCount: 1
+      provisionerReplicaCount: 1
+      resizerReplicaCount: 1
+      snapshotterReplicaCount: 1
