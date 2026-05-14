@@ -19,10 +19,12 @@ spec:
   values:
     podReplacementPolicy: "Always"
 
-    # Persistent storage configuration - uses NFS via home-assistant StorageClass
+    nodeSelector:
+      lab.ryanrishi.com/longhorn-enabled: "true"
+
     persistence:
       enabled: true
-      storageClass: home-assistant
+      storageClass: longhorn
       accessMode: ReadWriteOnce
       size: 10Gi
 

@@ -4,5 +4,4 @@ kind: Kustomization
 metadata:
   name: nfs-pv
 resources:
-  - home-assistant.yaml
   - media.yaml
