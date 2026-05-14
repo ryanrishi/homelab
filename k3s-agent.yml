@@ -2,5 +2,11 @@
 - hosts: 127.0.0.1
   connection: local
   become: true
+  pre_tasks:
+    - name: Install ansible.posix collection
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install ansible.posix
+      changed_when: false
   roles:
+    - longhorn-prep
     - k3s-agent

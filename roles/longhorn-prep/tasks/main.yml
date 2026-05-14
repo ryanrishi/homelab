@@ -1,0 +1,41 @@
+---
+- name: Check for Longhorn data disk
+  ansible.builtin.stat:
+    path: /dev/sdb
+  register: data_disk
+
+- name: Configure Longhorn data disk
+  when: data_disk.stat.exists
+  block:
+    - name: Verify /dev/sdb is roughly the expected data disk size
+      ansible.builtin.assert:
+        that:
+          - (ansible_devices.sdb.sectors | int) * (ansible_devices.sdb.sectorsize | int) > 25 * 1024 * 1024 * 1024
+          - (ansible_devices.sdb.sectors | int) * (ansible_devices.sdb.sectorsize | int) < 35 * 1024 * 1024 * 1024
+        fail_msg: "Refusing to format /dev/sdb: size out of expected ~30G range"
+
+    - name: Detect existing filesystem on data disk
+      ansible.builtin.command:
+        cmd: blkid /dev/sdb
+      register: blkid_check
+      changed_when: false
+      failed_when: false
+
+    - name: Format data disk as ext4 with longhorn-data label
+      ansible.builtin.command:
+        cmd: mkfs.ext4 -L longhorn-data /dev/sdb
+      when: blkid_check.rc != 0
+
+    - name: Create /var/lib/longhorn mount point
+      ansible.builtin.file:
+        path: /var/lib/longhorn
+        state: directory
+        mode: "0755"
+
+    - name: Mount data disk at /var/lib/longhorn
+      ansible.posix.mount:
+        path: /var/lib/longhorn
+        src: LABEL=longhorn-data
+        fstype: ext4
+        opts: defaults
+        state: mounted

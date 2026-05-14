@@ -37,9 +37,21 @@ variable "balloon" {
 
 variable "disk_size" {
   description = "Disk size, in gigabytes"
+  type        = number
   default     = 4
 }
 
+variable "data_disk_size" {
+  description = "Optional second disk size, in gigabytes. Setting to 0 disables."
+  type        = number
+  default     = 0
+}
+
+variable "data_disk_storage" {
+  description = "Proxmox storage backend for the optional second disk"
+  type        = string
+  default     = "local-lvm"
+}
 variable "bios" {
   default = "ovmf"
 }

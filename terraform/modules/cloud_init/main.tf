@@ -3,7 +3,7 @@ resource "proxmox_vm_qemu" "vm" {
   name             = var.name
   bios             = var.bios
   qemu_os          = "other"
-  full_clone       = false
+  full_clone       = true
   cores            = var.cores
   sockets          = var.sockets
   memory           = var.memory
@@ -34,6 +34,15 @@ resource "proxmox_vm_qemu" "vm" {
           replicate = true
         }
       }
+      dynamic "scsi1" {
+        for_each = var.data_disk_size > 0 ? [1] : []
+        content {
+          disk {
+            storage = var.data_disk_storage
+            size    = var.data_disk_size
+          }
+        }
+      }
     }
   }
 
@@ -47,7 +56,7 @@ resource "proxmox_vm_qemu" "vm" {
   ]
 
   lifecycle {
-    ignore_changes = [clone]
+    ignore_changes = [clone, full_clone]
     replace_triggered_by = [
       null_resource.cloud_init_user_data
     ]

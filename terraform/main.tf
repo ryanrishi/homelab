@@ -113,11 +113,12 @@ module "k3s-replicas" {
   name        = "k3s-replica-${count.index}"
   target_node = local.k3s_replicas[count.index].target_node
 
-  cores     = 2
-  sockets   = 2
-  memory    = 4096
-  disk_size = 80
-  balloon   = 0
+  cores          = 2
+  sockets        = 2
+  memory         = 4096
+  disk_size      = 20
+  data_disk_size = 30
+  balloon        = 0
 
   additional_cloud_init_config = yamlencode({
     ansible = {
