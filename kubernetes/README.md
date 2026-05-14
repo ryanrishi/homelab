@@ -14,10 +14,15 @@ My homelab evolution is as follows:
 - November 2023: Bought first Unifi equipment; finally can have VLAN separation (IoT, homelab, everything else). Started using AdGuard on Unifi router instead of PiHole; not super impressed with AdGuard since I can't decide what to allow and what to block.
 - March 2024: Decided to bite the bullet and try Kubernetes. Installed k3s on ~7 VMs (still one physical host...)
 - April 2024: Finally figured out MetalLB so that I can have external IPs for k3s cluster. Plan to use this for PiHole.
+- Mid-2025: Set up k3s cluster. Quickly hit resource limits on a single physical node w/ 16GB trying to run 3 k3s control plane nodes in addition to my existing VMs and LXCs
+- Late 2025: Got a Lenovo M720s off Facebook Marketplace and added it as a second Proxmox node. Learned the hard way about corosync because it kept becoming unresponsive. Ended up being a bad ethernet cable.
+- January 2026: Installed Home Assistant on k3s. Pretty immediately began having failures because mDNS traffic was triggering e1000e driver hangs on the M720s's I219-V NIC. Bought a Lenovo M920q off eBay to replace it.
+- May 2026: Realizing that my storage strategy needs some love. Adding a second disk to each k3s-replica VM and setting up Longhorn. Mitigated the e1000e hangs on both pve and pve002 by disabling TSO/GSO.
 
 Next:
 - Move more stuff from VMs to k3s cluster
 - Set up monitoring again
+- Bring pve001 (M720s) back online with the same TSO/GSO fix
 
 # Useful things
 ## Secrets Management
