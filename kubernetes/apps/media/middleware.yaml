@@ -42,6 +42,29 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
+  name: qbittorrent-add-trailing-slash
+  namespace: media
+spec:
+  redirectRegex:
+    regex: ^(https?://[^/]+)/qbittorrent$
+    replacement: ${1}/qbittorrent/
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: qbittorrent-headers
+  namespace: media
+spec:
+  headers:
+    customRequestHeaders:
+      Referer: ""
+      Origin: ""
+      X-Forwarded-Host: ""
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
   name: strip-prefix-ombi
   namespace: media
 spec:
