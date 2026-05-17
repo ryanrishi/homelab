@@ -32,6 +32,14 @@ spec:
             capabilities:
               add:
                 - NET_ADMIN
+          # https://github.com/qdm12/gluetun-wiki/blob/main/setup/advanced/kubernetes.md
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - "(ip rule del table 51820; ip -6 rule del table 51820) || true"
           startupProbe:
             exec:
               command: ["wget", "-q", "-O-", "http://127.0.0.1:8000/v1/publicip/ip"]
