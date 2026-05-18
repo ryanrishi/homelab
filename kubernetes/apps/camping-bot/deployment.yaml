@@ -18,7 +18,7 @@ spec:
         lab.ryanrishi.com/longhorn-enabled: "true"
       containers:
         - name: camping-bot
-          image: ghcr.io/ryanrishi/camping-bot:sha-6ea0ea4a958da99d446d04513bf5565a21ede388
+          image: ghcr.io/ryanrishi/camping-bot:sha-5ac04688d4982d6dbcff7dd1b40726d24c8df925
           args: ["--config", "/config/config.yaml"]
           envFrom:
             - secretRef:
