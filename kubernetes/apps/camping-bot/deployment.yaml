@@ -14,10 +14,11 @@ spec:
       labels:
         app: camping-bot
     spec:
+      nodeSelector:
+        lab.ryanrishi.com/longhorn-enabled: "true"
       containers:
         - name: camping-bot
-          image: ghcr.io/ryanrishi/camping-bot:latest
-          imagePullPolicy: Always
+          image: ghcr.io/ryanrishi/camping-bot:sha-6ea0ea4a958da99d446d04513bf5565a21ede388
           args: ["--config", "/config/config.yaml"]
           envFrom:
             - secretRef:
