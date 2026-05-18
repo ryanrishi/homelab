@@ -34,11 +34,11 @@ data:
 
     notifications:
       twilio:
-        account_sid: ${TWILIO_ACCOUNT_SID}
-        auth_token: ${TWILIO_AUTH_TOKEN}
-        from_number: ${TWILIO_FROM_NUMBER}
-        to_number: ${TWILIO_TO_NUMBER}
+        account_sid: $${TWILIO_ACCOUNT_SID}
+        auth_token: $${TWILIO_AUTH_TOKEN}
+        from_number: $${TWILIO_FROM_NUMBER}
+        to_number: $${TWILIO_TO_NUMBER}
 
     recreation_gov:
-      username: ${RECGOV_USERNAME}
-      password: ${RECGOV_PASSWORD}
+      username: $${RECGOV_USERNAME}
+      password: $${RECGOV_PASSWORD}
