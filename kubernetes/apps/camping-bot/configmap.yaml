@@ -1,0 +1,44 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: camping-bot-config
+  namespace: camping-bot
+data:
+  config.yaml: |
+    campgrounds:
+      - name: "Lower Pines"
+        id: 232450
+      - name: "Upper Pines"
+        id: 232447
+      - name: "North Pines"
+        id: 232449
+
+    dates:
+      - "august 15-17"
+      - "weekends in august"
+
+    equipment: tent
+
+    polling:
+      default_interval_minutes: 5
+      opening_day:
+        enabled: true
+        phases:
+          - minutes_before: 10
+            interval_seconds: 30
+          - minutes_before: 5
+            interval_seconds: 10
+          - minutes_before: 1
+            interval_seconds: 5
+
+    notifications:
+      twilio:
+        account_sid: ${TWILIO_ACCOUNT_SID}
+        auth_token: ${TWILIO_AUTH_TOKEN}
+        from_number: ${TWILIO_FROM_NUMBER}
+        to_number: ${TWILIO_TO_NUMBER}
+
+    recreation_gov:
+      username: ${RECGOV_USERNAME}
+      password: ${RECGOV_PASSWORD}

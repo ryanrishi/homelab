@@ -1,0 +1,58 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: camping-bot
+  namespace: camping-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: camping-bot
+  template:
+    metadata:
+      labels:
+        app: camping-bot
+    spec:
+      containers:
+        - name: camping-bot
+          image: ghcr.io/ryanrishi/camping-bot:latest
+          imagePullPolicy: Always
+          args: ["--config", "/config/config.yaml"]
+          envFrom:
+            - secretRef:
+                name: camping-bot-secrets
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: browser-session
+              mountPath: /root/.camping-bot/browser-session
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+      volumes:
+        - name: config
+          configMap:
+            name: camping-bot-config
+        - name: browser-session
+          persistentVolumeClaim:
+            claimName: camping-bot-browser-session
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: camping-bot-browser-session
+  namespace: camping-bot
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-single
+  resources:
+    requests:
+      storage: 1Gi
