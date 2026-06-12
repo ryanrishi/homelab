@@ -68,3 +68,17 @@ spec:
     - name: http
       port: 3579
       targetPort: 3579
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sabnzbd
+  namespace: media
+spec:
+  type: ClusterIP
+  selector:
+    app: sabnzbd
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

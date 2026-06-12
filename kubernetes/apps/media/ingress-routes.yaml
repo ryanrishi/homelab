@@ -46,3 +46,11 @@ spec:
           port: 3579
       middlewares:
         - name: security-headers
+    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/sab`)
+      kind: Rule
+      services:
+        - name: sabnzbd
+          port: 8080
+      middlewares:
+        - name: strip-prefix-sab
+        - name: security-headers

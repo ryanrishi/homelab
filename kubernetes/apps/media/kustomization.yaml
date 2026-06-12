@@ -19,3 +19,5 @@ resources:
   - ombi/ombi-pvc.yaml
   - ombi/ombi-deployment.yaml
   - byparr/byparr-deployment.yaml
+  - sabnzbd/sabnzbd-pvc.yaml
+  - sabnzbd/sabnzbd-deployment.yaml
