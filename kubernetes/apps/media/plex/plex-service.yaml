@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plex
+  namespace: media
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: ${SVC_PLEX_IP}
+spec:
+  type: LoadBalancer
+  selector:
+    app: plex
+  ports:
+    - name: plex
+      port: 32400
+      targetPort: 32400

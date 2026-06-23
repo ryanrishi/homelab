@@ -21,3 +21,5 @@ resources:
   - byparr/byparr-deployment.yaml
   - sabnzbd/sabnzbd-pvc.yaml
   - sabnzbd/sabnzbd-deployment.yaml
+  - plex/plex-pvc.yaml
+  - plex/plex-service.yaml

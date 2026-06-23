@@ -55,3 +55,22 @@ spec:
   mountOptions:
     - nfsvers=4.1
     - hard
+---
+# Existing canonical Plex library (ReadWriteMany for Plex)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-plex-library-pv
+spec:
+  storageClassName: plex-library
+  capacity:
+    storage: 4Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/Plex/complete
+  mountOptions:
+    - nfsvers=4.1
+    - hard

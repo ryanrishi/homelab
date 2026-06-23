@@ -1,0 +1,84 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      nodeSelector:
+        lab.ryanrishi.com/longhorn-enabled: "true"
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      containers:
+        - name: plex
+          image: lscr.io/linuxserver/plex:1.43.2.10687-563d026ea-ls310
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Etc/UTC"
+            - name: VERSION
+              value: "docker"
+          ports:
+            - name: plex
+              containerPort: 32400
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: transcode
+              mountPath: /transcode
+            - name: media
+              mountPath: /tv
+              subPath: tv
+            - name: media
+              mountPath: /movies
+              subPath: movies
+            - name: media
+              mountPath: /concerts
+              subPath: concerts
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 100m
+            limits:
+              memory: 2Gi
+              cpu: "2"
+          livenessProbe:
+            httpGet:
+              path: /identity
+              port: 32400
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /identity
+              port: 32400
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: plex-config
+        - name: transcode
+          emptyDir: {}
+        - name: media
+          persistentVolumeClaim:
+            claimName: plex-library
