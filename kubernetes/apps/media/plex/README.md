@@ -109,12 +109,21 @@ Decide one canonical location so Plex and the *arr stack share it:
   switch the Plex `plex-library` PV/PVC to it (keep the same `/tv`,`/movies`,`/concerts`
   in-container paths so the library DB is undisturbed).
 
-## Phase 4 — Hardware transcoding (follow-on)
+## Phase 4 — Hardware transcoding (DONE 2026-06-22)
 
-The NUC iGPU is **already** passed to VM 108 (`hostpci0: 0000:00:02.0`). HW transcode = *moving*
-that PCI device to `k3s-replica-0` (Terraform `hostpci`), deploying the Intel GPU device plugin,
-labeling the node, and adding a `gpu.intel.com/i915` request + `/dev/dri` to the deployment.
-Pins Plex to that node. Folds into VM 108 decommission (it must release the iGPU first).
+iGPU (`0000:00:02`) moved from VM 108 → `k3s-replica-0` (VMID 105). Notes for anyone redoing this:
+- VM 108 released it first (`qm set 108 --delete hostpci0`; 108 stopped).
+- **Raw passthrough must be set as `root@pam`** — Proxmox forbids the non-root Terraform user
+  (`only root can set 'hostpci0' for non-mapped devices`). Set manually:
+  `qm stop 105 && qm set 105 --hostpci0 0000:00:02,pcie=1,rombar=1 && qm start 105`.
+  Terraform manages `machine=q35` but **ignores `hostpci`** (`ignore_changes`).
+- VM needs **q35** for PCIe passthrough. The q35 switch is NIC-safe here because netplan matches
+  by MAC (`set-name: eth0`), so it returns on `eth0`/DHCP without console.
+- After reboot: `i915` binds, `/dev/dri/renderD128` appears. (Missing DMC firmware warning is
+  display-only and irrelevant to transcode.)
+- `kubernetes/infra/intel-gpu-plugin/` DaemonSet advertises `gpu.intel.com/i915`; the Plex
+  deployment requests `gpu.intel.com/i915: "1"`, which auto-pins it to replica-0 and injects
+  `/dev/dri` (no privileged). `HardwareAcceleratedCodecs="1"` enabled in Plex.
 
 ## Phase 5 — Decommission VM 108
 
