@@ -70,7 +70,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     server: ${NFS_SERVER_IP}
-    path: /volume1/Plex/complete
+    path: /volume1/Plex
   mountOptions:
     - nfsvers=4.1
     - hard

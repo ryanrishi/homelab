@@ -47,13 +47,13 @@ spec:
               mountPath: /transcode
             - name: media
               mountPath: /tv
-              subPath: tv
+              subPath: complete/tv
             - name: media
               mountPath: /movies
-              subPath: movies
+              subPath: complete/movies
             - name: media
               mountPath: /concerts
-              subPath: concerts
+              subPath: complete/concerts
           resources:
             requests:
               memory: 512Mi
