@@ -30,9 +30,9 @@ spec:
             runAsGroup: 0
           env:
             - name: PUID
-              value: "1000"
+              value: "0"
             - name: PGID
-              value: "1000"
+              value: "0"
             - name: TZ
               value: "Etc/UTC"
             - name: VERSION
