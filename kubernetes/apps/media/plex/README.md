@@ -13,6 +13,13 @@ The *arr stack writes to a different share (`/volume1/k3s/media/media/{tv,movies
 finished downloads currently need a manual copy. Eliminating that is a **separate, later** step
 (see "Later: unify media").
 
+Two prerequisites this share imposes (both hit during the 2026-06-22 cutover):
+- The Synology **`Plex` shared folder must be NFS-exported to the k3s nodes** (DSM → Shared Folder
+  → Plex → NFS Permissions), like the `k3s` share is. Without it the pod can't mount.
+- The legacy library tree is **root/admin-owned** and the share squashes root→admin, so Plex runs
+  as **root (`PUID/PGID=0`)** to read it; uid 1000 is denied. (Cleaner future option: set the
+  share squash to "map all users to admin" and run Plex as `PUID 1000` like the other apps.)
+
 The Deployment (`plex-deployment.yaml`) is intentionally **not** listed in `../kustomization.yaml`.
 Storage (`plex-pvc.yaml`) and the LoadBalancer service (`plex-service.yaml`) are registered so they
 exist ahead of cutover, but Plex only goes live after the config is migrated and the VM's Plex is
