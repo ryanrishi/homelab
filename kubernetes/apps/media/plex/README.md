@@ -18,10 +18,13 @@ Storage (`plex-pvc.yaml`) and the LoadBalancer service (`plex-service.yaml`) are
 exist ahead of cutover, but Plex only goes live after the config is migrated and the VM's Plex is
 stopped — otherwise two servers fight over the same identity.
 
+LoadBalancer IP is `SVC_PLEX_IP` = `192.168.4.235` (`.232`/`.233` are taken by the two traefik
+installs).
+
 ## Step 1 — Push storage + service scaffolding
 
 Commit and push (Flux reconciles): the `nfs-plex-library-pv` PV, the `plex-config` (Longhorn) +
-`plex-library` PVCs, the LoadBalancer service (`SVC_PLEX_IP` = `192.168.4.232`).
+`plex-library` PVCs, the LoadBalancer service (`SVC_PLEX_IP` = `192.168.4.235`).
 
 ```bash
 kubectl get pvc -n media plex-config plex-library   # both Bound
@@ -78,10 +81,10 @@ kubectl delete pod -n media plex-config-loader
 4. Validate:
    ```bash
    kubectl get pods -n media -l app=plex -o wide
-   kubectl get svc -n media plex          # EXTERNAL-IP == 192.168.4.232
+   kubectl get svc -n media plex          # EXTERNAL-IP == 192.168.4.235
    kubectl logs -n media -l app=plex --tail=50
    ```
-   Browse `http://192.168.4.232:32400/web` — library, posters, watch history intact, items play.
+   Browse `http://192.168.4.235:32400/web` — library, posters, watch history intact, items play.
 5. Update DNS / reverse proxy and Plex's custom server access URL if needed.
 
 ### Rollback
