@@ -23,4 +23,3 @@ resources:
   - sabnzbd/sabnzbd-deployment.yaml
   - plex/plex-pvc.yaml
   - plex/plex-service.yaml
-  - plex/plex-deployment.yaml
