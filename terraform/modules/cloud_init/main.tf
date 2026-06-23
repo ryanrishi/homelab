@@ -66,9 +66,7 @@ resource "proxmox_vm_qemu" "vm" {
   ]
 
   lifecycle {
-    # hostpci is set out-of-band as root@pam (Proxmox forbids non-root users from
-    # assigning raw PCI devices), so Terraform must not manage or clobber it.
-    ignore_changes = [clone, full_clone, hostpci]
+    ignore_changes = [clone, full_clone]
     replace_triggered_by = [
       null_resource.cloud_init_user_data
     ]

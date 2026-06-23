@@ -141,7 +141,7 @@ module "k3s-replicas" {
     cloud_final_modules = local.cloud_final_modules
   })
 
-  # depends_on = [module.k3s-servers[0]]
+  depends_on = [module.k3s-servers[0]]
 
   pve_user     = var.pve_user
   pve_password = var.pve_password
