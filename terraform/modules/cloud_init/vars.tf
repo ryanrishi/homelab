@@ -56,6 +56,19 @@ variable "bios" {
   default = "ovmf"
 }
 
+variable "machine" {
+  default = "pc"
+}
+
+variable "hostpci" {
+  type = list(object({
+    host   = string
+    pcie   = optional(number, 1)
+    rombar = optional(number, 1)
+  }))
+  default = []
+}
+
 variable "onboot" {
   default = true
 }

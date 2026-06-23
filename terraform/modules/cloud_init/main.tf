@@ -2,6 +2,7 @@ resource "proxmox_vm_qemu" "vm" {
   target_node      = var.target_node
   name             = var.name
   bios             = var.bios
+  machine          = var.machine
   qemu_os          = "other"
   full_clone       = true
   cores            = var.cores
@@ -51,12 +52,23 @@ resource "proxmox_vm_qemu" "vm" {
     model  = "virtio"
   }
 
+  dynamic "hostpci" {
+    for_each = var.hostpci
+    content {
+      host   = hostpci.value.host
+      pcie   = hostpci.value.pcie
+      rombar = hostpci.value.rombar
+    }
+  }
+
   depends_on = [
     null_resource.cloud_init_user_data
   ]
 
   lifecycle {
-    ignore_changes = [clone, full_clone]
+    # hostpci is set out-of-band as root@pam (Proxmox forbids non-root users from
+    # assigning raw PCI devices), so Terraform must not manage or clobber it.
+    ignore_changes = [clone, full_clone, hostpci]
     replace_triggered_by = [
       null_resource.cloud_init_user_data
     ]

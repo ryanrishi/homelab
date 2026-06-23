@@ -26,7 +26,7 @@ locals {
 
   # K3s replica configurations
   k3s_replicas = {
-    0 = { target_node = "ryanrishi" }
+    0 = { target_node = "ryanrishi", machine = "q35", hostpci = [{ host = "0000:00:02" }] }
     1 = { target_node = "pve002" }
     2 = { target_node = "ryanrishi" }
     3 = { target_node = "pve002" }
@@ -112,6 +112,8 @@ module "k3s-replicas" {
 
   name        = "k3s-replica-${count.index}"
   target_node = local.k3s_replicas[count.index].target_node
+  machine     = lookup(local.k3s_replicas[count.index], "machine", "pc")
+  hostpci     = lookup(local.k3s_replicas[count.index], "hostpci", [])
 
   cores          = 2
   sockets        = 2
@@ -139,7 +141,7 @@ module "k3s-replicas" {
     cloud_final_modules = local.cloud_final_modules
   })
 
-  depends_on = [module.k3s-servers[0]]
+  # depends_on = [module.k3s-servers[0]]
 
   pve_user     = var.pve_user
   pve_password = var.pve_password
