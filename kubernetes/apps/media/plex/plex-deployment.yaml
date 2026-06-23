@@ -61,6 +61,7 @@ spec:
             limits:
               memory: 2Gi
               cpu: "2"
+              gpu.intel.com/i915: "1"
           livenessProbe:
             httpGet:
               path: /identity
