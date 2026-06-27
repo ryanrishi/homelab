@@ -1,9 +1,9 @@
 # Plex migration to k3s
 
-Brings Plex off the legacy media VM (id 108, `192.168.4.101`, `docker-htpc` Ansible role,
+Brings Plex off the legacy media VM (id 108, `<media-vm-ip>`, `docker-htpc` Ansible role,
 `linuxserver/plex:1.32.0`) into k3s.
 
-The canonical Plex library already lives on the NAS (`192.168.4.127`) at
+The canonical Plex library already lives on the NAS (`<nas-ip>`) at
 `/volume1/Plex/complete/{tv,movies,concerts}` — the same paths the VM container mounts at
 `/tv`, `/movies`, `/concerts`. The k3s Plex pod mounts **that same share** at the same
 in-container paths, so with the migrated config it is byte-for-byte identical and every item
@@ -25,13 +25,13 @@ Storage (`plex-pvc.yaml`) and the LoadBalancer service (`plex-service.yaml`) are
 exist ahead of cutover, but Plex only goes live after the config is migrated and the VM's Plex is
 stopped — otherwise two servers fight over the same identity.
 
-LoadBalancer IP is `SVC_PLEX_IP` = `192.168.4.235` (`.232`/`.233` are taken by the two traefik
-installs).
+LoadBalancer IP is `SVC_PLEX_IP` = `<plex-lb-ip>` — pick a free address in the MetalLB pool (the
+two traefik installs already hold a couple).
 
 ## Step 1 — Push storage + service scaffolding
 
 Commit and push (Flux reconciles): the `nfs-plex-library-pv` PV, the `plex-config` (Longhorn) +
-`plex-library` PVCs, the LoadBalancer service (`SVC_PLEX_IP` = `192.168.4.235`).
+`plex-library` PVCs, the LoadBalancer service (`SVC_PLEX_IP` = `<plex-lb-ip>`).
 
 ```bash
 kubectl get pvc -n media plex-config plex-library   # both Bound
@@ -44,7 +44,7 @@ Stop the VM's Plex so the SQLite DB is quiesced (begins brief Plex downtime), th
 
 ```bash
 # quiesce the source
-ssh ryan@192.168.4.101 'cd /opt/docker-htpc && docker compose stop plex'
+ssh ryan@<media-vm-ip> 'cd /opt/docker-htpc && docker compose stop plex'
 
 # helper pod mounting the empty plex-config PVC
 kubectl apply -n media -f - <<'EOF'
@@ -71,7 +71,7 @@ EOF
 kubectl wait -n media --for=condition=Ready pod/plex-config-loader --timeout=120s
 
 # stream config from the VM into the PVC, fix ownership, clean up
-ssh ryan@192.168.4.101 'sudo tar czf - -C /opt/docker-htpc/plex/config .' \
+ssh ryan@<media-vm-ip> 'sudo tar czf - -C /opt/docker-htpc/plex/config .' \
   | kubectl exec -i -n media plex-config-loader -- tar xzf - -C /config
 kubectl exec -n media plex-config-loader -- chown -R 1000:1000 /config
 kubectl delete pod -n media plex-config-loader
@@ -88,16 +88,48 @@ kubectl delete pod -n media plex-config-loader
 4. Validate:
    ```bash
    kubectl get pods -n media -l app=plex -o wide
-   kubectl get svc -n media plex          # EXTERNAL-IP == 192.168.4.235
+   kubectl get svc -n media plex          # EXTERNAL-IP == <plex-lb-ip>
    kubectl logs -n media -l app=plex --tail=50
    ```
-   Browse `http://192.168.4.235:32400/web` — library, posters, watch history intact, items play.
+   Browse `http://<plex-lb-ip>:32400/web` — library, posters, watch history intact, items play.
 5. Update DNS / reverse proxy and Plex's custom server access URL if needed.
 
 ### Rollback
 Remove the deployment line + push (Flux removes the pod), then
-`ssh ryan@192.168.4.101 'cd /opt/docker-htpc && docker compose start plex'`. The migrated PVC is a
+`ssh ryan@<media-vm-ip> 'cd /opt/docker-htpc && docker compose start plex'`. The migrated PVC is a
 copy — the VM's original config is untouched. (Do not run both Plex servers at once.)
+
+## Remote access & runtime settings (live in the PVC, NOT in git)
+
+Plex server settings live in `Preferences.xml` inside the **`plex-config` Longhorn PVC**, not in
+any manifest. linuxserver/plex exposes no env var for them, so they **cannot** be managed
+declaratively / via GitOps — they are set once on the running server (Plex web UI, or the
+`/:/prefs` API with the server's `PlexOnlineToken`) and **persist in the volume**. Flux reconciles
+the manifest objects (Deployment/Service/PVC) and does **not** touch `Preferences.xml`, so it will
+not reset these. This mirrors how the old VM stored config in its config dir. If the PVC is ever
+wiped, re-set them once.
+
+**Caveat — Plex may rewrite some keys on first boot.** After migration the new pod reset
+`PublishServerOnPlexOnlineKey` to `0` even though the VM had `1`. Always confirm against the VM's
+true config (read-only: mount the stopped VM disk on the Proxmox host, or extract from the vzdump)
+rather than trusting the freshly-migrated values.
+
+Remote access is **enabled**, matching the legacy VM. Settings of note (VM ground truth ==
+current k3s):
+
+| Key | Value | Meaning |
+| --- | --- | --- |
+| `PublishServerOnPlexOnlineKey` | `1` | Remote Access enabled (advertises to plex.tv) |
+| `ManualPortMappingMode` | `1` | Manual port mapping (UPnP/NAT-PMP can't work behind MetalLB) |
+| `ManualPortMappingPort` | `32400` | Public port. VM had this *unset* (Plex defaults to 32400); k3s has it explicit — behaviourally identical |
+| `WanTotalMaxUploadRate` | `850000` | ~850 Mbps total WAN upload cap |
+| `LanNetworksBandwidth` | `<lan-subnet>,<lan-subnet>` | Treated as LAN (unmetered). One entry is a stale subnet — harmless leftover |
+
+**Network path for remote access (double NAT):** upstream router (`<wan-ip>`) forwards TCP `32400`
+→ UniFi UDM WAN (`<udm-wan-ip>:32400`), which forwards → Plex `<plex-lb-ip>:32400`. Same port
+end-to-end. The UDM's "WAN IP is private" warning is expected (it's behind the upstream NAT). If
+remote access breaks for no reason, the upstream public IP likely changed — Plex re-detects it
+automatically; a dynamic-DNS hostname is the clean long-term fix.
 
 ## Later: unify media (kills the manual NAS copy)
 
