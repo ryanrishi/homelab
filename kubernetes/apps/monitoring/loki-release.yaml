@@ -77,12 +77,8 @@ spec:
     # Trim the chart's extras not needed for a homelab
     gateway:
       enabled: false
-    monitoring:
-      selfMonitoring:
-        enabled: false
-        grafanaAgent:
-          installOperator: false
-      lokiCanary:
-        enabled: false
+    # Canary is a DaemonSet that lands on every node, including the tight servers
+    lokiCanary:
+      enabled: false
     test:
       enabled: false
