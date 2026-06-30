@@ -52,7 +52,7 @@ spec:
       persistence:
         enabled: true
         storageClass: longhorn-single
-        size: 5Gi
+        size: 3Gi
       resources:
         requests:
           memory: 128Mi
