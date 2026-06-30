@@ -46,7 +46,7 @@ spec:
               cpu: 50m
             limits:
               memory: 1Gi
-              cpu: 500m
+              cpu: 2000m
           livenessProbe:
             tcpSocket:
               port: 8080
