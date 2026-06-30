@@ -9,6 +9,8 @@ This directory contains the monitoring stack for the homelab Kubernetes cluster.
 - **AlertManager**: Alert handling and routing
 - **Node Exporter**: Node/system metrics
 - **kube-state-metrics**: Kubernetes cluster metrics
+- **Loki**: Container log aggregation and storage
+- **Alloy**: Log collector that ships container logs to Loki
 
 ## Access
 
@@ -29,6 +31,15 @@ After deployment, the following services will be available via MetalLB LoadBalan
 - **Prometheus**: 15GB of storage with 30-day retention
 - **Grafana**: 2GB for dashboards and configuration
 - **AlertManager**: 2GB for alert state
+- **Loki**: 10GB on `longhorn-single`, 7-day retention (compactor-enforced)
+
+## Logs
+
+Container logs are collected by Alloy (DaemonSet) and stored in Loki. Query them in
+Grafana's **Explore** view against the **Loki** datasource, e.g. `{namespace="pihole"}`.
+
+Alloy currently runs on the longhorn-enabled (replica) nodes only — the memory-tight
+server/etcd nodes are intentionally excluded. Expanding to server nodes is a future change.
 
 ## Resource Limits
 

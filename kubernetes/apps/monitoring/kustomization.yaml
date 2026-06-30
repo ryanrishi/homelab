@@ -6,3 +6,7 @@ resources:
   - repository.yaml
   - release.yaml
   - grafana-secrets.sops.yaml
+  - loki-repository.yaml
+  - loki-release.yaml
+  - loki-datasource.yaml
+  - alloy-release.yaml
