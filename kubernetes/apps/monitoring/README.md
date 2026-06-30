@@ -31,7 +31,7 @@ After deployment, the following services will be available via MetalLB LoadBalan
 - **Prometheus**: 15GB of storage with 30-day retention
 - **Grafana**: 2GB for dashboards and configuration
 - **AlertManager**: 2GB for alert state
-- **Loki**: 10GB on `longhorn-single`, 7-day retention (compactor-enforced)
+- **Loki**: 5GB on `longhorn-single`, 7-day retention (compactor-enforced)
 
 ## Logs
 
