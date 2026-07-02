@@ -30,3 +30,16 @@ spec:
             classify_recruiter: true
       openai:
         model: gpt-4o-mini
+  # Pin to agent nodes so the Alloy DaemonSet (agent-only) ships logs to Loki.
+  # The chart exposes no nodeSelector, so patch the rendered CronJob.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: CronJob
+              name: email-organizer-email-organizer
+            patch: |
+              - op: add
+                path: /spec/jobTemplate/spec/template/spec/nodeSelector
+                value:
+                  lab.ryanrishi.com/longhorn-enabled: "true"
