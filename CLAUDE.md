@@ -191,10 +191,11 @@ Both nodes need `debian-12-cloudinit-template` created via `/terraform/scripts/c
 - No special cleanup needed
 - Just `terraform destroy/apply` the replica module
 
-**Server nodes (k3s-server-*)**: Require etcd member cleanup before recreation
-- Server nodes are etcd cluster members
-- `kubectl delete node` does NOT remove the etcd member
-- If you skip this step, the new node will fail with: `etcd cluster join failed: duplicate node name found`
+**Server nodes (k3s-server-*)**: Are etcd cluster members
+- On current k3s (v1.32), `kubectl delete node k3s-server-N` also removes the node's etcd member automatically
+- So if you delete the node before recreating the VM, no manual etcd cleanup is needed
+- Manual `etcdctl member remove` is only a fallback: needed if you recreate the VM WITHOUT deleting the node first (the stale member then collides with the new one → `etcd cluster join failed: duplicate node name found`)
+- Always verify with `etcdctl member list` before recreating; only remove if the old member is still present
 
 ### Workflow for Recreating Server Nodes
 
@@ -211,18 +212,18 @@ kubectl drain k3s-server-1 --ignore-daemonsets --delete-emptydir-data
 # 4. Delete from Kubernetes
 kubectl delete node k3s-server-1
 
-# 5. Remove from etcd cluster (REQUIRED for server nodes!)
+# 5. Verify the etcd member is gone (kubectl delete node usually removes it automatically)
 # SSH to any working server node that has etcdctl installed
 ssh ryan@<working-node-ip>
 
-# Find the member ID for the node being removed
 sudo ETCDCTL_API=3 \
   ETCDCTL_CACERT=/var/lib/rancher/k3s/server/tls/etcd/server-ca.crt \
   ETCDCTL_CERT=/var/lib/rancher/k3s/server/tls/etcd/server-client.crt \
   ETCDCTL_KEY=/var/lib/rancher/k3s/server/tls/etcd/server-client.key \
   etcdctl --endpoints=https://127.0.0.1:2379 member list
 
-# Remove the member (use the ID from above)
+# If the removed node is NOT listed, skip ahead. If it IS still listed
+# (e.g. you recreated without deleting the node first), remove it:
 sudo ETCDCTL_API=3 \
   ETCDCTL_CACERT=/var/lib/rancher/k3s/server/tls/etcd/server-ca.crt \
   ETCDCTL_CERT=/var/lib/rancher/k3s/server/tls/etcd/server-client.crt \
@@ -246,9 +247,9 @@ sudo apt-get update && sudo apt-get install -y etcd-client
 
 - When you recreate a server node VM, the IP address often changes (DHCP)
 - The hostname stays the same (e.g., k3s-server-1)
-- Etcd sees: "There's already a member named k3s-server-1 but with a different IP"
-- Result: "duplicate node name" error and k3s won't start
-- Solution: Remove the old etcd member before creating the new one
+- If a stale etcd member with that name still exists, etcd sees: "There's already a member named k3s-server-1 but with a different IP" → "duplicate node name" error and k3s won't start
+- `kubectl delete node` removes the etcd member for you, so following the workflow order (delete node, then recreate) avoids this
+- The manual `member remove` only matters when the node was NOT deleted first
 
 ## Security Notes
 
