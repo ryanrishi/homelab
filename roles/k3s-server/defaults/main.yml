@@ -6,3 +6,7 @@ token: token
 cluster_init: false
 k3s_server_endpoint: k3s-server-0 # TODO don't rely on DNS resolution
 k3s_server_port: 6443
+server_config_yaml: |
+  disable:
+    - servicelb
+    - traefik
