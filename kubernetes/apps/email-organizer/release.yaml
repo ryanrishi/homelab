@@ -17,7 +17,7 @@ spec:
       interval: 12h
   values:
     schedule: "*/15 * * * *"
-    since: "30m"
+    since: "1h"
     dryRun: true
     persistence:
       enabled: false
