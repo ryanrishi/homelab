@@ -7,6 +7,10 @@ metadata:
 spec:
   interval: 8h
   timeout: 15m
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
   chart:
     spec:
       chart: traefik
