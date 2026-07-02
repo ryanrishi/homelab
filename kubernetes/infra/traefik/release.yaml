@@ -52,7 +52,7 @@ spec:
       enabled: true
       type: LoadBalancer
       annotations:
-        metallb.io/loadBalancerIPs: ${SVC_TRAEFIK_IP}
+        metallb.universe.tf/loadBalancerIPs: ${SVC_TRAEFIK_IP}
       spec:
         externalTrafficPolicy: Local
 
