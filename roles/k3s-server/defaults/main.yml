@@ -4,7 +4,7 @@ k3s_version: v1.32.12+k3s1
 systemd_dir: "/etc/systemd/system"
 token: token
 cluster_init: false
-k3s_server_endpoint: k3s-server-0 # TODO don't rely on DNS resolution
+k3s_server_endpoint: 192.168.4.65 # server-0 pinned IP; flips to kube-vip VIP after rollout
 k3s_server_port: 6443
 server_config_yaml: |
   disable:
