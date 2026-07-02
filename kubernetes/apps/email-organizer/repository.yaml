@@ -1,0 +1,10 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: email-organizer
+  namespace: email-organizer
+spec:
+  type: oci
+  interval: 12h
+  url: oci://ghcr.io/ryanrishi/charts

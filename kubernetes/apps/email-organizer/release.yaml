@@ -1,0 +1,31 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: email-organizer
+  namespace: email-organizer
+spec:
+  interval: 8h
+  chart:
+    spec:
+      chart: email-organizer
+      version: "0.1.0"
+      sourceRef:
+        kind: HelmRepository
+        name: email-organizer
+        namespace: email-organizer
+      interval: 12h
+  values:
+    schedule: "*/15 * * * *"
+    since: "30m"
+    persistence:
+      enabled: false
+    config:
+      accounts:
+        - name: personal1
+          token_path: /secrets/tokens/personal1.json
+          label: "Work/Recruiter"
+          rules:
+            classify_recruiter: true
+      openai:
+        model: gpt-4o-mini

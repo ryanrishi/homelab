@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - camping-bot
   - ddclient
+  - email-organizer
   - home-assistant
   - media
   - monitoring
