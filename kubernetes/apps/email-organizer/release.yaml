@@ -18,6 +18,7 @@ spec:
   values:
     schedule: "*/15 * * * *"
     since: "30m"
+    dryRun: true
     persistence:
       enabled: false
     config:
