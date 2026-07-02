@@ -10,3 +10,9 @@ server_config_yaml: |
   disable:
     - servicelb
     - traefik
+  tls-san:
+    - "{{ kube_vip_address }}"
+
+kube_vip_address: 192.168.4.5
+kube_vip_interface: eth0
+kube_vip_version: v1.2.1

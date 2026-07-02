@@ -36,6 +36,19 @@
         dest: "/etc/rancher/k3s/config.yaml"
         mode: "0644"
 
+- name: Deploy kube-vip control-plane manifest
+  block:
+    - name: Ensure k3s auto-deploy manifests directory exists
+      ansible.builtin.file:
+        path: "{{ k3s_server_location }}/server/manifests"
+        state: directory
+        mode: "0755"
+    - name: Template kube-vip manifest
+      ansible.builtin.template:
+        src: kube-vip.yaml.j2
+        dest: "{{ k3s_server_location }}/server/manifests/kube-vip.yaml"
+        mode: "0644"
+
 - name: Init first server node
   when: cluster_init
   block:
