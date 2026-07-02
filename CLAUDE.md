@@ -127,9 +127,15 @@ kubectl create cm my-config --from-literal=key1=value1 --dry-run=client -o yaml
 - **Inventories**: Separated by location (threekings, nyc, centennial)
 
 ### Kubernetes Layer
-- **k3s**: Lightweight Kubernetes distribution
+- **k3s**: Lightweight Kubernetes distribution. Bundled servicelb and traefik are
+  disabled (`roles/k3s-server` config); MetalLB and the Flux-managed Traefik are used instead.
 - **Flux CD**: GitOps continuous delivery
-- **MetalLB**: Load balancer for external IPs
+- **MetalLB**: Load balancer for external IPs. Pin an IP with the
+  `metallb.universe.tf/loadBalancerIPs` annotation (or `spec.loadBalancerIP`) —
+  `metallb.io/loadBalancerIPs` is silently ignored and the service gets auto-assigned.
+- **kube-vip**: Control-plane VIP `192.168.4.5` (control-plane-only DaemonSet, ARP +
+  leader election). Server nodes join via this VIP (`k3s_server_endpoint`) and kubectl
+  points at it, so no single server is a hard dependency. Servers stay on DHCP.
 - **SOPS**: Secrets management with GPG encryption
 
 ### Services
@@ -275,6 +281,28 @@ Examples:
 The code should speak for itself. If someone later changes `enabled: false` to `enabled: true`, any comment explaining why it was disabled is now wrong and misleading.
 
 ## Troubleshooting Notes
+
+### Disabling a bundled k3s addon deletes its CRDs
+
+`--disable <addon>` uninstalls the addon, and if it owns CRDs those get **deleted**
+(taking all their CR objects with them). Disabling bundled traefik removed the core
+`traefik.io` CRDs (IngressRoute/Middleware), which the Flux-managed Traefik relied on
+— silently breaking all IngressRoute routing (e.g. the media `*arr` apps). The
+Flux Traefik chart had only ever installed the `hub.traefik.io` CRDs because the core
+ones already existed (from the bundled addon).
+
+**Fix / prevention**: make the replacement own its CRDs. For the Flux Traefik
+HelmRelease, set `spec.install.crds` and `spec.upgrade.crds` to `CreateReplace`, then
+force a Helm upgrade (`flux reconcile helmrelease traefik -n traefik --force`) so Flux
+(re)installs the chart's CRDs.
+
+### Flux var change that feeds a HelmRelease annotation
+
+Changing a `cluster-settings` value used in a HelmRelease (e.g. `SVC_TRAEFIK_IP` for a
+MetalLB pin) requires reconciling the HelmRelease in the same pass, not just the
+kustomization — otherwise the ConfigMap updates but the rendered Service keeps the old
+value until the next Helm apply, briefly moving the IP and breaking anything (like DNS)
+that points at the intended one.
 
 ### Debugging k3s Nodes
 
