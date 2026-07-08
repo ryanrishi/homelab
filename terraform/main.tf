@@ -19,14 +19,14 @@ module "media" {
 locals {
   # K3s server configurations
   k3s_servers = {
-    0 = { target_node = "ryanrishi", cluster_init = false, ip = "192.168.4.65" }
+    0 = { target_node = "ryanrishi", cluster_init = false, ip = "192.168.4.65", memory = 4096 }
     1 = { target_node = "pve002" }
     2 = { target_node = "ryanrishi" }
   }
 
   # K3s replica configurations
   k3s_replicas = {
-    0 = { target_node = "ryanrishi", machine = "q35", hostpci = [{ host = "0000:00:02" }] }
+    0 = { target_node = "ryanrishi", machine = "q35", hostpci = [{ host = "0000:00:02" }], memory = 8192 }
     1 = { target_node = "pve002" }
     2 = { target_node = "ryanrishi" }
     3 = { target_node = "pve002" }
@@ -75,7 +75,7 @@ module "k3s-servers" {
 
   cores     = 2
   sockets   = 2
-  memory    = 2048
+  memory    = lookup(local.k3s_servers[count.index], "memory", 2048)
   disk_size = 20
   balloon   = 0
 
@@ -117,7 +117,7 @@ module "k3s-replicas" {
 
   cores          = 2
   sockets        = 2
-  memory         = 4096
+  memory         = lookup(local.k3s_replicas[count.index], "memory", 4096)
   disk_size      = 20
   data_disk_size = 30
   balloon        = 0
