@@ -80,7 +80,23 @@ spec:
 
           loki.source.file "pod_logs" {
             targets    = local.file_match.pod_logs.targets
+            forward_to = [loki.process.pod_logs.receiver]
+          }
+
+          loki.process "pod_logs" {
             forward_to = [loki.write.default.receiver]
+
+            stage.match {
+              selector            = "{namespace=\"email-organizer\"} |~ \"Could not persist refreshed token\""
+              action              = "drop"
+              drop_counter_reason = "email_organizer_token_persist_warning"
+            }
+
+            stage.match {
+              selector            = "{namespace=\"email-organizer\"} |~ \"INFO httpx: HTTP Request.*200 OK\""
+              action              = "drop"
+              drop_counter_reason = "email_organizer_httpx_info"
+            }
           }
 
           loki.write "default" {
