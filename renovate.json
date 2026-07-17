@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboardApproval"
+  ],
+  "timezone": "America/New_York",
+  "kubernetes": {
+    "managerFilePatterns": [
+      "kubernetes/**/*.yaml",
+      "kubernetes/**/*.yml"
+    ]
+  },
+  "packageRules": [
+    {
+      "matchManagers": [
+        "kubernetes"
+      ],
+      "matchFileNames": [
+        "kubernetes/clusters/liberty/flux-system/**"
+      ],
+      "enabled": false
+    },
+    {
+      "matchPackageNames": [
+        "lscr.io/linuxserver/qbittorrent"
+      ],
+      "allowedVersions": "<6"
+    }
+  ]
+}
