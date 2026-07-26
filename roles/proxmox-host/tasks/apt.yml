@@ -1,0 +1,28 @@
+- name: Remove enterprise apt repositories
+  ansible.builtin.apt_repository:
+    repo: "{{ item }}"
+    state: absent
+    update_cache: false
+  with_items: "{{ proxmox_enterprise_repositories }}"
+
+- name: Add apt repositories
+  ansible.builtin.apt_repository:
+    repo: "{{ item }}"
+    state: present
+    update_cache: false
+  with_items: "{{ proxmox_repositories }}"
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Perform dist-upgrade
+  ansible.builtin.apt:
+    upgrade: dist
+  notify: Report that a reboot is required
+
+- name: Install packages
+  ansible.builtin.apt:
+    name: "{{ proxmox_packages }}"
+    state: present

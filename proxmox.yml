@@ -1,0 +1,6 @@
+---
+- name: Proxmox hosts
+  hosts: proxmox
+  serial: 1
+  roles:
+    - role: proxmox-host

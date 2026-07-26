@@ -1,0 +1,8 @@
+- name: Configure apt repositories and packages
+  ansible.builtin.include_tasks: apt.yml
+
+- name: Configure network offload
+  ansible.builtin.include_tasks: network.yml
+
+- name: Configure storage content types
+  ansible.builtin.include_tasks: storage.yml

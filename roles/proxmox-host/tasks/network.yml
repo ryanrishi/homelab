@@ -1,0 +1,31 @@
+- name: Read network interfaces
+  ansible.builtin.slurp:
+    src: /etc/network/interfaces
+  register: _interfaces
+
+- name: Require a manual stanza for the physical interface
+  ansible.builtin.assert:
+    that: "'iface ' ~ proxmox_nic ~ ' inet manual' in (_interfaces.content | b64decode)"
+    fail_msg: >-
+      No 'iface {{ proxmox_nic }} inet manual' stanza in /etc/network/interfaces.
+      Set proxmox_nic to the bridged physical interface for this host.
+
+- name: Disable segmentation offload on the physical interface
+  ansible.builtin.lineinfile:
+    path: /etc/network/interfaces
+    insertafter: "^iface {{ proxmox_nic }} inet manual$"
+    regexp: "^\\s*post-up ethtool -K {{ proxmox_nic }}"
+    line: "\tpost-up ethtool -K {{ proxmox_nic }} tso off gso off"
+
+- name: Read current offload state
+  ansible.builtin.command: "ethtool -k {{ proxmox_nic }}"
+  changed_when: false
+  check_mode: false
+  register: _offload_state
+
+- name: Apply offload settings
+  ansible.builtin.command: "ethtool -K {{ proxmox_nic }} tso off gso off"
+  changed_when: true
+  when: >-
+    'tcp-segmentation-offload: on' in _offload_state.stdout
+    or 'generic-segmentation-offload: on' in _offload_state.stdout

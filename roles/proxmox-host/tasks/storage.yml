@@ -1,0 +1,12 @@
+- name: Read configured content types for local
+  ansible.builtin.shell:
+    cmd: |
+      awk '/^dir: local$/ {f=1; next} f && /^[[:space:]]*content / {print $2; exit}' /etc/pve/storage.cfg
+  changed_when: false
+  check_mode: false
+  register: _local_content
+
+- name: Set content types for local
+  ansible.builtin.command: "pvesm set local --content {{ proxmox_local_content | join(',') }}"
+  changed_when: true
+  when: (_local_content.stdout.strip().split(',') | sort) != (proxmox_local_content | sort)

@@ -1,0 +1,19 @@
+proxmox_nic: eno1
+
+proxmox_enterprise_repositories:
+  - deb https://enterprise.proxmox.com/debian/pve bookworm pve-enterprise
+  - deb https://enterprise.proxmox.com/debian/ceph-quincy bookworm enterprise
+
+proxmox_repositories:
+  - deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription
+
+proxmox_packages:
+  - ethtool
+
+proxmox_local_content:
+  - backup
+  - images
+  - import
+  - iso
+  - snippets
+  - vztmpl

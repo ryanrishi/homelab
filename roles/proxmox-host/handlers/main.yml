@@ -1,0 +1,5 @@
+- name: Report that a reboot is required
+  ansible.builtin.debug:
+    msg: >-
+      Packages were upgraded on {{ inventory_hostname }}. Reboot manually once
+      its guests have been migrated or stopped.

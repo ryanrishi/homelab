@@ -1,0 +1,13 @@
+all:
+  children:
+    proxmox:
+      vars:
+        ansible_user: root
+        ansible_python_interpreter: /usr/bin/python3
+      hosts:
+        pve:
+          ansible_host: 192.168.4.200
+        pve002:
+          ansible_host: 192.168.4.202
+        pve003:
+          ansible_host: 192.168.4.203
