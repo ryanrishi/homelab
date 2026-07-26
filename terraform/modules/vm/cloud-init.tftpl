@@ -1,0 +1,54 @@
+#cloud-config
+hostname: ${hostname}
+timezone: Etc/UTC
+manage_etc_hosts: true
+ssh_pwauth: false
+chpasswd:
+  expire: False
+# Send cloud-init output to console so we can see it during boot
+output:
+  all: '| tee -a /var/log/cloud-init-output.log /dev/console'
+users:
+%{ for name, user in users ~}
+  - name: ${name}
+    groups: users,admin,wheel
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${user.ssh_key}
+%{ endfor ~}
+package_update: true
+package_upgrade: true
+packages:
+  - git
+  - nfs-common
+  - qemu-guest-agent
+write_files:
+  # The systemd-resolved stub listener at 127.0.0.53 accepts connections but refuses
+  # queries. See https://forum.proxmox.com/threads/proxmox-9-cloud-init-and-debian-13-trixie-fails-to-set-dns.170804/
+  - path: /etc/systemd/resolved.conf.d/disable-stub.conf
+    permissions: '0644'
+    content: |
+      [Resolve]
+      DNSStubListener=no
+bootcmd:
+  # write_files runs after the network stage, so DNS config has to be written here
+  - |
+    mkdir -p /etc/netplan
+    cat > /etc/netplan/51-custom-dns.yaml << 'EOF'
+    network:
+      version: 2
+      ethernets:
+        eth0:
+          nameservers:
+            addresses:
+              - ${nameserver}
+            search:
+              - ${searchdomain}
+    EOF
+    chmod 600 /etc/netplan/51-custom-dns.yaml
+  - rm -f /etc/resolv.conf
+  - ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+runcmd:
+  # Static systemd unit, so it is already enabled — start it without waiting for a reboot
+  - systemctl start qemu-guest-agent
