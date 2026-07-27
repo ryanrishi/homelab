@@ -14,29 +14,36 @@
 
 - name: Check for Longhorn data disk
   ansible.builtin.stat:
-    path: /dev/sdb
+    path: "{{ longhorn_data_disk }}"
   register: data_disk
 
 - name: Configure Longhorn data disk
   when: data_disk.stat.exists
+  vars:
+    # ansible_devices is keyed by kernel name, so resolve the symlink to index it.
+    data_disk_kernel_name: "{{ data_disk.stat.lnk_source | default(longhorn_data_disk) | basename }}"
+    data_disk_bytes: "{{ (ansible_devices[data_disk_kernel_name].sectors | int)
+      * (ansible_devices[data_disk_kernel_name].sectorsize | int) }}"
   block:
-    - name: Verify /dev/sdb is roughly the expected data disk size
+    - name: Verify the data disk is roughly the expected size
       ansible.builtin.assert:
         that:
-          - (ansible_devices.sdb.sectors | int) * (ansible_devices.sdb.sectorsize | int) > 25 * 1024 * 1024 * 1024
-          - (ansible_devices.sdb.sectors | int) * (ansible_devices.sdb.sectorsize | int) < 35 * 1024 * 1024 * 1024
-        fail_msg: "Refusing to format /dev/sdb: size out of expected ~30G range"
+          - data_disk_bytes | int > longhorn_data_disk_min_bytes | int
+          - data_disk_bytes | int < longhorn_data_disk_max_bytes | int
+        fail_msg: >-
+          Refusing to format {{ longhorn_data_disk }} ({{ data_disk_kernel_name }},
+          {{ data_disk_bytes }} bytes): size outside the expected data disk range
 
     - name: Detect existing filesystem on data disk
       ansible.builtin.command:
-        cmd: blkid /dev/sdb
+        cmd: blkid {{ longhorn_data_disk }}
       register: blkid_check
       changed_when: false
       failed_when: false
 
     - name: Format data disk as ext4 with longhorn-data label
       ansible.builtin.command:
-        cmd: mkfs.ext4 -L longhorn-data /dev/sdb
+        cmd: mkfs.ext4 -L longhorn-data {{ longhorn_data_disk }}
       when: blkid_check.rc != 0
 
     - name: Create /var/lib/longhorn mount point
