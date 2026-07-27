@@ -32,11 +32,13 @@ spec:
       defaultClassReplicaCount: 2
     ingress:
       enabled: false
+    # Longhorn gives each CSI controller a minAvailable=1 PodDisruptionBudget, so a
+    # single replica can never be evicted and every node drain deadlocks on it.
     csi:
-      attacherReplicaCount: 1
-      provisionerReplicaCount: 1
-      resizerReplicaCount: 1
-      snapshotterReplicaCount: 1
+      attacherReplicaCount: 2
+      provisionerReplicaCount: 2
+      resizerReplicaCount: 2
+      snapshotterReplicaCount: 2
     longhornManager:
       nodeSelector:
         node.longhorn.io/create-default-disk: "true"
