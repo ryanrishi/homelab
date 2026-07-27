@@ -1,0 +1,78 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: longhorn
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: longhorn.rules
+      rules:
+        - alert: LonghornDiskCapacityHigh
+          expr: 100 * longhorn_disk_usage_bytes / longhorn_disk_capacity_bytes > 80
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Longhorn disk on {{ $labels.node }} is {{ $value | printf "%.0f" }}% full
+            description: >-
+              Disk {{ $labels.disk }} on node {{ $labels.node }} is at
+              {{ $value | printf "%.1f" }}% usage. Free space or add capacity before
+              replicas become unschedulable.
+
+        - alert: LonghornDiskCapacityHigh
+          expr: 100 * longhorn_disk_usage_bytes / longhorn_disk_capacity_bytes > 90
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Longhorn disk on {{ $labels.node }} is {{ $value | printf "%.0f" }}% full
+            description: >-
+              Disk {{ $labels.disk }} on node {{ $labels.node }} is at
+              {{ $value | printf "%.1f" }}% usage. Volumes on this node are at risk.
+
+        - alert: LonghornVolumeDegraded
+          expr: longhorn_volume_robustness == 2
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Longhorn volume {{ $labels.volume }} is degraded
+            description: >-
+              Volume {{ $labels.volume }} on node {{ $labels.node }} is running with fewer
+              healthy replicas than requested and has not rebuilt.
+
+        - alert: LonghornVolumeFaulted
+          expr: longhorn_volume_robustness == 3
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Longhorn volume {{ $labels.volume }} is faulted
+            description: >-
+              Volume {{ $labels.volume }} has no usable replica. Any pod mounting it is
+              stuck. Check whether the replica's node or disk went away.
+
+        - alert: LonghornNodeNotReady
+          expr: longhorn_node_status{condition="ready"} == 0
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: Longhorn node {{ $labels.node }} is not ready
+            description: >-
+              Node {{ $labels.node }} is not ready to Longhorn. Its replicas are unavailable
+              and single-replica volumes on it will fault.
+
+        - alert: LonghornDiskUnschedulable
+          expr: longhorn_node_status{condition="schedulable"} == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Longhorn node {{ $labels.node }} cannot accept new replicas
+            description: >-
+              Node {{ $labels.node }} is unschedulable to Longhorn. New volumes and replica
+              rebuilds will not be placed here.

@@ -20,6 +20,13 @@ spec:
     defaultSettings:
       defaultReplicaCount: 2
       createDefaultDiskLabeledNodes: true
+      # Data disks are dedicated to Longhorn, not shared with the OS
+      storageReservedPercentageForDefaultDisk: 10
+    metrics:
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack
     persistence:
       defaultClass: false
       defaultClassReplicaCount: 2

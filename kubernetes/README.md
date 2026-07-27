@@ -61,9 +61,10 @@ To edit a secret (I haven't figured out a great way to do this):
 
 ## Storage
 
-Two storage classes available:
+Three storage classes available:
 - `local-path` (default): node-local, dies with the node. Fine for ephemeral or per-node caches.
 - `longhorn`: distributed block storage, 2 replicas across agent nodes. Use for anything that needs durability or RWO with rescheduling tolerance.
+- `longhorn-single`: 1 replica, `dataLocality: best-effort`. No redundancy — if that one replica's disk is wiped, the data is gone. Currently used by Prometheus, Grafana, Alertmanager, Loki, and camping-bot.
 
 Longhorn lives only on the agent (replica) nodes — server nodes don't run the manager because they don't have `iscsiadm`. Any pod with a `longhorn` PVC must therefore land on an agent. We enforce this per-workload (no cluster-wide taint) so servers stay schedulable for everything else.
 
@@ -77,11 +78,36 @@ spec:
         lab.ryanrishi.com/longhorn-enabled: "true"
 ```
 
-When bringing up a new agent, label it for both Longhorn (disk creation) and homelab (workload scheduling):
+Agents from `module.k3s_agents` (`terraform/k3s-agents.tf`) get both labels at join time via
+`local.longhorn_node_labels`. The legacy `k3s-replica-*` nodes from `module.k3s-replicas` do not, so
+after rebuilding one, relabel it by hand:
 
 ```sh
 kubectl label node <new-replica> \
   node.longhorn.io/create-default-disk=true \
   lab.ryanrishi.com/longhorn-enabled=true
 ```
+
+### Rebuilding a Longhorn node
+
+The data disk (`/dev/sdb`, labeled `longhorn-data`) survives a VM rebuild — only the root disk is
+recreated. The replicas on it are intact, so relabeling the node is enough to bring them back. Do not
+delete PVCs; `auto-salvage` recovers faulted single-replica volumes once the disk is reachable again.
+
+If Ansible reformats the data disk, its `longhorn-disk.cfg` UUID no longer matches the one recorded in
+the Longhorn node CR (`DiskFilesystemChanged` / `DiskNotReady`, `storageMaximum: 0`). Delete the
+Longhorn node CR so the manager re-registers and re-reads the disk:
+
+```sh
+kubectl -n longhorn-system delete nodes.longhorn.io <node>
+```
+
+Longhorn node CRs are not garbage collected when the Kubernetes node disappears — a stale
+`KubernetesNodeGone` entry needs the same delete.
+
+### Alerting
+
+Longhorn metrics are scraped via the chart's ServiceMonitor and alerted on in
+`apps/monitoring/longhorn-rules.yaml` (disk usage 80% warning / 90% critical, plus degraded/faulted
+volumes and unready nodes).
 
