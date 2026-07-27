@@ -66,7 +66,9 @@ resource "proxmox_vm_qemu" "vm" {
   ]
 
   lifecycle {
-    ignore_changes = [clone, full_clone]
+    # Proxmox reports no machine type for VMs left on the default, which reads as a
+    # perpetual diff against an explicit "pc" and would reboot the guest to apply it.
+    ignore_changes = [clone, full_clone, machine]
     replace_triggered_by = [
       null_resource.cloud_init_user_data
     ]

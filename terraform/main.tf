@@ -1,26 +1,10 @@
-module "media" {
-  source = "./modules/cloud_init"
-  name   = "media"
-  ip     = "192.168.4.201"
-
-  cores     = 4
-  sockets   = 2
-  disk_size = 16
-  memory    = 8192
-  balloon   = 0
-
-  cloud_init_template_name = "debian-11-cloudinit-template"
-  target_node              = "ryanrishi"
-
-  pve_user     = var.pve_user
-  pve_password = var.pve_password
-}
+# The media and molt VMs are managed outside Terraform.
 
 locals {
   # K3s server configurations
   k3s_servers = {
     0 = { target_node = "ryanrishi", cluster_init = false, ip = "192.168.4.65", memory = 4096 }
-    1 = { target_node = "pve002" }
+    1 = { target_node = "pve002", memory = 4096 }
     2 = { target_node = "ryanrishi" }
   }
 
@@ -141,7 +125,7 @@ module "k3s-replicas" {
     cloud_final_modules = local.cloud_final_modules
   })
 
-  depends_on = [module.k3s-servers[0]]
+  depends_on = [module.k3s-servers]
 
   pve_user     = var.pve_user
   pve_password = var.pve_password
