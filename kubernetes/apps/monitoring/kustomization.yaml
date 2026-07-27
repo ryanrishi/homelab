@@ -6,6 +6,7 @@ resources:
   - repository.yaml
   - release.yaml
   - grafana-secrets.sops.yaml
+  - alertmanager-pushover-secret.sops.yaml
   - longhorn-rules.yaml
   - loki-repository.yaml
   - loki-release.yaml

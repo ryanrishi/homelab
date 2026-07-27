@@ -111,3 +111,12 @@ Longhorn metrics are scraped via the chart's ServiceMonitor and alerted on in
 `apps/monitoring/longhorn-rules.yaml` (disk usage 80% warning / 90% critical, plus degraded/faulted
 volumes and unready nodes).
 
+Alertmanager delivers warning and critical alerts to Pushover; `info`/`none` severities and the
+`Watchdog` heartbeat route to the null receiver. Credentials live in
+`apps/monitoring/alertmanager-pushover-secret.sops.yaml`, mounted via `alertmanagerSpec.secrets` and
+read with `user_key_file`/`token_file` so they are never inlined in the HelmRelease.
+
+Note that setting `alertmanager.config` replaces the chart's default config wholesale, so the stock
+`inhibit_rules` are carried over verbatim — they are what suppress the `info` alerts behind
+`InfoInhibitor` and the 80% warning behind the 90% critical.
+
