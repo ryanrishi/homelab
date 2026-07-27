@@ -24,6 +24,11 @@ variable "searchdomain" {
   type = string
 }
 
+variable "kube_vip_address" {
+  default = "192.168.4.5"
+}
+
+
 variable "users" {
   type = map(object({ ssh_key = string }))
   default = {
@@ -38,5 +43,5 @@ variable "debian_snapshot" {
 }
 
 variable "debian_checksum" {
-  default = "735d1b2d0ef265a0c2323fdaa7d46e7bd7a1b984f73e8a785e638034bf07876e26374a9d809d713501270c071b3464d2ada0c5589f07742b95ed853cc6d48f45"
+  default = "1ff07be8406c4abcb75662a351b6124408c4a2795801037f8e4fe9ee27084ee2112bef92222f4bbeb9f7df8df1062971a9692f4c82f3da3c01fda6b1493906b9"
 }

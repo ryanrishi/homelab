@@ -58,3 +58,14 @@ variable "users" {
 variable "additional_cloud_init_config" {
   default = ""
 }
+
+variable "machine" {
+  type    = string
+  default = null
+}
+
+# PCIe passthrough requires the q35 machine type.
+variable "hostpci_mapping" {
+  type    = string
+  default = null
+}

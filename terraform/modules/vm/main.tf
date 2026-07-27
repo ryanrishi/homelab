@@ -25,12 +25,23 @@ resource "proxmox_virtual_environment_file" "user_data" {
 }
 
 resource "proxmox_virtual_environment_vm" "vm" {
-  provider      = pve
-  name          = var.name
-  node_name     = var.node_name
-  on_boot       = true
-  scsi_hardware = "virtio-scsi-pci"
+  provider        = pve
+  name            = var.name
+  node_name       = var.node_name
+  on_boot         = true
+  scsi_hardware   = "virtio-scsi-pci"
   stop_on_destroy = true
+  machine         = var.hostpci_mapping == null ? var.machine : "q35"
+
+  dynamic "hostpci" {
+    for_each = var.hostpci_mapping == null ? [] : [var.hostpci_mapping]
+    content {
+      device  = "hostpci0"
+      mapping = hostpci.value
+      pcie    = true
+      rombar  = true
+    }
+  }
 
   cpu {
     cores   = var.cores
@@ -66,6 +77,12 @@ resource "proxmox_virtual_environment_vm" "vm" {
   network_device {
     bridge = "vmbr0"
     model  = "virtio"
+  }
+
+  # Debian cloud images boot with console=ttyS0, and cloud-init tees its output
+  # there, so this is the only way to see a failed boot on a headless host.
+  serial_device {
+    device = "socket"
   }
 
   initialization {

@@ -1,5 +1,5 @@
 locals {
-  debian_image = "debian-13-genericcloud-amd64-${var.debian_snapshot}.qcow2"
+  debian_image = "debian-13-generic-amd64-${var.debian_snapshot}.qcow2"
 }
 
 resource "proxmox_download_file" "debian" {
