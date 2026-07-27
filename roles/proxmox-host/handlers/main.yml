@@ -1,5 +1,9 @@
+- name: Update grub
+  ansible.builtin.command: update-grub
+  changed_when: true
+
 - name: Report that a reboot is required
   ansible.builtin.debug:
     msg: >-
-      Packages were upgraded on {{ inventory_hostname }}. Reboot manually once
-      its guests have been migrated or stopped.
+      {{ inventory_hostname }} needs a reboot to pick up pending changes. Reboot
+      manually once its guests have been migrated or stopped.

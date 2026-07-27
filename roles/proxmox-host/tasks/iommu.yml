@@ -1,0 +1,44 @@
+- name: Detect IOMMU groups
+  ansible.builtin.find:
+    paths: /sys/kernel/iommu_groups
+    file_type: directory
+  register: _iommu_groups
+  changed_when: false
+
+- name: Determine the IOMMU kernel parameter for this CPU
+  ansible.builtin.set_fact:
+    _iommu_param: >-
+      {{ 'intel_iommu=on' if 'GenuineIntel' in ansible_facts.processor
+         else ('amd_iommu=on' if 'AuthenticAMD' in ansible_facts.processor else '') }}
+
+- name: Enable IOMMU on the kernel command line
+  ansible.builtin.replace:
+    path: /etc/default/grub
+    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT="(?!.*\b{{ _iommu_param }})[^"]*)"'
+    replace: '\1 {{ _iommu_param }} iommu=pt"'
+  when:
+    - _iommu_param | length > 0
+    - _iommu_groups.matched == 0
+  notify:
+    - Update grub
+    - Report that a reboot is required
+
+- name: Load vfio modules at boot
+  ansible.builtin.lineinfile:
+    path: /etc/modules
+    line: "{{ item }}"
+    state: present
+  loop: "{{ proxmox_vfio_modules }}"
+  notify: Report that a reboot is required
+
+- name: Read loaded kernel modules
+  ansible.builtin.command: lsmod
+  changed_when: false
+  check_mode: false
+  register: _lsmod
+
+- name: Load vfio modules now
+  ansible.builtin.command: "modprobe {{ item }}"
+  changed_when: true
+  loop: "{{ proxmox_vfio_modules }}"
+  when: item | replace('-', '_') not in _lsmod.stdout

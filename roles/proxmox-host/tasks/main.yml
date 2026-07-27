@@ -6,3 +6,6 @@
 
 - name: Configure storage content types
   ansible.builtin.include_tasks: storage.yml
+
+- name: Configure IOMMU and vfio for PCI passthrough
+  ansible.builtin.include_tasks: iommu.yml

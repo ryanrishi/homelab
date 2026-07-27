@@ -10,6 +10,11 @@ proxmox_repositories:
 proxmox_packages:
   - ethtool
 
+proxmox_vfio_modules:
+  - vfio
+  - vfio_iommu_type1
+  - vfio_pci
+
 proxmox_local_content:
   - backup
   - images
