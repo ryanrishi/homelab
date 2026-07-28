@@ -12,4 +12,7 @@ parameters:
   staleReplicaTimeout: "30"
   fromBackup: ""
   fsType: "ext4"
-  dataLocality: "best-effort"
+  # A failed local-replica placement leaves a placeholder replica pinned to the pod's
+  # node instead of being discarded. On a single-replica volume that placeholder holds
+  # the only slot, so draining the node it sits on can never complete.
+  dataLocality: "disabled"
