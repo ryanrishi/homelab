@@ -2,6 +2,9 @@ locals {
   k3s_agents = [
     { node = "pve003", memory = 8192, igpu = true },
     { node = "pve003", memory = 8192 },
+    { node = "ryanrishi", memory = 8192 },
+    { node = "pve002", memory = 8192 },
+    { node = "ryanrishi", memory = 8192, igpu = true },
   ]
 
   longhorn_node_labels = [

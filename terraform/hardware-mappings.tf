@@ -1,6 +1,5 @@
 # Intel display controllers, discovered per node rather than hardcoded.
 data "proxmox_hardware_pci" "igpu" {
-  provider  = pve
   for_each  = var.pve_nodes
   node_name = each.key
 
@@ -22,7 +21,6 @@ locals {
 # A mapped device can be assigned by a non-root API user, unlike a raw hostpci
 # path, so guests can claim the GPU through Terraform instead of `qm set` as root.
 resource "proxmox_hardware_mapping_pci" "igpu" {
-  provider = pve
   name     = "igpu"
   comment  = "Managed by Terraform"
 

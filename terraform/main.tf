@@ -1,19 +1,8 @@
 # The media and molt VMs are managed outside Terraform.
 
 locals {
-  # K3s server configurations
-  k3s_servers = {
-    0 = { target_node = "ryanrishi", cluster_init = false, ip = "192.168.4.65", memory = 4096 }
-  }
-
-  # K3s replica configurations
-  k3s_replicas = {
-    0 = { target_node = "ryanrishi", machine = "q35", hostpci = [{ host = "0000:00:02" }], memory = 8192 }
-    1 = { target_node = "pve002" }
-    2 = { target_node = "ryanrishi" }
-  }
-
-  # Common cloud-init modules list
+  # Unfortunately `cloud_final_modules` can't be merged, only overwritten
+  # This is the list from /etc/cloud/cloud.cfg with `ansible` added
   cloud_final_modules = [
     "package-update-upgrade-install",
     "fan",
@@ -40,90 +29,8 @@ locals {
   ]
 }
 
+# Shared by every k3s node so they join the same cluster.
 resource "random_password" "password" {
   length  = 16
   special = false
-}
-
-# K3s server nodes
-module "k3s-servers" {
-  source = "./modules/cloud_init"
-  count  = length(local.k3s_servers)
-
-  name        = "k3s-server-${count.index}"
-  target_node = local.k3s_servers[count.index].target_node
-  ip          = lookup(local.k3s_servers[count.index], "ip", null)
-
-  cores     = 2
-  sockets   = 2
-  memory    = lookup(local.k3s_servers[count.index], "memory", 2048)
-  disk_size = 20
-  balloon   = 0
-
-  pve_host     = var.pve_host
-  pve_user     = var.pve_user
-  pve_password = var.pve_password
-
-  additional_cloud_init_config = yamlencode({
-    ansible = {
-      install_method = "distro"
-      package_name   = "ansible-core"
-      pull = {
-        url           = "https://github.com/ryanrishi/homelab.git"
-        checkout      = "main"
-        playbook_name = "k3s-server.yml"
-        extra_vars = {
-          cluster_init = lookup(local.k3s_servers[count.index], "cluster_init", false)
-          token        = random_password.password.result
-        }
-      }
-    }
-
-    # Unfortunately `cloud_final_modules` can't be merged, only overwritten
-    # This is the list from /etc/cloud/cloud.cfg with `ansible` added
-    cloud_final_modules = local.cloud_final_modules
-  })
-
-}
-
-# K3s replica nodes (agents)
-module "k3s-replicas" {
-  source = "./modules/cloud_init"
-  count  = length(local.k3s_replicas)
-
-  name        = "k3s-replica-${count.index}"
-  target_node = local.k3s_replicas[count.index].target_node
-  machine     = lookup(local.k3s_replicas[count.index], "machine", "pc")
-  hostpci     = lookup(local.k3s_replicas[count.index], "hostpci", [])
-
-  cores          = 2
-  sockets        = 2
-  memory         = lookup(local.k3s_replicas[count.index], "memory", 4096)
-  disk_size      = 20
-  data_disk_size = 30
-  balloon        = 0
-
-  additional_cloud_init_config = yamlencode({
-    ansible = {
-      install_method = "distro"
-      package_name   = "ansible-core"
-      pull = {
-        url           = "https://github.com/ryanrishi/homelab.git"
-        checkout      = "main"
-        playbook_name = "k3s-agent.yml"
-        extra_vars = {
-          token = random_password.password.result
-        }
-      }
-    }
-
-    # Unfortunately `cloud_final_modules` can't be merged, only overwritten
-    # This is the list from /etc/cloud/cloud.cfg with `ansible` added
-    cloud_final_modules = local.cloud_final_modules
-  })
-
-  depends_on = [module.k3s-servers]
-
-  pve_user     = var.pve_user
-  pve_password = var.pve_password
 }

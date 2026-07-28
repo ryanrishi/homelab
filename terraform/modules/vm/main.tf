@@ -13,7 +13,6 @@ locals {
 # The provider does not diff snippet contents, so the hash is part of the file
 # name to make a content change produce a new file the VM then picks up.
 resource "proxmox_virtual_environment_file" "user_data" {
-  provider     = pve
   content_type = "snippets"
   datastore_id = "local"
   node_name    = var.node_name
@@ -25,7 +24,6 @@ resource "proxmox_virtual_environment_file" "user_data" {
 }
 
 resource "proxmox_virtual_environment_vm" "vm" {
-  provider        = pve
   name            = var.name
   node_name       = var.node_name
   on_boot         = true

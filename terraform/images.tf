@@ -3,7 +3,6 @@ locals {
 }
 
 resource "proxmox_download_file" "debian" {
-  provider     = pve
   for_each     = var.pve_nodes
   node_name    = each.key
   content_type = "import"

@@ -1,6 +1,6 @@
 terraform {
   required_providers {
-    pve = {
+    proxmox = {
       source  = "bpg/proxmox"
       version = ">= 0.108"
     }
