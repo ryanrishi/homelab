@@ -3,7 +3,8 @@
 # per node stays expressible.
 locals {
   k3s_control_plane = {
-    alpha = { node = "pve003", memory = 4096 }
+    0 = { node = "pve003", memory = 4096 }
+    1 = { node = "pve002", memory = 4096 }
   }
 }
 
@@ -50,3 +51,4 @@ module "k3s_servers" {
     cloud_final_modules = local.cloud_final_modules
   })
 }
+

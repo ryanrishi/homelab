@@ -4,8 +4,6 @@ locals {
   # K3s server configurations
   k3s_servers = {
     0 = { target_node = "ryanrishi", cluster_init = false, ip = "192.168.4.65", memory = 4096 }
-    1 = { target_node = "pve002", memory = 4096 }
-    2 = { target_node = "ryanrishi" }
   }
 
   # K3s replica configurations
@@ -13,7 +11,6 @@ locals {
     0 = { target_node = "ryanrishi", machine = "q35", hostpci = [{ host = "0000:00:02" }], memory = 8192 }
     1 = { target_node = "pve002" }
     2 = { target_node = "ryanrishi" }
-    3 = { target_node = "pve002" }
   }
 
   # Common cloud-init modules list

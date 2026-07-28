@@ -1,7 +1,7 @@
 locals {
   k3s_agents = [
-    { node = "pve003", memory = 4096, igpu = true },
-    { node = "pve003", memory = 4096 },
+    { node = "pve003", memory = 8192, igpu = true },
+    { node = "pve003", memory = 8192 },
   ]
 
   longhorn_node_labels = [
@@ -52,6 +52,9 @@ module "k3s_agents" {
 
           extra_agent_args = join(" ", concat(
             local.longhorn_node_labels,
+            # Longhorn spreads volume replicas across zones, so map a zone to the
+            # Proxmox host to keep both replicas off a single physical machine.
+            ["--node-label topology.kubernetes.io/zone=${local.k3s_agents[count.index].node}"],
             try(local.k3s_agents[count.index].igpu, false) ? local.igpu_node_label : [],
           ))
         }
