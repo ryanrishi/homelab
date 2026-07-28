@@ -11,7 +11,8 @@ This is a homelab infrastructure management repository that uses three main tech
 
 ## ⚠️ CRITICAL: Resource Constraints
 
-**HOMELAB SETUP**: Single Intel NUC with 16GB RAM total across all k3s nodes
+**HOMELAB SETUP**: Three Proxmox hosts, 78GB RAM total (31 + 15 + 31). `pve002` is the constraint
+at 15GB with ~2GB free — check it specifically, not just the cluster total.
 - **BE EXTREMELY CAREFUL** with memory limits and resource requests
 - **ALWAYS CHECK** current node memory allocation before increasing limits
 - **NEVER** increase memory limits without checking cluster capacity first
@@ -178,84 +179,92 @@ kubectl create cm my-config --from-literal=key1=value1 --dry-run=client -o yaml
 
 ## Terraform Infrastructure Notes
 
-### Dual-Node Setup
-- **NUC (pve)**: Media server, k3s-server-0 (cluster init), ddclient, wireguard, k3s-replica-0
-- **M920q (pve002)**: k3s-server-1, k3s-server-2, k3s-replica-1, k3s-replica-2, k3s-replica-3
+### Three-Node Setup
+
+| Proxmox host | IP | k3s | Other VMs |
+|---|---|---|---|
+| `ryanrishi` (NUC) | 192.168.4.200 | 1 server, 2 agents (one with iGPU) | `molt`, `media` (stopped) |
+| `pve002` (M920q) | 192.168.4.202 | 1 server, 1 agent | — |
+| `pve003` (NUC) | 192.168.4.203 | 1 server, 2 agents (one with iGPU) | — |
+
+**Exactly one k3s server per Proxmox host.** Preserve this: it is what lets any single host reboot
+without losing etcd quorum.
+
+k3s nodes are named `k3s-{server,agent}-<6 random chars>` — there are no ordinals, and every IP is
+DHCP. Get current values from `kubectl get nodes -o wide`. `media` and `molt` are deliberately NOT
+managed by Terraform.
 
 ### Provider Configuration
-- `proxmox.nuc`: 192.168.4.200 (pve)
-- `proxmox.m920q`: 192.168.4.202 (pve002)
+Single provider, `bpg/proxmox`, named `proxmox`. Node name → IP comes from `var.pve_nodes`, which
+the provider also uses for SSH (snippet uploads have no API equivalent, and the hostnames do not
+resolve in DNS). SSH key path comes from `PROXMOX_VE_SSH_PRIVATE_KEY` in the gitignored
+`terraform/.env`.
 
-### Template Requirements
-Both nodes need `debian-12-cloudinit-template` created via `/terraform/scripts/create-debian-template.sh`
+### No templates
+VMs are built directly from a pinned, checksummed Debian cloud image via `disk.import_from` (see
+`terraform/images.tf`). There is no Proxmox template to maintain and no `create-debian-template.sh`.
+Use the `generic` cloud image, not `genericcloud` — the `-cloud` kernel ships no DRM drivers, so
+`i915` can never bind and GPU passthrough silently fails.
 
 ## Recreating k3s Nodes
 
-### Important: Server vs Agent Nodes
+### Rebuild by replacing the `random_string`, never the VM
 
-**Agent nodes (k3s-replica-*)**: Can be freely destroyed and recreated with just terraform
-- No special cleanup needed
-- Just `terraform destroy/apply` the replica module
-
-**Server nodes (k3s-server-*)**: Are etcd cluster members
-- On current k3s (v1.32), `kubectl delete node k3s-server-N` also removes the node's etcd member automatically
-- So if you delete the node before recreating the VM, no manual etcd cleanup is needed
-- Manual `etcdctl member remove` is only a fallback: needed if you recreate the VM WITHOUT deleting the node first (the stale member then collides with the new one → `etcd cluster join failed: duplicate node name found`)
-- Always verify with `etcdctl member list` before recreating; only remove if the old member is still present
-
-### Workflow for Recreating Server Nodes
+The random suffix is stable in state, so a `-replace` on the VM brings it back under the *same
+name* — and k3s writes node identity only at first registration, so the surviving node object keeps
+its old IP and loses its `--node-label` flags.
 
 ```bash
-# 1. Cordon the node
-kubectl cordon k3s-server-1
-
-# 2. Check if PiHole is on this node (CRITICAL!)
-kubectl get pods -n pihole -o wide
-
-# 3. Drain the node
-kubectl drain k3s-server-1 --ignore-daemonsets --delete-emptydir-data
-
-# 4. Delete from Kubernetes
-kubectl delete node k3s-server-1
-
-# 5. Verify the etcd member is gone (kubectl delete node usually removes it automatically)
-# SSH to any working server node that has etcdctl installed
-ssh ryan@<working-node-ip>
-
-sudo ETCDCTL_API=3 \
-  ETCDCTL_CACERT=/var/lib/rancher/k3s/server/tls/etcd/server-ca.crt \
-  ETCDCTL_CERT=/var/lib/rancher/k3s/server/tls/etcd/server-client.crt \
-  ETCDCTL_KEY=/var/lib/rancher/k3s/server/tls/etcd/server-client.key \
-  etcdctl --endpoints=https://127.0.0.1:2379 member list
-
-# If the removed node is NOT listed, skip ahead. If it IS still listed
-# (e.g. you recreated without deleting the node first), remove it:
-sudo ETCDCTL_API=3 \
-  ETCDCTL_CACERT=/var/lib/rancher/k3s/server/tls/etcd/server-ca.crt \
-  ETCDCTL_CERT=/var/lib/rancher/k3s/server/tls/etcd/server-client.crt \
-  ETCDCTL_KEY=/var/lib/rancher/k3s/server/tls/etcd/server-client.key \
-  etcdctl --endpoints=https://127.0.0.1:2379 member remove <member-id>
-
-# 6. Destroy and recreate with terraform
-cd terraform
-terraform destroy -target='module.k3s-servers[1]'  # Adjust index as needed
-terraform apply -target='module.k3s-servers[1]'
+terraform apply -replace='random_string.k3s_agent[N]' -target='module.k3s_agents'
 ```
 
-### Installing etcdctl (if needed)
+This cascades because `name` → cloud-init `hostname` → snippet content hash → `user_data_file_id`,
+and that field is ForceNew. `name` alone is not.
 
-On Debian-based nodes:
+### Always evacuate Longhorn BEFORE draining
+
+`kubectl drain` evicts Longhorn's `instance-manager`, and without it there is no agent left on the
+node to garbage-collect replicas — they strand at `stopped` forever and the node CR outlives
+`kubectl delete node`.
+
 ```bash
-sudo apt-get update && sudo apt-get install -y etcd-client
+kubectl patch nodes.longhorn.io <node> -n longhorn-system --type=merge \
+  -p '{"spec":{"allowScheduling":false,"evictionRequested":true}}'
 ```
 
-### Why This Happens
+`allowScheduling: false` must be in the same patch or the webhook rejects it; `kubectl cordon` does
+NOT set it. Wait until every affected volume is `healthy` with its full replica count running on
+*other* nodes. **Re-derive which volumes live on the node immediately beforehand** — placement
+moves constantly, and `longhorn-single` volumes have only one copy.
 
-- When you recreate a server node VM, the IP address often changes (DHCP)
-- The hostname stays the same (e.g., k3s-server-1)
-- If a stale etcd member with that name still exists, etcd sees: "There's already a member named k3s-server-1 but with a different IP" → "duplicate node name" error and k3s won't start
-- `kubectl delete node` removes the etcd member for you, so following the workflow order (delete node, then recreate) avoids this
-- The manual `member remove` only matters when the node was NOT deleted first
+### Ordering, and why it differs for rebuild vs removal
+
+- **Rebuilding** a node: `kubectl delete node` first, then recreate.
+- **Removing** one permanently: destroy the VM FIRST, *then* `kubectl delete node`. The VM stays
+  alive during the ~90s destroy, and a live k3s server will re-register its own node object inside
+  that window. That happened on 2026-07-28: a removed server came back `NotReady` with
+  `EtcdIsVoter=True` after its VM was gone, leaving etcd at 4 members with one permanently dead —
+  quorum met by exactly 3 live servers, i.e. **zero fault tolerance**, with nothing visibly broken.
+  `kubectl delete node` removes the etcd member whether or not the VM exists, so there is no
+  benefit to going first.
+
+**Re-check `kubectl get nodes` a minute after any server removal.** Whether the object comes back
+is a race against the kubelet heartbeat, so absence immediately after the delete proves nothing.
+
+### Replacing a server: add before removing
+
+Bring the new server up and confirm `EtcdIsVoter=True` before removing the old one. 3 members and 4
+members both tolerate one failure; 2 members tolerate none. There is no `etcdctl` installed on the
+nodes — use the node condition instead:
+
+```bash
+kubectl get nodes -l node-role.kubernetes.io/etcd=true -o json \
+  | jq -r '.items[]|"\(.metadata.name) \([.status.conditions[]|select(.type=="EtcdIsVoter")|.status]|join(""))"'
+```
+
+If the departing server holds the kube-vip lease (`kubectl get lease -n kube-system plndr-cp-lock
+-o jsonpath='{.spec.holderIdentity}'`), delete its `kube-vip` pod first so the VIP fails over
+gracefully instead of dying with the VM.
 
 ## Security Notes
 
