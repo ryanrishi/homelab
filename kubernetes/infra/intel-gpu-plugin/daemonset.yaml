@@ -17,6 +17,7 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/arch: amd64
+        lab.ryanrishi.com/gpu-enabled: "true"
       containers:
         - name: intel-gpu-plugin
           image: intel/intel-gpu-plugin:0.36.0
