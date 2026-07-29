@@ -43,6 +43,10 @@ module "k3s_servers" {
         extra_vars = {
           cluster_init = false
           token        = random_password.password.result
+
+          # Same zone-to-Proxmox-host mapping the agents use, so anything spreading
+          # replicas across zones lands on distinct physical machines.
+          extra_server_args = "--node-label topology.kubernetes.io/zone=${each.value.node}"
         }
       }
     }

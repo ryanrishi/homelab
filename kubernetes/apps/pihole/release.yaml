@@ -44,3 +44,13 @@ spec:
                   values:
                     - pihole
             topologyKey: kubernetes.io/hostname
+    # One replica per k3s node is not enough — several nodes share a Proxmox host,
+    # so spread across the zone label that maps to the physical machine. Soft, because
+    # a host down for maintenance must not leave a replica permanently unschedulable.
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: pihole
