@@ -1,11 +1,17 @@
 proxmox_nic: eno1
 
 proxmox_enterprise_repositories:
-  - deb https://enterprise.proxmox.com/debian/pve bookworm pve-enterprise
-  - deb https://enterprise.proxmox.com/debian/ceph-quincy bookworm enterprise
+  - deb https://enterprise.proxmox.com/debian/pve trixie pve-enterprise
+  - deb https://enterprise.proxmox.com/debian/ceph-squid trixie enterprise
+
+# Proxmox ships the enterprise repos as deb822 .sources, which the one-line entries above cannot
+# touch. A major-version upgrade reinstates them, and without a subscription apt then fails 401.
+proxmox_enterprise_deb822_sources:
+  - pve-enterprise
+  - ceph
 
 proxmox_repositories:
-  - deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription
+  - deb http://download.proxmox.com/debian/pve trixie pve-no-subscription
 
 proxmox_packages:
   - ethtool

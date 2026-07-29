@@ -23,12 +23,15 @@
     - Update grub
     - Report that a reboot is required
 
+# Declared wholesale, not line-by-line: leftover modules here (notably the Intel GVT-g ones) make a
+# passed-through iGPU advertise mdev, which no longer matches its PCI mapping and blocks VM start.
 - name: Load vfio modules at boot
-  ansible.builtin.lineinfile:
-    path: /etc/modules
-    line: "{{ item }}"
-    state: present
-  loop: "{{ proxmox_vfio_modules }}"
+  ansible.builtin.copy:
+    content: "# Managed by Ansible. Entries not listed here are removed.\n{{ proxmox_vfio_modules | join('\n') }}\n"
+    dest: /etc/modules
+    owner: root
+    group: root
+    mode: "0644"
   notify: Report that a reboot is required
 
 - name: Read loaded kernel modules

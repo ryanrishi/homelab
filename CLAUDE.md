@@ -264,7 +264,15 @@ kubectl get nodes -l node-role.kubernetes.io/etcd=true -o json \
 
 If the departing server holds the kube-vip lease (`kubectl get lease -n kube-system plndr-cp-lock
 -o jsonpath='{.spec.holderIdentity}'`), delete its `kube-vip` pod first so the VIP fails over
-gracefully instead of dying with the VM.
+gracefully instead of dying with the VM. The DaemonSet's label is
+`app.kubernetes.io/name=kube-vip-ds` — a selector of `name=kube-vip` matches nothing and exits 0,
+so it looks like it worked while doing nothing. Verify the lease actually moved; if the recreated
+pod reacquires it, `kubectl delete lease -n kube-system plndr-cp-lock` to force re-election.
+
+```bash
+kubectl delete pod -n kube-system -l app.kubernetes.io/name=kube-vip-ds \
+  --field-selector spec.nodeName=<server>
+```
 
 ## Security Notes
 
@@ -336,33 +344,46 @@ sudo apt-get update && sudo apt-get install -y \
 
 These tools are intentionally NOT in cloud-init to encourage debugging from outside the cluster.
 
-### Proxmox Node Maintenance Mode
+### Proxmox Node Maintenance
 
-Before performing maintenance on a Proxmox node (updates, hardware changes, etc.), put it in maintenance mode to gracefully migrate VMs to other nodes.
+**`ha-manager crm-command node-maintenance` does not work here and must not be used.** It requires
+HA-configured guests and shared storage; this lab has neither (no `proxmox_virtual_environment_ha_*`
+resources, every disk on node-local `local-lvm`), and two agents use iGPU passthrough, which cannot
+migrate at all. Nothing would move — the command is a no-op that reads like a safeguard.
+
+Redundancy comes from the k3s layer instead: one k3s server per Proxmox host, so a single host can
+be down without losing etcd quorum. **Only ever take down one host at a time.** Evacuate
+Kubernetes, then stop the guests:
 
 ```bash
-# Enable maintenance mode (VMs will live-migrate to other nodes)
-ha-manager crm-command node-maintenance enable <node-name>
+# 1. Gates: 8/8 nodes Ready, etcd 3/3 voters, all Longhorn volumes healthy, PiHole 3/3, DNS resolving.
+#    Re-derive which k3s nodes are on this host — names and IPs are DHCP and placement drifts.
+kubectl get nodes -o wide -L topology.kubernetes.io/zone
 
-# Check HA status
-ha-manager status
+# 2. If this host's server holds the kube-vip lease, move it first.
+kubectl get lease -n kube-system plndr-cp-lock -o jsonpath='{.spec.holderIdentity}'
+kubectl delete pod -n kube-system -l app.kubernetes.io/name=kube-vip-ds \
+  --field-selector spec.nodeName=<server>
+# If the lease does not move (the DaemonSet can recreate the pod and reacquire), delete the lease
+# to force re-election: kubectl delete lease -n kube-system plndr-cp-lock
 
-# Disable maintenance mode when done
-ha-manager crm-command node-maintenance disable <node-name>
+# 3. Cordon every node on the host FIRST, so drained pods do not land back on it. Then drain.
+kubectl cordon <server> <agent...>
+kubectl drain <agent> --ignore-daemonsets --delete-emptydir-data --timeout=15m
+
+# 4. Stop only guests that are actually running, so stopped VMs can never be in scope.
+RUNNING=$(qm list | awk '$3=="running" {print $1}'); echo "$RUNNING"
+for id in $RUNNING; do qm shutdown $id --timeout 180; done
 ```
 
-**What it does:**
-- Gracefully live-migrates HA-managed VMs to other cluster nodes
-- Minimal disruption (sub-second interruption during migration)
-- Prevents new VMs from being scheduled on the node
-- Safer than manually draining/migrating VMs
+Expect the agent drain to sit on the Longhorn `instance-manager` PDB until volumes detach. If it
+never completes, the node likely holds the **last replica** of some volume — Longhorn's
+`node-drain-policy` is `block-if-contains-last-replica`, which is protecting data, not
+malfunctioning. The workload pods will already have moved; that is what matters.
 
-**Requirements:**
-- Node must be part of a Proxmox cluster
-- VMs must be configured for HA (High Availability)
-- Shared storage required for live migration
-
-**Note:** No GUI for this feature yet - CLI only.
+Do **not** set `evictionRequested` for a reboot — that is for permanent removal and has stalled for
+30+ minutes. Draining is not optional either: `node-down-pod-deletion-policy` is `do-nothing`, so
+pods with Longhorn volumes hang until the node returns rather than rescheduling.
 
 ### Proxmox Cluster Issues
 
@@ -416,15 +437,20 @@ systemctl reboot
 
 **Root Cause**: Intel I219-V NIC driver bug triggered by high multicast traffic (mDNS/SSDP)
 
-**Hardware**:
-- **pve** (NUC): kernel 6.5.11-7-pve — hangs but usually recovers on its own
-- **pve002** (M920q): kernel 6.8.12-9-pve — fatal hangs, requires physical reboot
+**Hardware**: all three hosts use the Intel I219-V. Historically `ryanrishi` (NUC) recovered on its
+own via an adapter reset, while `pve002` (M920q) hung fatally and needed a physical reboot.
 
 **Fix**: Disable TSO/GSO to avoid stuck transmit path:
 ```bash
 ethtool -K eno1 tso off gso off
 ```
-Persist by adding `post-up ethtool -K eno1 tso off gso off` to the `iface eno1` stanza in `/etc/network/interfaces`. Applied to pve002; consider applying to pve as well.
+Persist by adding `post-up ethtool -K eno1 tso off gso off` to the `iface eno1` stanza in
+`/etc/network/interfaces`. **Applied and persistent on all three hosts.** It survives major
+upgrades, but re-verify after any kernel or PVE version change — the offloads reverting is silent
+until the host wedges:
+```bash
+ethtool -k eno1 | grep -E "^tcp-segmentation-offload|^generic-segmentation-offload"  # both "off"
+```
 
 **Long-term fix**: Replace onboard NICs with PCIe cards (Intel I350, X710, or Broadcom BCM5720)
 
