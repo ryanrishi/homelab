@@ -263,16 +263,25 @@ kubectl get nodes -l node-role.kubernetes.io/etcd=true -o json \
 ```
 
 If the departing server holds the kube-vip lease (`kubectl get lease -n kube-system plndr-cp-lock
--o jsonpath='{.spec.holderIdentity}'`), delete its `kube-vip` pod first so the VIP fails over
-gracefully instead of dying with the VM. The DaemonSet's label is
-`app.kubernetes.io/name=kube-vip-ds` — a selector of `name=kube-vip` matches nothing and exits 0,
-so it looks like it worked while doing nothing. Verify the lease actually moved; if the recreated
-pod reacquires it, `kubectl delete lease -n kube-system plndr-cp-lock` to force re-election.
+-o jsonpath='{.spec.holderIdentity}'`), move it off before draining so the VIP fails over gracefully
+instead of dying with the VM. The DaemonSet's label is `app.kubernetes.io/name=kube-vip-ds` — a
+selector of `name=kube-vip` matches nothing and exits 0, so it looks like it worked while doing
+nothing.
+
+**Deleting the pod alone does not move the lease, and neither does deleting the lease alongside it.**
+A freshly-started kube-vip acquires immediately, while the incumbents sit on a slow retry — so the
+departing server's recreated pod wins the re-election within ~10s, every time. The delete must
+*block* until the pod is actually gone, and only then can the lease be deleted:
 
 ```bash
 kubectl delete pod -n kube-system -l app.kubernetes.io/name=kube-vip-ds \
-  --field-selector spec.nodeName=<server>
+  --field-selector spec.nodeName=<server> --wait=true --timeout=60s
+kubectl delete lease -n kube-system plndr-cp-lock
 ```
+
+Verify the holder actually changed, and re-check a minute later — the recreated pod is still a
+candidate and the point is for it to lose. The API stays up throughout; the VIP moves without a
+readyz failure.
 
 ## Security Notes
 
