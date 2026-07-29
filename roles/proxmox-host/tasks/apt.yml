@@ -1,10 +1,3 @@
-- name: Remove enterprise apt repositories
-  ansible.builtin.apt_repository:
-    repo: "{{ item }}"
-    state: absent
-    update_cache: false
-  with_items: "{{ proxmox_enterprise_repositories }}"
-
 - name: Locate deb822 enterprise apt repositories
   ansible.builtin.stat:
     path: "/etc/apt/sources.list.d/{{ item }}.sources"
@@ -24,11 +17,17 @@
     label: "{{ item.stat.path }}"
 
 - name: Add apt repositories
-  ansible.builtin.apt_repository:
-    repo: "{{ item }}"
+  ansible.builtin.deb822_repository:
+    name: "{{ item.name }}"
+    types: deb
+    uris: "{{ item.uris }}"
+    suites: "{{ item.suites }}"
+    components: "{{ item.components }}"
+    signed_by: "{{ item.signed_by }}"
     state: present
-    update_cache: false
-  with_items: "{{ proxmox_repositories }}"
+  loop: "{{ proxmox_repositories }}"
+  loop_control:
+    label: "{{ item.name }}"
 
 - name: Update apt cache
   ansible.builtin.apt:
