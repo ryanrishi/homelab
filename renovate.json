@@ -11,7 +11,31 @@
       "kubernetes/**/*.yml"
     ]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "roles/k3s-server/defaults/main.yml",
+        "roles/k3s-agent/defaults/main.yml",
+        "kubernetes/infra/system-upgrade/plan-server.yaml",
+        "kubernetes/infra/system-upgrade/plan-agent.yaml"
+      ],
+      "matchStrings": [
+        "(?m)^k3s_version:\\s*(?<currentValue>v\\d+\\.\\d+\\.\\d+\\+k3s\\d+)",
+        "(?m)^\\s+version:\\s*(?<currentValue>v\\d+\\.\\d+\\.\\d+\\+k3s\\d+)"
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "k3s-io/k3s",
+      "versioningTemplate": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\+k3s(?<build>\\d+)$"
+    }
+  ],
   "packageRules": [
+    {
+      "matchPackageNames": [
+        "k3s-io/k3s"
+      ],
+      "allowedVersions": "/^v1\\.32\\./"
+    },
     {
       "matchManagers": [
         "kubernetes"

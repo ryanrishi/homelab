@@ -1,0 +1,70 @@
+---
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  KUSTOMIZE_VERSION: v5.8.1
+  KUBECONFORM_VERSION: v0.8.0
+  PLUTO_VERSION: v5.24.1
+
+jobs:
+  kubernetes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Resolve target Kubernetes version
+        id: version
+        run: |
+          k3s_version=$(yq e '.spec.version' kubernetes/infra/system-upgrade/plan-server.yaml)
+          kubernetes_version=${k3s_version#v}
+          kubernetes_version=${kubernetes_version%%+*}
+          echo "k3s=${k3s_version}" >> "$GITHUB_OUTPUT"
+          echo "kubernetes=${kubernetes_version}" >> "$GITHUB_OUTPUT"
+
+      - name: Assert every k3s version pin agrees
+        env:
+          EXPECTED: ${{ steps.version.outputs.k3s }}
+        run: |
+          rc=0
+          for file in \
+            kubernetes/infra/system-upgrade/plan-server.yaml \
+            kubernetes/infra/system-upgrade/plan-agent.yaml; do
+            found=$(yq e '.spec.version' "$file")
+            [ "$found" = "$EXPECTED" ] || { echo "::error file=$file::$found != $EXPECTED"; rc=1; }
+          done
+          for file in \
+            roles/k3s-server/defaults/main.yml \
+            roles/k3s-agent/defaults/main.yml; do
+            found=$(yq e '.k3s_version' "$file")
+            [ "$found" = "$EXPECTED" ] || { echo "::error file=$file::$found != $EXPECTED"; rc=1; }
+          done
+          exit $rc
+
+      - name: Install tools
+        run: |
+          curl -fsSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz" \
+            | tar xz -C /usr/local/bin kustomize
+          curl -fsSL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" \
+            | tar xz -C /usr/local/bin kubeconform
+          curl -fsSL "https://github.com/FairwindsOps/pluto/releases/download/${PLUTO_VERSION}/pluto_${PLUTO_VERSION#v}_linux_amd64.tar.gz" \
+            | tar xz -C /usr/local/bin pluto
+
+      - name: Validate manifests
+        working-directory: kubernetes
+        env:
+          KUBERNETES_VERSION: ${{ steps.version.outputs.kubernetes }}
+        run: ./scripts/validate.sh
+
+      - name: Detect removed and deprecated APIs
+        env:
+          KUBERNETES_VERSION: ${{ steps.version.outputs.kubernetes }}
+        run: |
+          pluto detect-files -d kubernetes/ \
+            --target-versions "k8s=v${KUBERNETES_VERSION}" \
+            --ignore-deprecations

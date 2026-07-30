@@ -6,4 +6,5 @@ resources:
   - longhorn
   - metallb
   - nfs-pv
+  - system-upgrade
   - traefik
