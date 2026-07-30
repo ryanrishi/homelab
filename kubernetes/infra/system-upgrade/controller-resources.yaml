@@ -1,0 +1,18 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: system-upgrade-controller
+  namespace: system-upgrade
+spec:
+  template:
+    spec:
+      containers:
+        - name: system-upgrade-controller
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
