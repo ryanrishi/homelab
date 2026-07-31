@@ -11,6 +11,7 @@ env:
   KUSTOMIZE_VERSION: v5.8.1
   KUBECONFORM_VERSION: v0.8.0
   PLUTO_VERSION: v5.24.1
+  FLUX_BUILD_VERSION: v3.1.3
 
 jobs:
   kubernetes:
@@ -54,6 +55,8 @@ jobs:
             | tar xz -C /usr/local/bin kubeconform
           curl -fsSL "https://github.com/FairwindsOps/pluto/releases/download/${PLUTO_VERSION}/pluto_${PLUTO_VERSION#v}_linux_amd64.tar.gz" \
             | tar xz -C /usr/local/bin pluto
+          curl -fsSL "https://github.com/DoodleScheduling/flux-build/releases/download/${FLUX_BUILD_VERSION}/flux-build_${FLUX_BUILD_VERSION#v}_linux_amd64.tar.gz" \
+            | tar xz -C /usr/local/bin flux-build
 
       - name: Validate manifests
         working-directory: kubernetes
@@ -66,5 +69,40 @@ jobs:
           KUBERNETES_VERSION: ${{ steps.version.outputs.kubernetes }}
         run: |
           pluto detect-files -d kubernetes/ \
+            --target-versions "k8s=v${KUBERNETES_VERSION}" \
+            --ignore-deprecations
+
+      # The pihole HelmRelease reads its values from a SOPS-encrypted ConfigMap.
+      # CI holds no GPG key, so helm receives ciphertext where it expects YAML and
+      # the chart cannot template. Replace it with empty values so the chart renders
+      # against its defaults — enough to surface the API versions it would create.
+      - name: Stub the SOPS-encrypted pihole values
+        run: |
+          cat > kubernetes/apps/pihole/pihole-config.sops.yaml <<'EOF'
+          ---
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: pihole-config
+            namespace: pihole
+          data:
+            values.yaml: |
+              {}
+          EOF
+
+      - name: Render HelmReleases
+        working-directory: kubernetes
+        env:
+          KUBERNETES_VERSION: ${{ steps.version.outputs.kubernetes }}
+        run: |
+          flux-build --kube-version "${KUBERNETES_VERSION}" -e console \
+            infra apps > /tmp/rendered.yaml
+          echo "rendered $(grep -c '^kind:' /tmp/rendered.yaml) documents"
+
+      - name: Detect removed APIs inside charts
+        env:
+          KUBERNETES_VERSION: ${{ steps.version.outputs.kubernetes }}
+        run: |
+          pluto detect /tmp/rendered.yaml \
             --target-versions "k8s=v${KUBERNETES_VERSION}" \
             --ignore-deprecations
