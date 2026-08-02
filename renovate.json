@@ -34,7 +34,7 @@
       "matchPackageNames": [
         "k3s-io/k3s"
       ],
-      "allowedVersions": "/^v1\\.34\\./"
+      "allowedVersions": "/^v1\\.35\\./"
     },
     {
       "matchManagers": [
