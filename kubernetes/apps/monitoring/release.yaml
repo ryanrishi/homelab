@@ -49,8 +49,10 @@ spec:
             cpu: 500m
         # retention is the policy; retentionSize is a safety valve and has to stay
         # well under the volume, which holds the WAL and compaction scratch too.
+        # The operator only applies the size below to new volumes, never existing
+        # ones, so this has to fit the smaller volume a running Prometheus still has.
         retention: 7d
-        retentionSize: 15GB
+        retentionSize: 10GB
         # Reduce TSDB settings for lower CPU usage
         tsdb:
           outOfOrderTimeWindow: 0s
@@ -96,6 +98,11 @@ spec:
           memory: 512Mi
           cpu: 500m
       
+      # A ReadWriteOnce volume can only attach to one pod, so a rolling update
+      # deadlocks: the new pod waits for a volume the old pod holds until it exits.
+      deploymentStrategy:
+        type: Recreate
+
       # Persistence for dashboards
       persistence:
         enabled: true
