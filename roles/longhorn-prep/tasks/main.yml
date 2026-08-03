@@ -33,6 +33,20 @@
           Refusing to touch {{ longhorn_data_disk }}: it resolves to
           {{ data_disk_device }}, which backs the root filesystem ({{ root_device }})
 
+    - name: Look for the data disk rescan control
+      ansible.builtin.stat:
+        path: /sys/block/{{ data_disk_device | basename }}/device/rescan
+      register: rescan_control
+
+    # A disk widened while the guest is running keeps its old size in the kernel
+    # until the device is rescanned, which would leave the grow below a no-op
+    # that still reports success.
+    - name: Rescan the data disk so the kernel sees its current size
+      ansible.builtin.shell:
+        cmd: echo 1 > /sys/block/{{ data_disk_device | basename }}/device/rescan
+      changed_when: false
+      when: rescan_control.stat.exists
+
     # Creates the filesystem when the disk is blank and grows it into the rest of
     # the device afterwards, so widening the disk needs no separate resize step.
     # Refuses to overwrite an existing filesystem of a different type.

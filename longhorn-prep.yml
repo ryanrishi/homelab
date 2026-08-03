@@ -1,0 +1,12 @@
+---
+# Applies the Longhorn data disk configuration to agents that are already
+# running, for when the disk is widened underneath them. Cloud-init runs the
+# same role at first boot, so a rebuilt agent never needs this.
+#
+# Agents are DHCP with generated names, so pass them in rather than keeping an
+# inventory that goes stale:
+#   ansible-playbook -i '<agent-ip>,' -u <user> longhorn-prep.yml
+- hosts: all
+  become: true
+  roles:
+    - longhorn-prep
