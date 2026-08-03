@@ -46,10 +46,10 @@ spec:
               mountPath: /tv
           resources:
             requests:
-              memory: 128Mi
+              memory: 256Mi
               cpu: 50m
             limits:
-              memory: 512Mi
+              memory: 1Gi
               cpu: 300m
           livenessProbe:
             httpGet:

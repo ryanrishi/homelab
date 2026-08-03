@@ -37,15 +37,17 @@ spec:
         resources:
           requests:
             cpu: 25m
-            memory: 64Mi
+            memory: 128Mi
           limits:
             cpu: 200m
-            memory: 128Mi
+            memory: 256Mi
       frrMetrics:
         resources:
           requests:
             cpu: 10m
             memory: 32Mi
           limits:
-            cpu: 100m
+            # Averages a few millicores but does all of it in a burst per scrape,
+            # so a tight quota throttles it inside the CFS period.
+            cpu: 500m
             memory: 64Mi
