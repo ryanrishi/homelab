@@ -20,31 +20,28 @@
 - name: Configure Longhorn data disk
   when: data_disk.stat.exists
   vars:
-    # ansible_devices is keyed by kernel name, so resolve the symlink to index it.
-    data_disk_kernel_name: "{{ data_disk.stat.lnk_source | default(longhorn_data_disk) | basename }}"
-    data_disk_bytes: "{{ (ansible_devices[data_disk_kernel_name].sectors | int)
-      * (ansible_devices[data_disk_kernel_name].sectorsize | int) }}"
+    data_disk_device: "{{ data_disk.stat.lnk_source | default(longhorn_data_disk) }}"
+    root_device: "{{ (ansible_mounts | selectattr('mount', 'equalto', '/') | first).device }}"
   block:
-    - name: Verify the data disk is roughly the expected size
+    # The by-id path is pinned to the controller slot Terraform attaches the data
+    # disk to, so this only has to catch the disk being rewired underneath it.
+    - name: Verify the data disk does not back the root filesystem
       ansible.builtin.assert:
         that:
-          - data_disk_bytes | int > longhorn_data_disk_min_bytes | int
-          - data_disk_bytes | int < longhorn_data_disk_max_bytes | int
+          - not root_device.startswith(data_disk_device)
         fail_msg: >-
-          Refusing to format {{ longhorn_data_disk }} ({{ data_disk_kernel_name }},
-          {{ data_disk_bytes }} bytes): size outside the expected data disk range
+          Refusing to touch {{ longhorn_data_disk }}: it resolves to
+          {{ data_disk_device }}, which backs the root filesystem ({{ root_device }})
 
-    - name: Detect existing filesystem on data disk
-      ansible.builtin.command:
-        cmd: blkid {{ longhorn_data_disk }}
-      register: blkid_check
-      changed_when: false
-      failed_when: false
-
-    - name: Format data disk as ext4 with longhorn-data label
-      ansible.builtin.command:
-        cmd: mkfs.ext4 -L longhorn-data {{ longhorn_data_disk }}
-      when: blkid_check.rc != 0
+    # Creates the filesystem when the disk is blank and grows it into the rest of
+    # the device afterwards, so widening the disk needs no separate resize step.
+    # Refuses to overwrite an existing filesystem of a different type.
+    - name: Ensure data disk holds an ext4 filesystem spanning the whole device
+      community.general.filesystem:
+        dev: "{{ longhorn_data_disk }}"
+        fstype: ext4
+        opts: -L longhorn-data
+        resizefs: true
 
     - name: Create /var/lib/longhorn mount point
       ansible.builtin.file:

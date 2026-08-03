@@ -2,5 +2,3 @@
 # Proxmox names the disk after its controller slot, so this tracks the `scsi1`
 # data disk in the VM module regardless of the order the kernel enumerates them.
 longhorn_data_disk: /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1
-longhorn_data_disk_min_bytes: 26843545600
-longhorn_data_disk_max_bytes: 37580963840

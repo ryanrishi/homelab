@@ -3,9 +3,9 @@
   connection: local
   become: true
   pre_tasks:
-    - name: Install ansible.posix collection
+    - name: Install required collections
       ansible.builtin.command:
-        cmd: ansible-galaxy collection install ansible.posix
+        cmd: ansible-galaxy collection install ansible.posix community.general
       changed_when: false
   roles:
     - longhorn-prep

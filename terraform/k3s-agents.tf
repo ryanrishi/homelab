@@ -32,7 +32,7 @@ module "k3s_agents" {
 
   memory         = local.k3s_agents[count.index].memory
   disk_size      = 20
-  data_disk_size = 30
+  data_disk_size = 80
 
   hostpci_mapping = try(local.k3s_agents[count.index].igpu, false) ? proxmox_hardware_mapping_pci.igpu.name : null
 
