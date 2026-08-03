@@ -31,6 +31,13 @@
   ],
   "packageRules": [
     {
+      "description": "Let a container image settle before proposing it. Scoped to docker so k3s upgrades stay on their own cadence.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "minimumReleaseAge": "7 days"
+    },
+    {
       "matchPackageNames": [
         "k3s-io/k3s"
       ],
