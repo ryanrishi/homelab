@@ -25,8 +25,12 @@ rollback. This is the reason for the snapshot step below.
 starts a container only when it can do so truthfully: the workload must declare a probe,
 and its environment must not depend on a Secret or ConfigMap that CI cannot read.
 Everything else still has its image reference checked against the registry, which is what
-catches a tag that does not exist. Images set inside HelmRelease values are **not**
-covered — they are not workload manifests.
+catches a tag that does not exist.
+
+Helm-based apps are **not** covered, whether the image is set in HelmRelease values or
+carried by the chart itself. email-organizer is the latter: Renovate bumps the chart
+version, the chart brings its own image, and no image reference exists in this repo to
+check. Those upgrades are covered only by the chart rendering in the `validate` job.
 
 It starts the image with an **empty** config. It proves the container boots. It says
 nothing about your data. That is what the canary is for.
