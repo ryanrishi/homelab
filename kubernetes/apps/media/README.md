@@ -21,12 +21,24 @@ rollback. This is the reason for the snapshot step below.
 | `image-smoke` job | every PR, automatic | tags that do not exist, no linux/amd64, containers that fail to start |
 | `canary.sh` | by hand, before merge | config migrations that fail against your real data |
 
-`image-smoke` starts the changed image with an **empty** config. It proves the container
-boots. It says nothing about your data. That is what the canary is for.
+`image-smoke` covers every workload manifest in the repo, not just this directory. It
+starts a container only when it can do so truthfully: the workload must declare a probe,
+and its environment must not depend on a Secret or ConfigMap that CI cannot read.
+Everything else still has its image reference checked against the registry, which is what
+catches a tag that does not exist. Images set inside HelmRelease values are **not**
+covered — they are not workload manifests.
+
+It starts the image with an **empty** config. It proves the container boots. It says
+nothing about your data. That is what the canary is for.
 
 ## Patch bumps
 
-The smoke test is enough. Merge once CI is green.
+The smoke test proves the container starts from scratch. It does not exercise your config
+database, and *arr patch releases do sometimes carry schema changes, so a patch bump is
+lower risk than a minor one rather than risk free.
+
+Merge on green CI. If that app matters to you at the time, snapshot it first — the
+snapshot is cheap and is the only thing that makes a bad migration recoverable.
 
 ## Minor and major bumps
 
@@ -109,9 +121,9 @@ Steps 2 to 4 are downtime for that one app. Nothing else is affected.
 
 - **byparr** is pinned by digest and **plex** is pinned to a frozen tag, so Renovate does
   not propose updates for either. See `plex/README.md`.
-- **gluetun** is a sidecar that needs VPN credentials. CI checks that its image resolves
-  and offers linux/amd64, but does not start it. Watch qbittorrent connectivity by hand
-  after a gluetun bump.
+- **gluetun** needs VPN credentials, so CI checks that its image resolves but does not
+  start it. The same applies to cloudflared, camping-bot and anything else reading a
+  Secret. Watch qbittorrent connectivity by hand after a gluetun bump.
 - The canary migrates the **clone's** database. The running app still performs its own
   migration when you merge. The canary proves the migration succeeds against your data;
   it does not do the migration for you.

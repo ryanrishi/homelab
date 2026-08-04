@@ -18,6 +18,7 @@ set -o errexit -o nounset -o pipefail
 
 NAMESPACE=media
 READY_TIMEOUT=300
+CLONE_TIMEOUT=180
 POLL_INTERVAL=5
 
 usage() {
@@ -40,6 +41,17 @@ cleanup() {
   k delete pvc "$CLONE" --ignore-not-found --wait=true --timeout=120s
   echo "done"
 }
+
+# Abandoning the script partway would otherwise strand the clone, which consumes Longhorn
+# space on every agent and is invisible until someone goes looking. A completed run is
+# left in place on purpose, so this fires only on interrupt.
+on_interrupt() {
+  echo
+  echo "interrupted"
+  cleanup
+  exit 130
+}
+trap on_interrupt INT TERM
 
 if [ "$TARGET" = "--cleanup" ]; then
   cleanup
@@ -77,7 +89,9 @@ if k get pod "$POD" >/dev/null 2>&1 || k get pvc "$CLONE" >/dev/null 2>&1; then
   exit 1
 fi
 
-size=$(k get pvc "$source_pvc" -o jsonpath='{.spec.resources.requests.storage}')
+# Actual capacity, not the request: an expanded volume reports the larger size here, and
+# a clone smaller than its source is rejected.
+size=$(k get pvc "$source_pvc" -o jsonpath='{.status.capacity.storage}')
 class=$(k get pvc "$source_pvc" -o jsonpath='{.spec.storageClassName}')
 
 echo "app          ${APP}"
@@ -107,6 +121,25 @@ spec:
     kind: PersistentVolumeClaim
     name: ${source_pvc}
 EOF
+
+# Cloning is the step most likely to fail, and a pod waiting on an unbound claim looks
+# identical to an app that will not start. Settle it here so the failure names itself.
+echo "waiting for the clone to bind"
+clone_deadline=$((SECONDS + CLONE_TIMEOUT))
+while [ "$(k get pvc "$CLONE" -o jsonpath='{.status.phase}' 2>/dev/null)" != "Bound" ]; do
+  if [ "$SECONDS" -ge "$clone_deadline" ]; then
+    echo
+    echo "FAILED: ${CLONE} did not bind within ${CLONE_TIMEOUT}s. Recent events:"
+    k get events --field-selector "involvedObject.name=${CLONE}" \
+      -o custom-columns=REASON:.reason,MESSAGE:.message --sort-by=.lastTimestamp 2>/dev/null | tail -10
+    echo
+    echo "Longhorn could not copy ${source_pvc}. The running ${APP} is untouched."
+    cleanup
+    exit 1
+  fi
+  sleep "$POLL_INTERVAL"
+done
+echo "clone bound"
 
 # --- pod ---------------------------------------------------------------------------
 
@@ -151,7 +184,7 @@ if [ "$(jq '.spec.containers | length' <<<"$pod_manifest")" -ne 1 ]; then
   exit 1
 fi
 
-jq -r '.' <<<"$pod_manifest" | k apply -f -
+k apply -f - <<<"$pod_manifest"
 
 # --- wait --------------------------------------------------------------------------
 
@@ -184,11 +217,15 @@ fi
 port=$(jq -r '(.spec.containers[0].readinessProbe.httpGet.port // .spec.containers[0].livenessProbe.httpGet.port // .spec.containers[0].livenessProbe.tcpSocket.port) // empty' <<<"$pod_manifest")
 path=$(jq -r '(.spec.containers[0].readinessProbe.httpGet.path // .spec.containers[0].livenessProbe.httpGet.path) // ""' <<<"$pod_manifest")
 
+# Offset rather than concatenated: "8" prepended to 8989 gives 88989, which is not a port.
+local_port=$((port > 55535 ? port : port + 10000))
+
 echo
 echo "${APP} started on the migrated clone and passed its own health check."
-echo "Open the UI and confirm it reads your real data:"
-echo "  kubectl -n ${NAMESPACE} port-forward pod/${POD} 8${port}:${port}"
-echo "  open http://127.0.0.1:8${port}${path}"
+echo "A fresh install also passes a readiness probe, so open the UI and confirm it"
+echo "reads your real data:"
+echo "  kubectl -n ${NAMESPACE} port-forward pod/${POD} ${local_port}:${port}"
+echo "  open http://127.0.0.1:${local_port}${path}"
 echo
 echo "When finished:"
 echo "  $0 ${APP} --cleanup"

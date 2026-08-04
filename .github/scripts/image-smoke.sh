@@ -1,26 +1,32 @@
 #!/usr/bin/env bash
 # Boot every container image this branch changes and wait for the health check its own
-# Deployment declares. Catches tags that do not resolve, images with no linux/amd64
+# workload declares. Catches tags that do not resolve, images with no linux/amd64
 # variant, and containers that fail to start.
 #
 # The probe, the port and the environment all come from the manifest, so this stays
 # correct when an app changes its URL base or its port.
 #
+# A container is only started when it can run truthfully here: it must declare a probe
+# to check against, and its environment must not depend on a Secret or ConfigMap this
+# runner has no access to. Everything else still has its image reference verified
+# against the registry.
+#
 # usage: image-smoke.sh <base-ref> [scope]
 set -o errexit -o nounset -o pipefail
 
 BASE_REF="${1:?usage: image-smoke.sh <base-ref> [scope]}"
-SCOPE="${2:-kubernetes/apps/media}"
-
-# Images that cannot start without credentials this runner does not hold. They get the
-# registry check only.
-NO_BOOT=(qmcgaw/gluetun)
+SCOPE="${2:-.}"
 
 READY_TIMEOUT=180
 POLL_INTERVAL=3
 
+for tool in docker jq yq git curl; do
+  command -v "$tool" >/dev/null || { echo "required tool not found: ${tool}" >&2; exit 1; }
+done
+
 cid=""
 failures=0
+booted=0
 checked=0
 
 cleanup() {
@@ -29,21 +35,6 @@ cleanup() {
   cid=""
 }
 trap cleanup EXIT
-
-repo_of() {
-  local ref="${1%%@*}"
-  printf '%s' "${ref%%:*}"
-}
-
-boots() {
-  local repo
-  repo=$(repo_of "$1")
-  local skip
-  for skip in "${NO_BOOT[@]}"; do
-    [ "$repo" = "$skip" ] && return 1
-  done
-  return 0
-}
 
 # A registry reference must resolve and offer linux/amd64. Single-architecture images
 # return a bare manifest with no .manifests list; docker run would surface any mismatch.
@@ -65,6 +56,14 @@ assert_amd64() {
   echo "registry: resolves, linux/amd64 present"
 }
 
+# An env entry with no literal value refers to a Secret or ConfigMap, and envFrom pulls in
+# a whole one. Starting such a container here would exercise a configuration that is not
+# the real one, so it is left to the registry check.
+needs_credentials() {
+  jq -e '((.env // [] | map(select(has("value") | not)) | length) + (.envFrom // [] | length)) > 0' \
+    >/dev/null <<<"$1"
+}
+
 # Probe ports may be named, in which case the name refers to a declared containerPort.
 resolve_port() {
   local spec="$1" port="$2"
@@ -76,7 +75,7 @@ resolve_port() {
 }
 
 wait_http() {
-  local hostport="$1" path="$2" code=000 deadline=$((SECONDS + READY_TIMEOUT))
+  local hostport="$1" path="$2" started="$3" code=000 deadline=$((SECONDS + READY_TIMEOUT))
   while [ "$SECONDS" -lt "$deadline" ]; do
     if [ "$(docker inspect -f '{{.State.Running}}' "$cid")" != "true" ]; then
       echo "FAIL: container exited before it served a response"
@@ -85,7 +84,7 @@ wait_http() {
     code=$(curl -s -o /dev/null -m 5 -w '%{http_code}' "http://127.0.0.1:${hostport}${path}" || echo 000)
     # kubelet treats 2xx and 3xx as a passing httpGet probe.
     if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then
-      echo "ready: HTTP ${code} on ${path} after ${SECONDS}s"
+      echo "ready: HTTP ${code} on ${path} after $((SECONDS - started))s"
       return 0
     fi
     sleep "$POLL_INTERVAL"
@@ -94,15 +93,34 @@ wait_http() {
   return 1
 }
 
+# The port must be probed from inside the container. Docker's userland proxy binds the
+# published host port as soon as the container starts, so a host-side connect succeeds
+# whether or not anything is listening, and would pass every single time.
+tcp_probe_tool() {
+  if docker exec "$cid" bash -c 'exit 0' >/dev/null 2>&1; then
+    echo bash
+  elif docker exec "$cid" sh -c 'command -v nc' >/dev/null 2>&1; then
+    echo nc
+  fi
+}
+
+container_port_open() {
+  local tool="$1" port="$2"
+  case "$tool" in
+    bash) docker exec "$cid" bash -c "exec 3<>/dev/tcp/127.0.0.1/${port}" >/dev/null 2>&1 ;;
+    nc) docker exec "$cid" sh -c "nc -z 127.0.0.1 ${port}" >/dev/null 2>&1 ;;
+  esac
+}
+
 wait_tcp() {
-  local hostport="$1" deadline=$((SECONDS + READY_TIMEOUT))
+  local port="$1" started="$2" tool="$3" deadline=$((SECONDS + READY_TIMEOUT))
   while [ "$SECONDS" -lt "$deadline" ]; do
     if [ "$(docker inspect -f '{{.State.Running}}' "$cid")" != "true" ]; then
       echo "FAIL: container exited before it opened its port"
       return 1
     fi
-    if timeout 2 bash -c "exec 3<>/dev/tcp/127.0.0.1/${hostport}" 2>/dev/null; then
-      echo "ready: port open after ${SECONDS}s"
+    if container_port_open "$tool" "$port"; then
+      echo "ready: port open after $((SECONDS - started))s"
       return 0
     fi
     sleep "$POLL_INTERVAL"
@@ -113,15 +131,15 @@ wait_tcp() {
 
 smoke_one() {
   local file="$1" spec="$2"
-  local image name path http_port tcp_port port hostport
+  local image name path http_port tcp_port port hostport started
   image=$(jq -r '.image' <<<"$spec")
   name=$(jq -r '.name' <<<"$spec")
 
   echo "declared in ${file}"
   assert_amd64 "$image" || return 1
 
-  if ! boots "$image"; then
-    echo "skipping boot: needs credentials unavailable in CI"
+  if needs_credentials "$spec"; then
+    echo "not started: environment depends on a Secret or ConfigMap unavailable here"
     return 0
   fi
 
@@ -134,8 +152,13 @@ smoke_one() {
   elif [ -n "$tcp_port" ]; then
     port=$(resolve_port "$spec" "$tcp_port")
   else
-    echo "skipping boot: container declares no probe to check against"
+    echo "not started: declares no probe to check against"
     return 0
+  fi
+
+  if [ -z "$port" ]; then
+    echo "FAIL: probe names a port the container does not declare"
+    return 1
   fi
 
   local docker_args=()
@@ -158,12 +181,21 @@ smoke_one() {
     return 1
   fi
   echo "started ${name} on container port ${port}"
+  booted=$((booted + 1))
 
+  started=$SECONDS
   local rc=0
   if [ -n "$http_port" ]; then
-    wait_http "$hostport" "$path" || rc=1
+    wait_http "$hostport" "$path" "$started" || rc=1
   else
-    wait_tcp "$hostport" || rc=1
+    local tool
+    tool=$(tcp_probe_tool)
+    if [ -z "$tool" ]; then
+      echo "not verified: image provides neither bash nor nc to probe the port from inside"
+      cleanup
+      return 0
+    fi
+    wait_tcp "$port" "$started" "$tool" || rc=1
   fi
 
   if [ "$rc" -ne 0 ]; then
@@ -185,7 +217,7 @@ DIFF_RANGE="${BASE}...HEAD"
 mapfile -t files < <(git diff --name-only "$DIFF_RANGE" -- "$SCOPE" | grep -E '\.ya?ml$' || true)
 
 if [ "${#files[@]}" -eq 0 ]; then
-  echo "no manifests changed under ${SCOPE}"
+  echo "no YAML changed under ${SCOPE}"
   exit 0
 fi
 
@@ -194,9 +226,11 @@ for file in "${files[@]}"; do
   added=$(git diff "$DIFF_RANGE" -- "$file" | grep -E '^\+' || true)
   [ -n "$added" ] || continue
 
+  # Non-Kubernetes YAML elsewhere in the repo simply yields no workloads.
   while IFS= read -r spec; do
     [ -n "$spec" ] || continue
-    image=$(jq -r '.image' <<<"$spec")
+    image=$(jq -r '.image // ""' <<<"$spec")
+    [ -n "$image" ] || continue
     # Only test images this branch actually introduced.
     grep -qF "image: ${image}" <<<"$added" || continue
 
@@ -205,8 +239,9 @@ for file in "${files[@]}"; do
     smoke_one "$file" "$spec" || failures=$((failures + 1))
     echo "::endgroup::"
   done < <(yq e -o=json -I=0 \
-    'select(.kind == "Deployment") | (.spec.template.spec.containers[], .spec.template.spec.initContainers[]?)' \
-    "$file")
+    'select(.kind == "Deployment" or .kind == "DaemonSet" or .kind == "StatefulSet" or .kind == "Job")
+     | (.spec.template.spec.containers[]?, .spec.template.spec.initContainers[]?)' \
+    "$file" 2>/dev/null || true)
 done
 
 if [ "$checked" -eq 0 ]; then
@@ -214,5 +249,5 @@ if [ "$checked" -eq 0 ]; then
   exit 0
 fi
 
-echo "checked ${checked} image(s), ${failures} failed"
+echo "checked ${checked} image(s), started ${booted}, ${failures} failed"
 [ "$failures" -eq 0 ]
