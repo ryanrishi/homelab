@@ -214,18 +214,27 @@ if [ -z "$ready" ]; then
   exit 1
 fi
 
-port=$(jq -r '(.spec.containers[0].readinessProbe.httpGet.port // .spec.containers[0].livenessProbe.httpGet.port // .spec.containers[0].livenessProbe.tcpSocket.port) // empty' <<<"$pod_manifest")
+port=$(jq -r '(.spec.containers[0] | .readinessProbe.httpGet.port // .livenessProbe.httpGet.port
+               // .livenessProbe.tcpSocket.port // .readinessProbe.tcpSocket.port) // empty' <<<"$pod_manifest")
 path=$(jq -r '(.spec.containers[0].readinessProbe.httpGet.path // .spec.containers[0].livenessProbe.httpGet.path) // ""' <<<"$pod_manifest")
 
-# Offset rather than concatenated: "8" prepended to 8989 gives 88989, which is not a port.
-local_port=$((port > 55535 ? port : port + 10000))
+# A probe may name its port, in which case the name refers to a declared containerPort.
+if [ -n "$port" ] && ! [[ "$port" =~ ^[0-9]+$ ]]; then
+  port=$(jq -r --arg n "$port" '.spec.containers[0].ports[]? | select(.name == $n) | .containerPort' <<<"$pod_manifest")
+fi
 
 echo
 echo "${APP} started on the migrated clone and passed its own health check."
 echo "A fresh install also passes a readiness probe, so open the UI and confirm it"
 echo "reads your real data:"
-echo "  kubectl -n ${NAMESPACE} port-forward pod/${POD} ${local_port}:${port}"
-echo "  open http://127.0.0.1:${local_port}${path}"
+if [[ "$port" =~ ^[0-9]+$ ]]; then
+  # Offset rather than concatenated: "8" before 8989 gives 88989, which is not a port.
+  local_port=$((port > 55535 ? port : port + 10000))
+  echo "  kubectl -n ${NAMESPACE} port-forward pod/${POD} ${local_port}:${port}"
+  echo "  open http://127.0.0.1:${local_port}${path}"
+else
+  echo "  kubectl -n ${NAMESPACE} port-forward pod/${POD} <local>:<container-port>"
+fi
 echo
 echo "When finished:"
 echo "  $0 ${APP} --cleanup"

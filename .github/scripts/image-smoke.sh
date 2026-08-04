@@ -63,11 +63,12 @@ assert_amd64() {
   echo "registry: resolves, linux/amd64 present"
 }
 
-# An env entry with no literal value refers to a Secret or ConfigMap, and envFrom pulls in
-# a whole one. Starting such a container here would exercise a configuration that is not
-# the real one, so it is left to the registry check.
+# Only a Secret or ConfigMap reference makes a container impossible to start truthfully
+# here. Downward API sources such as fieldRef resolve to pod metadata that simply has no
+# equivalent under docker run, which is not a reason to skip the check.
 needs_credentials() {
-  jq -e '((.env // [] | map(select(has("value") | not)) | length) + (.envFrom // [] | length)) > 0' \
+  jq -e '((.env // [] | map(select(.valueFrom.secretKeyRef or .valueFrom.configMapKeyRef)) | length)
+          + (.envFrom // [] | map(select(.secretRef or .configMapRef)) | length)) > 0' \
     >/dev/null <<<"$1"
 }
 
