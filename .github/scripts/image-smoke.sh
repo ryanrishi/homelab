@@ -79,7 +79,9 @@ resolve_port() {
     printf '%s' "$port"
     return 0
   fi
-  jq -r --arg n "$port" '.ports[]? | select(.name == $n) | .containerPort' <<<"$spec"
+  # head, because a duplicate port name would otherwise yield two lines and corrupt the
+  # docker run arguments.
+  jq -r --arg n "$port" '.ports[]? | select(.name == $n) | .containerPort' <<<"$spec" | head -1
 }
 
 wait_http() {
@@ -247,11 +249,13 @@ for file in "${files[@]}"; do
     echo "::group::$(jq -r '.name' <<<"$spec") — ${image}"
     smoke_one "$file" "$spec" || failures=$((failures + 1))
     echo "::endgroup::"
-    # CronJob nests the pod spec one level deeper than every other workload kind.
+    # CronJob nests the pod spec one level deeper than the other kinds, and a bare Pod
+    # carries it one level shallower.
   done < <(yq e -o=json -I=0 \
     'select(.kind == "Deployment" or .kind == "DaemonSet" or .kind == "StatefulSet"
-            or .kind == "Job" or .kind == "CronJob" or .kind == "ReplicaSet")
-     | (.spec.template.spec // .spec.jobTemplate.spec.template.spec)
+            or .kind == "Job" or .kind == "CronJob" or .kind == "ReplicaSet"
+            or .kind == "Pod")
+     | (.spec.template.spec // .spec.jobTemplate.spec.template.spec // .spec)
      | (.containers[]?, .initContainers[]?)' \
     "$file" 2>/dev/null || true)
 done

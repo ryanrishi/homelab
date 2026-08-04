@@ -27,10 +27,12 @@ and its environment must not depend on a Secret or ConfigMap that CI cannot read
 Everything else still has its image reference checked against the registry, which is what
 catches a tag that does not exist.
 
-Helm-based apps are **not** covered, whether the image is set in HelmRelease values or
-carried by the chart itself. email-organizer is the latter: Renovate bumps the chart
-version, the chart brings its own image, and no image reference exists in this repo to
-check. Those upgrades are covered only by the chart rendering in the `validate` job.
+Helm-based apps are the exception. Renovate proposes chart version bumps, but the image
+a chart runs is chosen by the chart, not by anything in this repo, so there is no
+reference for `image-smoke` to check. email-organizer is the clearest case: the chart
+carries its own image entirely. A chart bump is covered only by the rendering that the
+`validate` job already does, so treat one as you would a minor app bump — snapshot
+anything holding state, and expect to verify by hand.
 
 It starts the image with an **empty** config. It proves the container boots. It says
 nothing about your data. That is what the canary is for.

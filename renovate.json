@@ -11,6 +11,12 @@
       "kubernetes/**/*.yml"
     ]
   },
+  "flux": {
+    "managerFilePatterns": [
+      "kubernetes/**/*.yaml",
+      "kubernetes/**/*.yml"
+    ]
+  },
   "customManagers": [
     {
       "customType": "regex",
@@ -31,9 +37,10 @@
   ],
   "packageRules": [
     {
-      "description": "Let a container image settle before proposing it. Scoped to docker so k3s upgrades stay on their own cadence.",
+      "description": "Let an image or chart settle before proposing it. k3s is excluded so its upgrades stay on their own cadence.",
       "matchDatasources": [
-        "docker"
+        "docker",
+        "helm"
       ],
       "minimumReleaseAge": "7 days"
     },
