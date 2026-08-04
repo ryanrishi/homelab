@@ -29,6 +29,13 @@ failures=0
 booted=0
 checked=0
 
+# GitHub renders these as annotations on the pull request. Failures point at the manifest
+# that introduced the image, so the reviewer lands on the right file instead of digging
+# through the job log.
+current_file=""
+fail() { echo "::error file=${current_file},title=${1}::${2}"; }
+warn() { echo "::warning file=${current_file},title=${1}::${2}"; }
+
 cleanup() {
   [ -n "$cid" ] || return 0
   docker rm -f "$cid" >/dev/null 2>&1 || true
@@ -41,14 +48,14 @@ trap cleanup EXIT
 assert_amd64() {
   local image="$1" inspect
   if ! inspect=$(docker manifest inspect "$image" 2>&1); then
-    echo "FAIL: ${image} does not resolve in its registry"
+    fail "Image not found" "${image} does not resolve in its registry"
     echo "$inspect"
     return 1
   fi
   if jq -e 'has("manifests")' >/dev/null 2>&1 <<<"$inspect"; then
     if ! jq -e '[.manifests[] | select(.platform.os == "linux" and .platform.architecture == "amd64")] | length > 0' \
       >/dev/null <<<"$inspect"; then
-      echo "FAIL: ${image} publishes no linux/amd64 variant"
+      fail "No amd64 variant" "${image} publishes no linux/amd64 variant"
       jq -r '.manifests[] | "  \(.platform.os)/\(.platform.architecture)"' <<<"$inspect"
       return 1
     fi
@@ -78,7 +85,7 @@ wait_http() {
   local hostport="$1" path="$2" started="$3" code=000 deadline=$((SECONDS + READY_TIMEOUT))
   while [ "$SECONDS" -lt "$deadline" ]; do
     if [ "$(docker inspect -f '{{.State.Running}}' "$cid")" != "true" ]; then
-      echo "FAIL: container exited before it served a response"
+      fail "Container exited" "${name} exited before it served a response"
       return 1
     fi
     code=$(curl -s -o /dev/null -m 5 -w '%{http_code}' "http://127.0.0.1:${hostport}${path}" || echo 000)
@@ -89,7 +96,7 @@ wait_http() {
     fi
     sleep "$POLL_INTERVAL"
   done
-  echo "FAIL: no healthy response within ${READY_TIMEOUT}s, last status ${code}"
+  fail "Never became ready" "no healthy response within ${READY_TIMEOUT}s, last status ${code}"
   return 1
 }
 
@@ -116,7 +123,7 @@ wait_tcp() {
   local port="$1" started="$2" tool="$3" deadline=$((SECONDS + READY_TIMEOUT))
   while [ "$SECONDS" -lt "$deadline" ]; do
     if [ "$(docker inspect -f '{{.State.Running}}' "$cid")" != "true" ]; then
-      echo "FAIL: container exited before it opened its port"
+      fail "Container exited" "${name} exited before it opened its port"
       return 1
     fi
     if container_port_open "$tool" "$port"; then
@@ -125,7 +132,7 @@ wait_tcp() {
     fi
     sleep "$POLL_INTERVAL"
   done
-  echo "FAIL: port never opened within ${READY_TIMEOUT}s"
+  fail "Never became ready" "port never opened within ${READY_TIMEOUT}s"
   return 1
 }
 
@@ -135,6 +142,7 @@ smoke_one() {
   image=$(jq -r '.image' <<<"$spec")
   name=$(jq -r '.name' <<<"$spec")
 
+  current_file="$file"
   echo "declared in ${file}"
   assert_amd64 "$image" || return 1
 
@@ -157,7 +165,7 @@ smoke_one() {
   fi
 
   if [ -z "$port" ]; then
-    echo "FAIL: probe names a port the container does not declare"
+    fail "Bad probe port" "probe names a port ${name} does not declare"
     return 1
   fi
 
@@ -169,13 +177,13 @@ smoke_one() {
 
   # No volumes on purpose: an empty /config is what a fresh start must survive.
   if ! cid=$(docker run -d -p "127.0.0.1::${port}" "${docker_args[@]}" "$image"); then
-    echo "FAIL: could not start ${image}"
+    fail "Could not start" "docker run failed for ${image}"
     cid=""
     return 1
   fi
   hostport=$(docker port "$cid" "${port}/tcp" | head -1 | sed 's/.*://')
   if [ -z "$hostport" ]; then
-    echo "FAIL: no host port published for container port ${port}"
+    fail "No host port" "nothing published for container port ${port}"
     docker logs "$cid" 2>&1 | tail -50
     cleanup
     return 1
@@ -191,7 +199,7 @@ smoke_one() {
     local tool
     tool=$(tcp_probe_tool)
     if [ -z "$tool" ]; then
-      echo "not verified: image provides neither bash nor nc to probe the port from inside"
+      warn "Port not verified" "${name} provides neither bash nor nc, so its port could not be probed from inside"
       cleanup
       return 0
     fi
@@ -238,9 +246,12 @@ for file in "${files[@]}"; do
     echo "::group::$(jq -r '.name' <<<"$spec") — ${image}"
     smoke_one "$file" "$spec" || failures=$((failures + 1))
     echo "::endgroup::"
+    # CronJob nests the pod spec one level deeper than every other workload kind.
   done < <(yq e -o=json -I=0 \
-    'select(.kind == "Deployment" or .kind == "DaemonSet" or .kind == "StatefulSet" or .kind == "Job")
-     | (.spec.template.spec.containers[]?, .spec.template.spec.initContainers[]?)' \
+    'select(.kind == "Deployment" or .kind == "DaemonSet" or .kind == "StatefulSet"
+            or .kind == "Job" or .kind == "CronJob" or .kind == "ReplicaSet")
+     | (.spec.template.spec // .spec.jobTemplate.spec.template.spec)
+     | (.containers[]?, .initContainers[]?)' \
     "$file" 2>/dev/null || true)
 done
 
@@ -249,5 +260,10 @@ if [ "$checked" -eq 0 ]; then
   exit 0
 fi
 
-echo "checked ${checked} image(s), started ${booted}, ${failures} failed"
+summary="checked ${checked} image(s), started ${booted}, ${failures} failed"
+if [ "$failures" -eq 0 ]; then
+  echo "::notice title=Image smoke::${summary}"
+else
+  echo "::error title=Image smoke::${summary}"
+fi
 [ "$failures" -eq 0 ]
