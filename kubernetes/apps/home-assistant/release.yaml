@@ -67,7 +67,7 @@ spec:
     # Downloads and installs HACS into /config before Home Assistant starts
     initContainers:
       - name: init-hacs
-        image: bash
+        image: bash:5.3
         command: ["bash", "-c", "cd /config && wget -O - https://get.hacs.xyz | bash -"]
         securityContext:
           runAsUser: 0
