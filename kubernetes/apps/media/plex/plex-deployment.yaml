@@ -60,6 +60,8 @@ spec:
             - name: movies
               mountPath: /media/movies
               readOnly: true
+            - name: versions
+              mountPath: /media/plex-versions
           resources:
             requests:
               memory: 1Gi
@@ -85,7 +87,8 @@ spec:
           persistentVolumeClaim:
             claimName: plex-config
         - name: transcode
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 3Gi
         - name: media
           persistentVolumeClaim:
             claimName: plex-library
@@ -95,3 +98,6 @@ spec:
         - name: movies
           persistentVolumeClaim:
             claimName: media-movies
+        - name: versions
+          persistentVolumeClaim:
+            claimName: plex-versions

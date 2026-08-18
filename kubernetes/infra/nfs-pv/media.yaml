@@ -74,3 +74,22 @@ spec:
   mountOptions:
     - nfsvers=4.1
     - hard
+---
+# Plex-writable location for optimized versions (ReadWriteMany for Plex)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-plex-versions-pv
+spec:
+  storageClassName: plex-versions
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: ${NFS_SERVER_IP}
+    path: /volume1/k3s/media/plex-versions
+  mountOptions:
+    - nfsvers=4.1
+    - hard
