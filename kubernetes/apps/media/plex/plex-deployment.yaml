@@ -54,6 +54,12 @@ spec:
             - name: media
               mountPath: /concerts
               subPath: complete/concerts
+            - name: tv
+              mountPath: /media/tv
+              readOnly: true
+            - name: movies
+              mountPath: /media/movies
+              readOnly: true
           resources:
             requests:
               memory: 1Gi
@@ -83,3 +89,9 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: plex-library
+        - name: tv
+          persistentVolumeClaim:
+            claimName: media-tv
+        - name: movies
+          persistentVolumeClaim:
+            claimName: media-movies
