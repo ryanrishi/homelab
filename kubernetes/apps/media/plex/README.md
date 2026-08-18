@@ -131,15 +131,88 @@ end-to-end. The UDM's "WAN IP is private" warning is expected (it's behind the u
 remote access breaks for no reason, the upstream public IP likely changed — Plex re-detects it
 automatically; a dynamic-DNS hostname is the clean long-term fix.
 
-## Later: unify media (kills the manual NAS copy)
+## Unify media — kills the manual NAS copy
 
-Decide one canonical location so Plex and the *arr stack share it:
-- **Keep `/volume1/Plex/complete`** (current Plex library): repoint Sonarr/Radarr root folders +
-  download handling there. Smallest data move (only the unmerged *arr delta in
-  `/volume1/k3s/media/media`).
-- **Move to the k3s tree** (`/volume1/k3s/media/media`): consolidate the Plex library onto it and
-  switch the Plex `plex-library` PV/PVC to it (keep the same `/tv`,`/movies`,`/concerts`
-  in-container paths so the library DB is undisturbed).
+Chosen direction: **the k3s tree (`/volume1/k3s/media/media`) is canonical.** Sonarr and Radarr
+own the files; Plex follows them.
+
+Never move a file out from under the *arr apps. They store an absolute path per episode/movie,
+so a manual move on the NAS makes the item "missing from disk". Plex is a reader, not an owner.
+
+Why a cross-share move is slow: `/volume1/k3s` and `/volume1/Plex` are separate DSM **shared
+folders**, so on btrfs they are separate subvolumes. `rename()` returns `EXDEV` and DSM falls back
+to copy-then-delete. Inside `/volume1/k3s`, downloads and media share a subvolume, so *arr imports
+there are already instant.
+
+### Step A — Plex reads the *arr tree (DONE)
+
+`media-tv` and `media-movies` are mounted **readOnly** at `/media/tv` and `/media/movies`, so
+imports appear in Plex with no copy. `plex-versions` is mounted **writable** at
+`/media/plex-versions` — readOnly media mounts otherwise break Optimized Versions, which default
+to writing `Plex Versions/` beside the source file. `/transcode` is capped at 3Gi (it is an
+`emptyDir` on the 20G node root disk, and was previously unbounded).
+
+In the Plex UI, add the new folders to the **existing** libraries — do not create new ones, or you
+lose watch history:
+
+- Settings → Libraries → Edit *TV Shows* → Add folder → `/media/tv`
+- Settings → Libraries → Edit *Movies* → Add folder → `/media/movies`, and also
+  `/media/plex-versions`
+
+Optimized versions: the **Storage Location** dropdown only lists library folder paths when you
+optimize a **single item**. Bulk or whole-library optimize collapses to "In folders with original
+items", which fails against the readOnly mounts.
+
+### Step B — Copy the legacy library onto the k3s tree
+
+Use DSM → Control Panel → **Task Scheduler → Create → Scheduled Task → User-defined script**, run
+as `root`. Do not use File Station: it has no resume, no incremental re-run, and it can reset
+mtimes, which scrambles "recently added" in both Plex and Sonarr.
+
+```bash
+rsync -a --info=progress2 /volume1/Plex/complete/tv/     /volume1/k3s/media/media/tv/
+rsync -a --info=progress2 /volume1/Plex/complete/movies/ /volume1/k3s/media/media/movies/
+```
+
+Re-runnable — a second pass copies only what is missing, so it is safe to stop and resume. Leave
+the source in place until Plex and the *arr apps both look right.
+
+Space is not a constraint: volume1 is 18T with 12T free. Note that static NFS PV `capacity` values
+are decoration — Kubernetes does not enforce them. Only the DSM share quota and volume free space
+are real.
+
+### Step C — Adopt the copied files into Sonarr/Radarr
+
+Check both of these **before** importing. Each can cause a lot of damage across a 1TB library:
+
+- `Settings → Media Management → Rename Files`. If on, the import rewrites every filename in the
+  legacy library to the *arr naming scheme.
+- Quality profile cutoffs. Legacy files below cutoff are treated as upgradable, and the *arr apps
+  will queue a redownload for all of them.
+
+Then: Sonarr → `Series → Library Import` → `/tv`, and Radarr → `Movies → Library Import` →
+`/movies`.
+
+### Step D — Concerts, then retire the legacy share
+
+Nothing in the *arr stack manages concerts, so it just needs a home on the k3s tree.
+
+1. Create `/volume1/k3s/media/media/concerts` on the NAS.
+2. `rsync -a --info=progress2 /volume1/Plex/complete/concerts/ /volume1/k3s/media/media/concerts/`
+3. Add a `media-concerts` PV/PVC alongside the others in `../../../infra/nfs-pv/media.yaml`, and
+   mount it readOnly at `/media/concerts`.
+4. In Plex, add `/media/concerts` to the Concerts library.
+
+Once all three libraries are served from the k3s tree, drop the `plex-library` PV/PVC and the
+three `complete/*` subPath mounts from the Deployment. `/volume1/Plex` then holds nothing Plex
+needs, and the DSM NFS export rule for that share can go too.
+
+Verify before deleting anything:
+
+```bash
+kubectl exec -n media deploy/plex -- df -h /media/tv /media/movies /media/concerts
+kubectl exec -n media deploy/plex -- sh -c 'touch /media/tv/.w 2>&1 || echo readOnly-ok'
+```
 
 ## Phase 4 — Hardware transcoding (DONE 2026-06-22)
 
