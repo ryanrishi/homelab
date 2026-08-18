@@ -170,8 +170,22 @@ as `root`. Do not use File Station: it has no resume, no incremental re-run, and
 mtimes, which scrambles "recently added" in both Plex and Sonarr.
 
 ```bash
-rsync -a --info=progress2 /volume1/Plex/complete/tv/     /volume1/k3s/media/media/tv/
-rsync -a --info=progress2 /volume1/Plex/complete/movies/ /volume1/k3s/media/media/movies/
+rsync -rlt --info=progress2 /volume1/Plex/complete/tv/     /volume1/k3s/media/media/tv/
+rsync -rlt --info=progress2 /volume1/Plex/complete/movies/ /volume1/k3s/media/media/movies/
+```
+
+**Do not use `rsync -a` across these two shares.** `-a` implies `-p -o -g`, so it carries the
+source's ownership and mode onto the destination — including onto the destination *directory*
+itself when the source path ends in `/`. The legacy tree is root-owned and the `k3s` share squashes
+root over NFS, so this leaves the media directories unreadable and every pod gets
+`Permission denied` (this happened on 2026-08-18). `-rlt` copies contents, symlinks and
+timestamps without touching ownership or permissions.
+
+If permissions do get clobbered, the repair is recursive — fixing only the top-level directory
+lets `ls` work while `du` still reports 0, because nothing can be traversed:
+
+```bash
+chmod -R a+rwX /volume1/k3s/media/media/tv /volume1/k3s/media/media/movies
 ```
 
 Re-runnable — a second pass copies only what is missing, so it is safe to stop and resume. Leave
@@ -204,7 +218,7 @@ Then: Sonarr → `Series → Library Import` → `/tv`, and Radarr → `Movies �
 Nothing in the *arr stack manages concerts, so it just needs a home on the k3s tree.
 
 1. Create `/volume1/k3s/media/media/concerts` on the NAS.
-2. `rsync -a --info=progress2 /volume1/Plex/complete/concerts/ /volume1/k3s/media/media/concerts/`
+2. `rsync -rlt --info=progress2 /volume1/Plex/complete/concerts/ /volume1/k3s/media/media/concerts/`
 3. Add a `media-concerts` PV/PVC alongside the others in `../../../infra/nfs-pv/media.yaml`, and
    mount it readOnly at `/media/concerts`.
 4. In Plex, add `/media/concerts` to the Concerts library.
