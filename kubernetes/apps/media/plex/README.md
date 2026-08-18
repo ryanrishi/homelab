@@ -177,9 +177,15 @@ rsync -a --info=progress2 /volume1/Plex/complete/movies/ /volume1/k3s/media/medi
 Re-runnable — a second pass copies only what is missing, so it is safe to stop and resume. Leave
 the source in place until Plex and the *arr apps both look right.
 
-Space is not a constraint: volume1 is 18T with 12T free. Note that static NFS PV `capacity` values
-are decoration — Kubernetes does not enforce them. Only the DSM share quota and volume free space
-are real.
+**Raise the DSM quota on the `k3s` shared folder before starting.** The legacy library is ~2.0T
+(906G tv + 1.1T movies + 3.1G concerts) and the k3s share already holds ~179G (81G tv + 75G movies
++ 23G downloads), so the destination needs ~2.2T before any new download lands. Sized for growth,
+the quota wants to be **4T**.
+
+Note that `df` inside the pods reports the underlying volume (18T, 12T free), **not** the share
+quota — so it gives no warning at all before rsync dies on `ENOSPC`. Static NFS PV `capacity`
+values are decoration too; Kubernetes does not enforce them. Only the DSM share quota and volume
+free space are real.
 
 ### Step C — Adopt the copied files into Sonarr/Radarr
 
