@@ -19,8 +19,22 @@ spec:
   values:
     podReplacementPolicy: "Always"
 
+    # Sit on the LAN so mDNS/SSDP discovery and UPnP event callbacks reach the pod
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
+
     nodeSelector:
       lab.ryanrishi.com/longhorn-enabled: "true"
+
+    # Keep multicast traffic off the host whose NIC hangs do not self-recover
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: topology.kubernetes.io/zone
+                  operator: NotIn
+                  values: ["pve002"]
 
     persistence:
       enabled: true
