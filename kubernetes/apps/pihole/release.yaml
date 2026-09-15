@@ -33,6 +33,13 @@ spec:
     adminPassword: ${SECRET_PIHOLE_ADMIN_PASSWORD}
     extraEnvVars:
       RATE_LIMIT: "0/0"
+    whitelist:
+      - app.segment.com
+      - api.segment.io
+      - cdn.segment.com
+      - api.amplitude.com
+      - api2.amplitude.com
+      - cdn.amplitude.com
     priorityClassName: critical-dns
     affinity:
       podAntiAffinity:
