@@ -106,3 +106,22 @@ jobs:
           pluto detect /tmp/rendered.yaml \
             --target-versions "k8s=v${KUBERNETES_VERSION}" \
             --ignore-deprecations
+
+  # Deliberately carries no `paths:` filter and no job-level `if:`. This check is
+  # required for merge, and a required check that never reports blocks the pull
+  # request forever. The job runs every time and exits early when nothing matched.
+  image-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Boot changed images
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags origin \
+            "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          .github/scripts/image-smoke.sh "$BASE_REF"

@@ -1,8 +1,8 @@
-- include_tasks: apt.yaml
+- include_tasks: apt.yml
 
-- include_tasks: ntp.yaml
+- include_tasks: ntp.yml
 
-- include_tasks: vim.yaml
+- include_tasks: vim.yml
 
 - include_tasks: etc-hosts.yml
 
