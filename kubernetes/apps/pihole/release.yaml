@@ -40,6 +40,11 @@ spec:
       - api.amplitude.com
       - api2.amplitude.com
       - cdn.amplitude.com
+      - static.amplitude.com
+      - info.amplitude.com
+      - regionconfig.amplitude.com
+      - api.eu.amplitude.com
+      - api.lab.amplitude.com
     priorityClassName: critical-dns
     affinity:
       podAntiAffinity:
