@@ -9,63 +9,42 @@ This is a homelab infrastructure management repository that uses three main tech
 - **Terraform** for VM provisioning on Proxmox
 - **Kubernetes (k3s)** for container orchestration with Flux CD
 
-## ⚠️ CRITICAL: Resource Constraints
+## Resource constraints
 
-**HOMELAB SETUP**: Three Proxmox hosts, 78GB RAM total (31 + 15 + 31). `pve002` is the constraint
-at 15GB with ~2GB free — check it specifically, not just the cluster total.
-- **BE EXTREMELY CAREFUL** with memory limits and resource requests
-- **ALWAYS CHECK** current node memory allocation before increasing limits
-- **NEVER** increase memory limits without checking cluster capacity first
-- **PiHole is CRITICAL** - DNS outages affect entire home network  
-- Memory increases can trigger SystemOOM → MetalLB crashes → IP reassignments → DNS outages
+Three Proxmox hosts, 78GB RAM total (31 + 15 + 31). `pve002` is the constraint at 15GB with ~2GB
+free — check it specifically, not just the cluster total. Check current node allocation before you
+raise any memory limit or request: an increase can trigger SystemOOM → MetalLB crash → IP
+reassignment → DNS outage, and PiHole serves DNS for the whole house.
 
-## ⚠️ CRITICAL: PiHole DNS Stability
-
-**PiHole provides DNS for entire home network** - outages are unacceptable!
-
-- **NEVER drain nodes** without first checking: `kubectl get pods -n pihole -o wide`
-- **If PiHole is on target node**: Move it first with node selectors/affinity
-- **IP pinning configured**: PiHole services pinned to 192.168.4.253
-- **During cluster changes**: Expect brief IP reassignments during MetalLB restarts
-- **Emergency access**: Use `kubectl port-forward -n pihole svc/pihole-web 8080:80`
-
-**Check PiHole status:**
-```bash
-kubectl get pods -n pihole
-kubectl get svc -n pihole  
-nslookup google.com 192.168.4.253  # Test DNS
-```
-
-**Before any resource changes:**
 ```bash
 kubectl describe nodes | grep -A10 "Allocated resources"
 kubectl top nodes
 ```
 
-## ⚠️ CRITICAL: Sensitive Information
+## PiHole DNS stability
 
-**NEVER expose sensitive information in code or commits:**
+PiHole serves DNS for the entire home network, so an outage takes the house offline.
 
-- **Domain names**: NEVER hardcode domain names in files or commit messages
-  - Use Terraform variables for all domain references
-  - Keep actual values in `.tfvars` files (gitignored)
-  - Use generic descriptions in commit messages
+- Check `kubectl get pods -n pihole -o wide` before you drain a node. If PiHole is on the target
+  node, move it first with a node selector or affinity.
+- Services are pinned to 192.168.4.253. Expect brief IP reassignment during MetalLB restarts.
+- Emergency access: `kubectl port-forward -n pihole svc/pihole-web 8080:80`
 
-- **API tokens/keys**: NEVER commit API tokens, credentials, or secrets
-  - Use SOPS encryption for Kubernetes secrets
-  - Use Terraform variables marked as `sensitive = true`
-  - Ensure `.tfvars` files are gitignored
+```bash
+kubectl get pods -n pihole
+kubectl get svc -n pihole
+nslookup google.com 192.168.4.253  # Test DNS
+```
 
-- **IP addresses**: Avoid exposing internal IPs in public commits
-  - Use variables or configuration files for network configuration
+## Sensitive information
 
-- **Account/Zone IDs**: Use Terraform variables, never hardcode
+This repository is public, so nothing sensitive goes into it — not in files, and not in commit
+messages. Domain names and account/zone IDs come from Terraform variables whose values live in
+gitignored `.tfvars`. RFC1918 IPs are acceptable where a runbook needs them. Kubernetes secrets are SOPS-encrypted. Terraform variables
+that hold secrets are marked `sensitive = true`.
 
-**Before committing:**
-- Review commit diff for any sensitive values
-- Check commit message doesn't reference domains/IPs
-- Verify `.tfvars` files are gitignored
-- Ensure secrets are encrypted with SOPS
+Before you commit: review the diff for sensitive values, confirm the commit message names no
+domain or IP, confirm `.tfvars` is gitignored, and confirm secrets are encrypted with SOPS.
 
 ## Key Commands
 
@@ -342,13 +321,7 @@ that points at the intended one.
 ssh ryan@<node-ip>
 
 # Install debugging tools as needed
-sudo apt-get update && sudo apt-get install -y \
-  bind9-dnsutils \  # DNS debugging (dig, nslookup)
-  htop \            # Resource monitoring
-  jq \              # JSON parsing
-  lsof \            # Port/file descriptor debugging
-  netcat-openbsd \  # Network testing
-  nmap              # Network scanning
+sudo apt-get update && sudo apt-get install -y bind9-dnsutils htop jq lsof netcat-openbsd nmap
 ```
 
 These tools are intentionally NOT in cloud-init to encourage debugging from outside the cluster.
@@ -365,16 +338,17 @@ be down without losing etcd quorum. **Only ever take down one host at a time.** 
 Kubernetes, then stop the guests:
 
 ```bash
-# 1. Gates: 8/8 nodes Ready, etcd 3/3 voters, all Longhorn volumes healthy, PiHole 3/3, DNS resolving.
+# 1. Gates: all nodes Ready, all etcd members voters, all Longhorn volumes healthy, all PiHole
+#    replicas Ready, DNS resolving.
 #    Re-derive which k3s nodes are on this host — names and IPs are DHCP and placement drifts.
 kubectl get nodes -o wide -L topology.kubernetes.io/zone
 
-# 2. If this host's server holds the kube-vip lease, move it first.
+# 2. If this host's server holds the kube-vip lease, move it first. The pod delete must block
+#    before the lease delete — see "Replacing a server: add before removing".
 kubectl get lease -n kube-system plndr-cp-lock -o jsonpath='{.spec.holderIdentity}'
 kubectl delete pod -n kube-system -l app.kubernetes.io/name=kube-vip-ds \
-  --field-selector spec.nodeName=<server>
-# If the lease does not move (the DaemonSet can recreate the pod and reacquire), delete the lease
-# to force re-election: kubectl delete lease -n kube-system plndr-cp-lock
+  --field-selector spec.nodeName=<server> --wait=true --timeout=60s
+kubectl delete lease -n kube-system plndr-cp-lock
 
 # 3. Cordon every node on the host FIRST, so drained pods do not land back on it. Then drain.
 kubectl cordon <server> <agent...>
