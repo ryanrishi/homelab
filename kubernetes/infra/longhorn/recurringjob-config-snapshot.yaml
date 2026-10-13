@@ -1,0 +1,22 @@
+---
+# Daily snapshots of app config volumes, so an upgrade that migrates a config database
+# always has a recent point to revert to. A volume joins by carrying these labels on its
+# PVC:
+#
+#   recurring-job.longhorn.io/source: enabled
+#   recurring-job-group.longhorn.io/config: enabled
+#
+# Opt-in rather than the default group: high-churn volumes such as the Prometheus TSDB
+# would keep every overwritten block alive in their snapshots and fill the data disks.
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: config-snapshot
+  namespace: longhorn-system
+spec:
+  task: snapshot
+  cron: "0 9 * * *"
+  retain: 7
+  concurrency: 2
+  groups:
+    - config
