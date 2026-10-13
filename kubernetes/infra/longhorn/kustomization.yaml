@@ -8,3 +8,4 @@ resources:
   - repository.yaml
   - release.yaml
   - storageclass-single.yaml
+  - recurringjob-config-snapshot.yaml

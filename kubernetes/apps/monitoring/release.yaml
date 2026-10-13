@@ -108,7 +108,10 @@ spec:
         enabled: true
         storageClassName: longhorn-single
         size: 2Gi
-      
+        extraPvcLabels:
+          recurring-job.longhorn.io/source: enabled
+          recurring-job-group.longhorn.io/config: enabled
+
       # Default dashboards
       defaultDashboardsEnabled: true
       
