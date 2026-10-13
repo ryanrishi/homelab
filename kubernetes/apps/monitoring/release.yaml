@@ -161,7 +161,7 @@ spec:
                 title: '{{ .Status | toUpper }} {{ .CommonLabels.alertname }}'
                 message: |-
                   {{ range .Alerts }}{{ .Annotations.summary }}
-                  {{ .Annotations.description }}
+                  {{ .Annotations.description }}{{ .Annotations.message }}
                   {{ end }}
       alertmanagerSpec:
         nodeSelector:

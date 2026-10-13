@@ -1,0 +1,28 @@
+---
+# Flux errors go to Alertmanager, which already routes to Pushover.
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Provider
+metadata:
+  name: alertmanager
+  namespace: flux-system
+spec:
+  type: alertmanager
+  address: http://kube-prometheus-stack-alertmanager.monitoring.svc:9093/api/v2/alerts/
+---
+# The apps and infrastructure Kustomizations health-check everything they apply, so a
+# failed HelmRelease also fails its Kustomization. Watching the Kustomizations here
+# covers every HelmRelease without listing each app's namespace.
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: flux-errors
+  namespace: flux-system
+spec:
+  providerRef:
+    name: alertmanager
+  eventSeverity: error
+  eventSources:
+    - kind: Kustomization
+      name: "*"
+    - kind: GitRepository
+      name: "*"
