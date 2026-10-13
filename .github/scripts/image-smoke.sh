@@ -34,7 +34,6 @@ checked=0
 # through the job log.
 current_file=""
 fail() { echo "::error file=${current_file},title=${1}::${2}"; }
-warn() { echo "::warning file=${current_file},title=${1}::${2}"; }
 
 cleanup() {
   [ -n "$cid" ] || return 0
@@ -84,14 +83,17 @@ resolve_port() {
   jq -r --arg n "$port" '.ports[]? | select(.name == $n) | .containerPort' <<<"$spec" | head -1
 }
 
+# Probes connect to the container's bridge address, never a published host port. Docker's
+# userland proxy binds a published port as soon as the container starts, so a connect there
+# succeeds whether or not anything is listening.
 wait_http() {
-  local hostport="$1" path="$2" started="$3" code=000 deadline=$((SECONDS + READY_TIMEOUT))
+  local addr="$1" path="$2" started="$3" code=000 deadline=$((SECONDS + READY_TIMEOUT))
   while [ "$SECONDS" -lt "$deadline" ]; do
     if [ "$(docker inspect -f '{{.State.Running}}' "$cid")" != "true" ]; then
       fail "Container exited" "${name} exited before it served a response"
       return 1
     fi
-    code=$(curl -s -o /dev/null -m 5 -w '%{http_code}' "http://127.0.0.1:${hostport}${path}" || echo 000)
+    code=$(curl -s -o /dev/null -m 5 -w '%{http_code}' "http://${addr}${path}" || echo 000)
     # kubelet treats 2xx and 3xx as a passing httpGet probe.
     if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then
       echo "ready: HTTP ${code} on ${path} after $((SECONDS - started))s"
@@ -103,33 +105,14 @@ wait_http() {
   return 1
 }
 
-# The port must be probed from inside the container. Docker's userland proxy binds the
-# published host port as soon as the container starts, so a host-side connect succeeds
-# whether or not anything is listening, and would pass every single time.
-tcp_probe_tool() {
-  if docker exec "$cid" bash -c 'exit 0' >/dev/null 2>&1; then
-    echo bash
-  elif docker exec "$cid" sh -c 'command -v nc' >/dev/null 2>&1; then
-    echo nc
-  fi
-}
-
-container_port_open() {
-  local tool="$1" port="$2"
-  case "$tool" in
-    bash) docker exec "$cid" bash -c "exec 3<>/dev/tcp/127.0.0.1/${port}" >/dev/null 2>&1 ;;
-    nc) docker exec "$cid" sh -c "nc -z 127.0.0.1 ${port}" >/dev/null 2>&1 ;;
-  esac
-}
-
 wait_tcp() {
-  local port="$1" started="$2" tool="$3" deadline=$((SECONDS + READY_TIMEOUT))
+  local ip="$1" port="$2" started="$3" deadline=$((SECONDS + READY_TIMEOUT))
   while [ "$SECONDS" -lt "$deadline" ]; do
     if [ "$(docker inspect -f '{{.State.Running}}' "$cid")" != "true" ]; then
       fail "Container exited" "${name} exited before it opened its port"
       return 1
     fi
-    if container_port_open "$tool" "$port"; then
+    if timeout 5 bash -c "exec 3<>/dev/tcp/${ip}/${port}" 2>/dev/null; then
       echo "ready: port open after $((SECONDS - started))s"
       return 0
     fi
@@ -141,7 +124,7 @@ wait_tcp() {
 
 smoke_one() {
   local file="$1" spec="$2"
-  local image name path http_port tcp_port port hostport started
+  local image name path http_port tcp_port port ip started
   image=$(jq -r '.image' <<<"$spec")
   name=$(jq -r '.name' <<<"$spec")
 
@@ -178,35 +161,33 @@ smoke_one() {
     [ -n "$pair" ] && docker_args+=(-e "$pair")
   done < <(jq -r '.env[]? | select(.value != null) | "\(.name)=\(.value)"' <<<"$spec")
 
+  # Kubernetes command replaces the image ENTRYPOINT and args replaces its CMD. Docker takes
+  # a single --entrypoint word, so the rest of command goes ahead of args after the image.
+  # NUL-delimited because shell scripts passed as args routinely span lines.
+  local command=() args=()
+  mapfile -d '' -t command < <(jq -j '.command[]? | ., "\u0000"' <<<"$spec")
+  mapfile -d '' -t args < <(jq -j '.args[]? | ., "\u0000"' <<<"$spec")
+  if [ "${#command[@]}" -gt 0 ]; then
+    docker_args+=(--entrypoint "${command[0]}")
+    args=("${command[@]:1}" "${args[@]}")
+  fi
+
   # No volumes on purpose: an empty /config is what a fresh start must survive.
-  if ! cid=$(docker run -d -p "127.0.0.1::${port}" "${docker_args[@]}" "$image"); then
+  if ! cid=$(docker run -d "${docker_args[@]}" "$image" "${args[@]}"); then
     fail "Could not start" "docker run failed for ${image}"
     cid=""
     return 1
   fi
-  hostport=$(docker port "$cid" "${port}/tcp" | head -1 | sed 's/.*://')
-  if [ -z "$hostport" ]; then
-    fail "No host port" "nothing published for container port ${port}"
-    docker logs "$cid" 2>&1 | tail -50
-    cleanup
-    return 1
-  fi
-  echo "started ${name} on container port ${port}"
+  ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$cid")
+  echo "started ${name} on ${ip}:${port}"
   booted=$((booted + 1))
 
   started=$SECONDS
   local rc=0
   if [ -n "$http_port" ]; then
-    wait_http "$hostport" "$path" "$started" || rc=1
+    wait_http "${ip}:${port}" "$path" "$started" || rc=1
   else
-    local tool
-    tool=$(tcp_probe_tool)
-    if [ -z "$tool" ]; then
-      warn "Port not verified" "${name} provides neither bash nor nc, so its port could not be probed from inside"
-      cleanup
-      return 0
-    fi
-    wait_tcp "$port" "$started" "$tool" || rc=1
+    wait_tcp "$ip" "$port" "$started" || rc=1
   fi
 
   if [ "$rc" -ne 0 ]; then
