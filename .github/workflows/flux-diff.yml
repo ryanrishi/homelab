@@ -1,0 +1,42 @@
+---
+name: flux-diff
+
+on:
+  pull_request:
+
+jobs:
+  flux-diff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: home-operations/flate/action@v0.6.5
+        with:
+          cache: "true"
+
+      - name: Render the diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: .github/scripts/flux-diff.sh "origin/${BASE_REF}" "${RUNNER_TEMP}/flux-diff" "$RUN_URL"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: flux-diff
+          path: ${{ runner.temp }}/flux-diff/full.diff
+
+      # A pull request from a fork gets a read-only token and cannot comment.
+      - name: Comment on the pull request
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment "$PR" --edit-last --create-if-none \
+            --body-file "${RUNNER_TEMP}/flux-diff/comment.md"
