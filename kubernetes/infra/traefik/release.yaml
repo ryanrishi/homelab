@@ -14,7 +14,7 @@ spec:
   chart:
     spec:
       chart: traefik
-      version: 33.x
+      version: 41.x
       sourceRef:
         kind: HelmRepository
         name: traefik
@@ -69,12 +69,6 @@ spec:
     ingressRoute:
       dashboard:
         enabled: true
-
-    logs:
-      general:
-        level: INFO
-      access:
-        enabled: false
 
     metrics:
       prometheus:
