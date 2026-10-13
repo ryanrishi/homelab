@@ -7,13 +7,15 @@
 # first, so a failure costs nothing.
 #
 # The canary carries its own labels, so no Service or IngressRoute selects it, and it
-# mounts only the cloned config, so it cannot touch the media shares. The running app is
-# never modified.
+# mounts only the cloned config, so it cannot touch the media shares. The clone keeps the
+# app's API keys and integrations, so a NetworkPolicy blocks all egress except DNS: the
+# canary cannot send grabs to a download client, query indexers or send notifications.
+# The running app is never modified.
 #
 # Flux does not prune these objects: it only prunes what it applied itself.
 #
 # usage: canary.sh <app> <image>     start a canary
-#        canary.sh <app> --cleanup   remove pod and clone
+#        canary.sh <app> --cleanup   remove pod, egress policy and clone
 set -o errexit -o nounset -o pipefail
 
 NAMESPACE=media
@@ -38,6 +40,7 @@ k() { kubectl -n "$NAMESPACE" "$@"; }
 cleanup() {
   echo "removing canary for ${APP}"
   k delete pod "$POD" --ignore-not-found --wait=true --timeout=120s
+  k delete networkpolicy "$POD" --ignore-not-found
   k delete pvc "$CLONE" --ignore-not-found --wait=true --timeout=120s
   echo "done"
 }
@@ -142,6 +145,36 @@ done
 echo "clone bound"
 
 # --- pod ---------------------------------------------------------------------------
+
+# Applied before the pod exists, so the canary never runs with open egress.
+k apply -f - <<EOF
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ${POD}
+  labels:
+    lab.ryanrishi.com/canary: "true"
+spec:
+  podSelector:
+    matchLabels:
+      app: ${POD}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+EOF
 
 # Built from the live deployment so the canary keeps the real environment, probes,
 # resources and node placement. Three things change: the image, the labels, and the

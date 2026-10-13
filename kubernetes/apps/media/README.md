@@ -5,9 +5,10 @@ tested before they reach the running cluster, and how to recover when one goes b
 
 ## Why these upgrades need care
 
-Every app here runs as a single replica with `strategy: Recreate` and a ReadWriteOnce
-Longhorn config volume. Sonarr, Radarr, Prowlarr and Ombi migrate their config database
-the first time a new version starts.
+Every app here except byparr runs as a single replica with `strategy: Recreate` and a
+ReadWriteOnce Longhorn config volume. byparr keeps no state, so none of this applies to
+it. Sonarr, Radarr, Prowlarr and Ombi migrate their config database the first time a new
+version starts.
 
 **That migration is one way.** If you revert the image tag afterwards, the old binary
 cannot read the new schema, and the app stays broken. A git revert alone is not a
@@ -80,8 +81,9 @@ EOF
 ```
 
 This clones the config volume, starts the candidate image against the clone, and waits
-for the app's own readiness probe. The running app is never touched, and the canary
-mounts no media shares.
+for the app's own readiness probe. The running app is never touched, the canary mounts no
+media shares, and a NetworkPolicy blocks its egress so the cloned download client and
+indexer settings cannot act.
 
 If it fails, the script prints the logs and leaves everything in place so you can look.
 The upgrade is simply not merged.
@@ -110,18 +112,28 @@ kubectl -n media get pods -w
 
 The canary makes this rare, but the procedure matters when you need it.
 
-1. Revert the tag in git and push. Wait for Flux, or reconcile it.
+Flux must stay out of the way until the volume is back. Otherwise it starts the old binary
+against the migrated volume, and its reconcile can scale the app back up in the middle of
+the revert.
+
+1. Suspend Flux for the apps.
+   ```bash
+   flux suspend kustomization apps
+   ```
 2. Scale the app to zero. Longhorn cannot revert a volume that is attached.
    ```bash
    kubectl -n media scale deployment/sonarr --replicas=0
    ```
-3. In the Longhorn UI, open the volume, find the snapshot from step 1, and revert to it.
-4. Scale back up.
+3. In the Longhorn UI, open the volume, find the snapshot you took before the upgrade,
+   and revert to it.
+4. Revert the tag in git and push.
+5. Resume Flux. It applies the old tag and scales the app back up.
    ```bash
-   kubectl -n media scale deployment/sonarr --replicas=1
+   flux resume kustomization apps
    ```
 
-Steps 2 to 4 are downtime for that one app. Nothing else is affected.
+Steps 2 to 5 are downtime for that one app. While Flux is suspended, no other app
+reconciles either, so keep the window short.
 
 ## What the canary does not cover
 
