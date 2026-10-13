@@ -11,6 +11,12 @@
       "kubernetes/**/*.yml"
     ]
   },
+  "flux": {
+    "managerFilePatterns": [
+      "kubernetes/**/*.yaml",
+      "kubernetes/**/*.yml"
+    ]
+  },
   "customManagers": [
     {
       "customType": "regex",
@@ -30,6 +36,14 @@
     }
   ],
   "packageRules": [
+    {
+      "description": "Let an image or chart settle before proposing it. k3s is excluded so its upgrades stay on their own cadence.",
+      "matchDatasources": [
+        "docker",
+        "helm"
+      ],
+      "minimumReleaseAge": "7 days"
+    },
     {
       "matchPackageNames": [
         "k3s-io/k3s"
