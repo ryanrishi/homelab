@@ -1,5 +1,5 @@
 ---
-# Flux errors go to Alertmanager, which already routes to Pushover.
+# Forward Flux errors to Alertmanager.
 apiVersion: notification.toolkit.fluxcd.io/v1beta3
 kind: Provider
 metadata:
