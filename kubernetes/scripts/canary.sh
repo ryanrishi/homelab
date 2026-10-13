@@ -146,7 +146,9 @@ echo "clone bound"
 
 # --- pod ---------------------------------------------------------------------------
 
-# Applied before the pod exists, so the canary never runs with open egress.
+# Applied before the pod, so the policy is in place as it starts. kube-router enforces it
+# only once it sees the new pod, which leaves a brief window of open egress at startup;
+# an *arr app is still booting during that window and makes no outbound calls yet.
 k apply -f - <<EOF
 ---
 apiVersion: networking.k8s.io/v1
