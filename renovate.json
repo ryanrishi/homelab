@@ -45,6 +45,13 @@
       "minimumReleaseAge": "7 days"
     },
     {
+      "description": "Offer one chart major at a time. A jump across many majors skips the intermediate releases some upgrades depend on, and is too large to review or revert.",
+      "matchDatasources": [
+        "helm"
+      ],
+      "separateMultipleMajor": true
+    },
+    {
       "matchPackageNames": [
         "k3s-io/k3s"
       ],
