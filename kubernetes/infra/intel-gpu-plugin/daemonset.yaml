@@ -20,7 +20,7 @@ spec:
         lab.ryanrishi.com/gpu-enabled: "true"
       containers:
         - name: intel-gpu-plugin
-          image: intel/intel-gpu-plugin:0.36.0
+          image: intel/intel-gpu-plugin:0.37.1
           args:
             - -shared-dev-num=10
           securityContext:
