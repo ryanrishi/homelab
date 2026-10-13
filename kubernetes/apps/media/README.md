@@ -44,8 +44,10 @@ The smoke test proves the container starts from scratch. It does not exercise yo
 database, and *arr patch releases do sometimes carry schema changes, so a patch bump is
 lower risk than a minor one rather than risk free.
 
-Merge on green CI. If that app matters to you at the time, snapshot it first — the
-snapshot is cheap and is the only thing that makes a bad migration recoverable.
+Merge on green CI. Every config volume here is snapshotted daily (see
+`kubernetes/infra/longhorn/README.md`), so a bad migration can always be reverted to the
+last daily snapshot. If that app matters to you at the time, snapshot it first anyway, so
+the revert loses nothing since then.
 
 ## Minor and major bumps
 
