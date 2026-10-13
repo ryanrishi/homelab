@@ -7,6 +7,10 @@ metadata:
 spec:
   interval: 8h
   timeout: 15m
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
   chart:
     spec:
       chart: kube-prometheus-stack
@@ -161,7 +165,7 @@ spec:
                 title: '{{ .Status | toUpper }} {{ .CommonLabels.alertname }}'
                 message: |-
                   {{ range .Alerts }}{{ .Annotations.summary }}
-                  {{ .Annotations.description }}
+                  {{ .Annotations.description }}{{ .Annotations.message }}
                   {{ end }}
       alertmanagerSpec:
         nodeSelector:

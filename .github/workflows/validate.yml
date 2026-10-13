@@ -47,6 +47,21 @@ jobs:
           done
           exit $rc
 
+      # Helm installs the CRDs in a chart's crds/ directory once and never upgrades them,
+      # so a chart bump would run new controllers against old schemas. Flux upgrades them
+      # only when the HelmRelease asks it to. Every HelmRelease asks, because any chart
+      # can start shipping CRDs in a later version.
+      - name: Assert every HelmRelease upgrades its CRDs
+        run: |
+          rc=0
+          while IFS= read -r file; do
+            yq -e 'select(.kind == "HelmRelease")
+                   | .spec.install.crds == "CreateReplace" and .spec.upgrade.crds == "CreateReplace"' \
+              "$file" >/dev/null \
+              || { echo "::error file=${file}::set spec.install.crds and spec.upgrade.crds to CreateReplace"; rc=1; }
+          done < <(grep -rlE --include='*.yaml' '^kind: HelmRelease$' kubernetes)
+          exit $rc
+
       - name: Install tools
         run: |
           curl -fsSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz" \

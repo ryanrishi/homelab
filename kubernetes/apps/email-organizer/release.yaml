@@ -6,6 +6,10 @@ metadata:
   namespace: email-organizer
 spec:
   interval: 8h
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
   chart:
     spec:
       chart: email-organizer
