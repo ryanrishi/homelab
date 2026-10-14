@@ -58,6 +58,16 @@
       "separateMultipleMinor": true
     },
     {
+      "description": "Longhorn supports upgrades only from the previous minor version.",
+      "matchDatasources": [
+        "helm"
+      ],
+      "matchPackageNames": [
+        "longhorn"
+      ],
+      "separateMultipleMinor": true
+    },
+    {
       "matchManagers": [
         "kubernetes"
       ],
