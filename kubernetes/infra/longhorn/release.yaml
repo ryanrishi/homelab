@@ -26,6 +26,7 @@ spec:
       createDefaultDiskLabeledNodes: true
       # Data disks are dedicated to Longhorn, not shared with the OS
       storageReservedPercentageForDefaultDisk: 10
+      concurrentAutomaticEngineUpgradePerNodeLimit: 1
     metrics:
       serviceMonitor:
         enabled: true
