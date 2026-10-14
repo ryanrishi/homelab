@@ -26,14 +26,14 @@ spec:
     replicaCount: 3
     serviceDns:
       type: LoadBalancer
-      loadBalancerIP: ${SVC_PIHOLE_IP}
       annotations:
-        metallb.universe.tf/allow-shared-ip: pihole-svc
+        metallb.io/loadBalancerIPs: ${SVC_PIHOLE_IP}
+        metallb.io/allow-shared-ip: pihole-svc
     serviceWeb:
       type: LoadBalancer
-      loadBalancerIP: ${SVC_PIHOLE_IP}
       annotations:
-        metallb.universe.tf/allow-shared-ip: pihole-svc
+        metallb.io/loadBalancerIPs: ${SVC_PIHOLE_IP}
+        metallb.io/allow-shared-ip: pihole-svc
     adminPassword: ${SECRET_PIHOLE_ADMIN_PASSWORD}
     extraEnvVars:
       RATE_LIMIT: "0/0"

@@ -111,8 +111,8 @@ kubectl create cm my-config --from-literal=key1=value1 --dry-run=client -o yaml
   disabled (`roles/k3s-server` config); MetalLB and the Flux-managed Traefik are used instead.
 - **Flux CD**: GitOps continuous delivery
 - **MetalLB**: Load balancer for external IPs. Pin an IP with the
-  `metallb.universe.tf/loadBalancerIPs` annotation (or `spec.loadBalancerIP`) —
-  `metallb.io/loadBalancerIPs` is silently ignored and the service gets auto-assigned.
+  `metallb.io/loadBalancerIPs` annotation. The deprecated `metallb.universe.tf/` prefix
+  still works as a fallback. L2 mode only, so FRR is disabled.
 - **kube-vip**: Control-plane VIP `192.168.4.5` (control-plane-only DaemonSet, ARP +
   leader election). Server nodes join via this VIP (`k3s_server_endpoint`) and kubectl
   points at it, so no single server is a hard dependency. Servers stay on DHCP.
