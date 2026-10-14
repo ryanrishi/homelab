@@ -5,7 +5,7 @@ metadata:
   name: plex
   namespace: media
   annotations:
-    metallb.universe.tf/loadBalancerIPs: ${SVC_PLEX_IP}
+    metallb.io/loadBalancerIPs: ${SVC_PLEX_IP}
 spec:
   type: LoadBalancer
   selector:
