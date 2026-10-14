@@ -47,7 +47,7 @@ metadata:
 spec:
   redirectRegex:
     regex: ^(https?://[^/]+)/qbittorrent$
-    replacement: ${1}/qbittorrent/
+    replacement: /qbittorrent/
     permanent: true
 ---
 apiVersion: traefik.io/v1alpha1
