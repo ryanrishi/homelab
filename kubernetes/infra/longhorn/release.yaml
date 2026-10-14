@@ -19,7 +19,7 @@ spec:
         kind: HelmRepository
         name: longhorn
         namespace: flux-system
-      version: 1.11.2
+      version: 1.11.3
   values:
     defaultSettings:
       defaultReplicaCount: 2
