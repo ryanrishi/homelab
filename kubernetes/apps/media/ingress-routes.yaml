@@ -54,3 +54,10 @@ spec:
       middlewares:
         - name: strip-prefix-sab
         - name: security-headers
+    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/bazarr`)
+      kind: Rule
+      services:
+        - name: bazarr
+          port: 6767
+      middlewares:
+        - name: security-headers

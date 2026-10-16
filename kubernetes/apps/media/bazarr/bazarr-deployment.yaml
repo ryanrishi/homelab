@@ -1,0 +1,75 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bazarr
+  namespace: media
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: bazarr
+  template:
+    metadata:
+      labels:
+        app: bazarr
+    spec:
+      nodeSelector:
+        lab.ryanrishi.com/longhorn-enabled: "true"
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      containers:
+        - name: bazarr
+          image: lscr.io/linuxserver/bazarr:1.6.2
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Etc/UTC"
+            - name: DYNACONF_GENERAL__BASE_URL
+              value: "/bazarr"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: tv
+              mountPath: /tv
+            - name: movies
+              mountPath: /movies
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 50m
+            limits:
+              memory: 1Gi
+              cpu: 300m
+          livenessProbe:
+            httpGet:
+              path: /bazarr/api/system/ping
+              port: 6767
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /bazarr/api/system/ping
+              port: 6767
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: bazarr-config
+        - name: tv
+          persistentVolumeClaim:
+            claimName: media-tv
+        - name: movies
+          persistentVolumeClaim:
+            claimName: media-movies
