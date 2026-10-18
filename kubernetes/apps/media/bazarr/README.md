@@ -55,10 +55,20 @@ OpenSubtitles login. Do them once, at `/bazarr` on the media domain.
    for series and for movies.
 2. **Settings → Providers:** add OpenSubtitles.com and enter the account login. A free
    account has a daily download limit.
-3. **Settings → Sonarr:** host `sonarr.media`, port `8989`, base URL `/sonarr`, and the
+3. **Settings → Sonarr:** host `sonarr`, port `8989`, base URL `/sonarr`, and the
    Sonarr API key (Sonarr → Settings → General).
-4. **Settings → Radarr:** host `radarr.media`, port `7878`, base URL `/radarr`, and the
+4. **Settings → Radarr:** host `radarr`, port `7878`, base URL `/radarr`, and the
    Radarr API key.
+
+Use the short Service name, not `sonarr.media`. The pod sets `ndots: 1`, so Bazarr's
+resolver (musl, from Python) looks up a name that contains a dot as a complete name and
+does not try the search domains. `curl` in the same pod resolves `sonarr.media`, so a
+`curl` test does not show this failure. Test with Python:
+
+```bash
+kubectl -n media exec deploy/bazarr -- python3 -c \
+  'import socket; print(socket.getaddrinfo("sonarr", 8989)[0][4])'
+```
 5. On a series or movie page, select **Search** to download the missing subtitles. For the
    full library, use **Wanted → Search All**, but note the provider's daily limit.
 
