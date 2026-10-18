@@ -81,6 +81,13 @@
         "lscr.io/linuxserver/qbittorrent"
       ],
       "allowedVersions": "<6"
+    },
+    {
+      "description": "linuxserver tags Plex as <version>.<build>-<commit>-ls<revision>, which docker versioning cannot order.",
+      "matchPackageNames": [
+        "lscr.io/linuxserver/plex"
+      ],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)-[0-9a-f]+-ls(?<revision>\\d+)$"
     }
   ]
 }

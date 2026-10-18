@@ -139,8 +139,8 @@ reconciles either, so keep the window short.
 
 ## What the canary does not cover
 
-- **byparr** is pinned by digest and **plex** is pinned to a frozen tag, so Renovate does
-  not propose updates for either. See `plex/README.md`.
+- **byparr** is pinned by digest, so Renovate does not propose updates for it. **plex**
+  updates need the versioning rule described in `plex/README.md`.
 - **gluetun** needs VPN credentials, so CI checks that its image resolves but does not
   start it. The same applies to cloudflared, camping-bot and anything else reading a
   Secret. Watch qbittorrent connectivity by hand after a gluetun bump.

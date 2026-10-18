@@ -8,6 +8,7 @@ metadata:
     metallb.io/loadBalancerIPs: ${SVC_PLEX_IP}
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: Local
   selector:
     app: plex
   ports:

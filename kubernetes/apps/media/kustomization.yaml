@@ -8,6 +8,7 @@ resources:
   - services.yaml
   - middleware.yaml
   - ingress-routes.yaml
+  - media-egress-networkpolicy.yaml
   - prowlarr/prowlarr-pvc.yaml
   - prowlarr/prowlarr-deployment.yaml
   - qbittorrent/qbittorrent-pvc.yaml
@@ -26,3 +27,4 @@ resources:
   - plex/plex-pvc.yaml
   - plex/plex-service.yaml
   - plex/plex-deployment.yaml
+  - plex/plex-networkpolicy.yaml
