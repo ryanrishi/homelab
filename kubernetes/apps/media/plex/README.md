@@ -123,7 +123,7 @@ through the Tailscale subnet router (see `kubernetes/apps/tailscale/README.md`).
 | `ManualPortMappingMode` | `0` | No public port mapping |
 | `customConnections` | `http://<plex-lb-ip>:32400` | Advertised to plex.tv so clients on Tailscale connect to the LAN address |
 | `WanTotalMaxUploadRate` | `850000` | ~850 Mbps total WAN upload cap |
-| `LanNetworksBandwidth` | `<lan-subnet>,<lan-subnet>` | Treated as LAN (unmetered). One entry is a stale subnet — harmless leftover |
+| `LanNetworksBandwidth` | `<lan-subnet>,<lan-subnet>` | Treated as LAN (unmetered): the client subnet and the homelab VLAN |
 | `TranscoderH264Options` | absent or empty | Any value here is an indicator of compromise (see below) |
 
 Do not forward TCP `32400` on either router again. The server was compromised through that port
@@ -140,7 +140,8 @@ missed a security fix.
 
 `plex-networkpolicy.yaml` limits the pod:
 
-- **Ingress:** TCP 32400 only, from the LAN and from pods (Tailscale, kubelet probes).
+- **Ingress:** TCP 32400 only, from the home subnets (clients are not on the homelab VLAN)
+  and from pods (Tailscale, kubelet probes).
   `externalTrafficPolicy: Local` on the Service keeps the client source IP, so the LAN rule
   holds and the Plex log shows real client addresses.
 - **Egress:** DNS, and TCP 443 to public addresses only. Plex reaches plex.tv and its metadata
