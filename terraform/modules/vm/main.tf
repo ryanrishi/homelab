@@ -24,12 +24,13 @@ resource "proxmox_virtual_environment_file" "user_data" {
 }
 
 resource "proxmox_virtual_environment_vm" "vm" {
-  name            = var.name
-  node_name       = var.node_name
-  on_boot         = true
-  scsi_hardware   = "virtio-scsi-pci"
-  stop_on_destroy = true
-  machine         = var.hostpci_mapping == null ? var.machine : "q35"
+  name                = var.name
+  node_name           = var.node_name
+  on_boot             = true
+  scsi_hardware       = "virtio-scsi-pci"
+  stop_on_destroy     = true
+  reboot_after_update = false
+  machine             = var.hostpci_mapping == null ? var.machine : "q35"
 
   dynamic "hostpci" {
     for_each = var.hostpci_mapping == null ? [] : [var.hostpci_mapping]

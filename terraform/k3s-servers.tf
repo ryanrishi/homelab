@@ -27,7 +27,7 @@ module "k3s_servers" {
   image_file_id = proxmox_download_file.debian[each.value.node].id
 
   memory    = each.value.memory
-  disk_size = 20
+  disk_size = 32
 
   users        = var.users
   searchdomain = var.searchdomain

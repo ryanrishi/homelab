@@ -31,7 +31,7 @@ module "k3s_agents" {
   image_file_id = proxmox_download_file.debian[local.k3s_agents[count.index].node].id
 
   memory         = local.k3s_agents[count.index].memory
-  disk_size      = 20
+  disk_size      = 32
   data_disk_size = 80
 
   hostpci_mapping = try(local.k3s_agents[count.index].igpu, false) ? proxmox_hardware_mapping_pci.igpu.name : null
