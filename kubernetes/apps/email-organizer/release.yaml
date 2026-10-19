@@ -31,6 +31,11 @@ spec:
           label: "Work/Recruiter"
           rules:
             classify_recruiter: true
+        - name: ryanrishi
+          token_path: /secrets/tokens/ryanrishi.json
+          label: "Work/Recruiter"
+          rules:
+            classify_recruiter: true
       openai:
         model: gpt-4o-mini
   # Pin to agent nodes so the Alloy DaemonSet (agent-only) ships logs to Loki.
