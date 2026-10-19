@@ -99,7 +99,7 @@ spec:
           memory: 256Mi
           cpu: 50m
         limits:
-          memory: 512Mi
+          memory: 1Gi
           cpu: 500m
       
       # A ReadWriteOnce volume can only attach to one pod, so a rolling update
