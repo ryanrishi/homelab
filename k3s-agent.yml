@@ -8,5 +8,6 @@
         cmd: ansible-galaxy collection install ansible.posix community.general
       changed_when: false
   roles:
+    - ca-trust
     - longhorn-prep
     - k3s-agent

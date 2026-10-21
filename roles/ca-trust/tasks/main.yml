@@ -1,0 +1,6 @@
+---
+- name: Upgrade CA certificates
+  ansible.builtin.apt:
+    name: ca-certificates
+    state: latest
+    update_cache: true

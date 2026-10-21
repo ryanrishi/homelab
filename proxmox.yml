@@ -3,4 +3,5 @@
   hosts: proxmox
   serial: 1
   roles:
+    - role: ca-trust
     - role: proxmox-host

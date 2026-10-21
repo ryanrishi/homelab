@@ -3,4 +3,5 @@
   connection: local
   become: true
   roles:
+    - ca-trust
     - k3s-server
