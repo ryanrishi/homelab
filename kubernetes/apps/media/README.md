@@ -141,9 +141,8 @@ reconciles either, so keep the window short.
 
 - **byparr** is pinned by digest, so Renovate does not propose updates for it. **plex**
   updates need the versioning rule described in `plex/README.md`.
-- **gluetun** needs VPN credentials, so CI checks that its image resolves but does not
-  start it. The same applies to cloudflared, camping-bot and anything else reading a
-  Secret. Watch qbittorrent connectivity by hand after a gluetun bump.
+- Apps that read a Secret, such as cloudflared and camping-bot, need credentials, so CI
+  checks that their image resolves but does not start them.
 - The canary migrates the **clone's** database. The running app still performs its own
   migration when you merge. The canary proves the migration succeeds against your data;
   it does not do the migration for you.

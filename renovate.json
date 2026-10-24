@@ -77,12 +77,6 @@
       "enabled": false
     },
     {
-      "matchPackageNames": [
-        "lscr.io/linuxserver/qbittorrent"
-      ],
-      "allowedVersions": "<6"
-    },
-    {
       "description": "linuxserver tags Plex as <version>.<build>-<commit>-ls<revision>, which docker versioning cannot order.",
       "matchPackageNames": [
         "lscr.io/linuxserver/plex"

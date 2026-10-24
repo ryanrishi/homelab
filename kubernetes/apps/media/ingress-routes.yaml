@@ -29,16 +29,6 @@ spec:
           port: 9696
       middlewares:
         - name: security-headers
-    - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/qbittorrent`)
-      kind: Rule
-      services:
-        - name: qbittorrent
-          port: 8080
-      middlewares:
-        - name: qbittorrent-add-trailing-slash
-        - name: strip-prefix-qbittorrent
-        - name: qbittorrent-headers
-        - name: security-headers
     - match: Host(`${SECRET_MEDIA_DOMAIN}`) && PathPrefix(`/ombi`)
       kind: Rule
       services:
