@@ -132,7 +132,7 @@ spec:
       enabled: true
       config:
         global:
-          resolve_timeout: 5m
+          resolve_timeout: 15m
         route:
           group_by: [alertname, namespace]
           group_wait: 30s
@@ -146,6 +146,11 @@ spec:
             - receiver: "null"
               matchers:
                 - severity =~ "info|none"
+            # A Git failure that resolves before group_wait ends sends no notification.
+            - receiver: pushover
+              matchers:
+                - kind = "GitRepository"
+              group_wait: 1h
         inhibit_rules:
           - source_matchers: [severity = critical]
             target_matchers: [severity =~ warning|info]
