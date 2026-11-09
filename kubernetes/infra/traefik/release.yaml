@@ -14,7 +14,7 @@ spec:
   chart:
     spec:
       chart: traefik
-      version: 41.x
+      version: 42.x
       sourceRef:
         kind: HelmRepository
         name: traefik
@@ -50,7 +50,6 @@ spec:
 
     service:
       enabled: true
-      type: LoadBalancer
       annotations:
         metallb.io/loadBalancerIPs: ${SVC_TRAEFIK_IP}
       spec:
