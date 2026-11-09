@@ -14,7 +14,7 @@ spec:
   chart:
     spec:
       chart: home-assistant
-      version: "0.3.87"
+      version: "0.3.89"
       sourceRef:
         kind: HelmRepository
         name: home-assistant-chart
