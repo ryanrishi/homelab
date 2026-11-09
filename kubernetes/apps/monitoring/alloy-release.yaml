@@ -27,11 +27,22 @@ spec:
       nodeSelector:
         lab.ryanrishi.com/longhorn-enabled: "true"
       priorityClassName: monitoring-stack
+      volumes:
+        extra:
+          - name: alloy-data
+            hostPath:
+              path: /var/lib/alloy
+              type: DirectoryOrCreate
 
     alloy:
+      # Host-backed so file positions survive a pod restart
+      storagePath: /var/lib/alloy
       # Read pod logs from the node filesystem (no pods/log RBAC needed)
       mounts:
         varlog: true
+        extra:
+          - name: alloy-data
+            mountPath: /var/lib/alloy
       resources:
         requests:
           memory: 128Mi
@@ -89,6 +100,8 @@ spec:
 
           loki.process "pod_logs" {
             forward_to = [loki.write.default.receiver]
+
+            stage.cri {}
 
             stage.match {
               selector            = "{namespace=\"email-organizer\"} |~ \"Could not persist refreshed token\""
