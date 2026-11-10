@@ -7,8 +7,8 @@
 # correct when an app changes its URL base or its port.
 #
 # A container is only started when it can run truthfully here: it must declare a probe
-# to check against, and its environment must not depend on a Secret or ConfigMap this
-# runner has no access to. Everything else still has its image reference verified
+# to check against, its environment must not depend on a Secret or ConfigMap this
+# runner has no access to, and it must not need a Kubernetes API server. Everything else still has its image reference verified
 # against the registry.
 #
 # usage: image-smoke.sh <base-ref> [scope]
@@ -71,6 +71,12 @@ needs_credentials() {
     >/dev/null <<<"$1"
 }
 
+# Flux controllers exit at startup without in-cluster config, so booting them here can
+# only ever fail.
+needs_api_server() {
+  [[ "$1" == kubernetes/clusters/*/flux-system/* ]]
+}
+
 # Probe ports may be named, in which case the name refers to a declared containerPort.
 resolve_port() {
   local spec="$1" port="$2"
@@ -131,6 +137,11 @@ smoke_one() {
   current_file="$file"
   echo "declared in ${file}"
   assert_amd64 "$image" || return 1
+
+  if needs_api_server "$file"; then
+    echo "not started: needs a Kubernetes API server, which this runner does not have"
+    return 0
+  fi
 
   if needs_credentials "$spec"; then
     echo "not started: environment depends on a Secret or ConfigMap unavailable here"
