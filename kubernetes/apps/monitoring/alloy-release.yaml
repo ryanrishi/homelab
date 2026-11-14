@@ -129,7 +129,7 @@ spec:
 
               stage.template {
                 source   = "level"
-                template = "{{ ToLower .Value }}"
+                template = "{{ `{{ ToLower .Value }}` }}"
               }
 
               stage.structured_metadata {
