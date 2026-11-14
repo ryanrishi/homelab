@@ -114,6 +114,28 @@ spec:
               action              = "drop"
               drop_counter_reason = "email_organizer_httpx_info"
             }
+
+            stage.match {
+              selector = "{namespace=\"email-organizer\"}"
+
+              stage.multiline {
+                firstline     = "^\\d{4}-\\d{2}-\\d{2} "
+                max_wait_time = "3s"
+              }
+
+              stage.regex {
+                expression = "^\\S+ \\S+ (?P<level>[A-Z]+) "
+              }
+
+              stage.template {
+                source   = "level"
+                template = "{{ ToLower .Value }}"
+              }
+
+              stage.structured_metadata {
+                values = { detected_level = "level" }
+              }
+            }
           }
 
           loki.write "default" {
