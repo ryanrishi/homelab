@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-rules-email-organizer
+  namespace: monitoring
+  labels:
+    loki_rule: "true"
+data:
+  email-organizer.yaml: |
+    groups:
+      - name: email-organizer
+        rules:
+          - alert: EmailOrganizerError
+            expr: sum(count_over_time({namespace="email-organizer"} | detected_level="error" [20m])) > 0
+            labels:
+              severity: warning
+            annotations:
+              summary: email-organizer logged an error
+              description: >-
+                An email-organizer run logged an error in the last 20 minutes. Check the
+                logs with {namespace="email-organizer"} | detected_level="error".

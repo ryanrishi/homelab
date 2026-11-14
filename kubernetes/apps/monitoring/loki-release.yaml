@@ -45,8 +45,16 @@ spec:
         delete_request_store: filesystem
       # Single-binary needs the ruler pointed at the local filesystem too
       rulerConfig:
+        alertmanager_url: http://kube-prometheus-stack-alertmanager.monitoring.svc:9093
         storage:
           type: local
+          local:
+            directory: /rules
+
+    # With auth disabled, Loki reads rules from the "fake" tenant directory
+    sidecar:
+      rules:
+        folder: /rules/fake
 
     singleBinary:
       replicas: 1

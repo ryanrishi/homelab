@@ -10,5 +10,6 @@ resources:
   - longhorn-rules.yaml
   - loki-repository.yaml
   - loki-release.yaml
+  - loki-rules.yaml
   - loki-datasource.yaml
   - alloy-release.yaml
