@@ -19,7 +19,7 @@ spec:
         kind: HelmRepository
         name: longhorn
         namespace: flux-system
-      version: 1.11.3
+      version: 1.12.2
   values:
     defaultSettings:
       defaultReplicaCount: 2
@@ -32,6 +32,14 @@ spec:
         enabled: true
         additionalLabels:
           release: kube-prometheus-stack
+    networkPolicies:
+      metricsScrapeSources:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
     persistence:
       defaultClass: false
       defaultClassReplicaCount: 2
