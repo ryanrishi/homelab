@@ -14,7 +14,7 @@ spec:
   chart:
     spec:
       chart: home-assistant
-      version: "0.3.89"
+      version: "0.3.91"
       sourceRef:
         kind: HelmRepository
         name: home-assistant-chart
@@ -80,18 +80,6 @@ spec:
       type: LoadBalancer
       annotations:
         metallb.io/loadBalancerIPs: 192.168.4.231
-
-    # Install HACS (Home Assistant Community Store) via init container
-    # Downloads and installs HACS into /config before Home Assistant starts
-    initContainers:
-      - name: init-hacs
-        image: bash:5.3
-        command: ["bash", "-c", "cd /config && wget -O - https://get.hacs.xyz | bash -"]
-        securityContext:
-          runAsUser: 0
-        volumeMounts:
-          - mountPath: /config
-            name: home-assistant
 
     dnsConfig:
       options:
