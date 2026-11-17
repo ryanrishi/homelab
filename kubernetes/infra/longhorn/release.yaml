@@ -32,6 +32,14 @@ spec:
         enabled: true
         additionalLabels:
           release: kube-prometheus-stack
+    networkPolicies:
+      metricsScrapeSources:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
     persistence:
       defaultClass: false
       defaultClassReplicaCount: 2
