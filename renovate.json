@@ -45,6 +45,13 @@
       "minimumReleaseAge": "7 days"
     },
     {
+      "description": "linuxserver rebuilds every image weekly, so a tag never reaches the default release age before the next one replaces it.",
+      "matchPackageNames": [
+        "lscr.io/linuxserver/**"
+      ],
+      "minimumReleaseAge": "48 hours"
+    },
+    {
       "description": "Offer one chart major at a time. A jump across many majors skips the intermediate releases some upgrades depend on, and is too large to review or revert.",
       "matchDatasources": [
         "helm"
