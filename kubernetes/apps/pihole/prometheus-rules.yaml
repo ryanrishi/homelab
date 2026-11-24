@@ -1,0 +1,36 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pihole
+  namespace: pihole
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: pihole
+      rules:
+        - alert: PiholeExporterDown
+          expr: up{namespace="pihole", job="pihole/pihole"} == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Pi-hole {{ $labels.pod }} does not answer its API
+            description: The exporter in {{ $labels.pod }} could not be scraped for 5 minutes.
+        - alert: PiholeBlockingDisabled
+          expr: pihole_status{namespace="pihole"} == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Pi-hole {{ $labels.pod }} has blocking disabled
+            description: Blocking has been off on {{ $labels.pod }} for 15 minutes.
+        - alert: PiholeGravityEmpty
+          expr: pihole_domains_being_blocked{namespace="pihole"} == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Pi-hole {{ $labels.pod }} has an empty blocklist
+            description: Gravity on {{ $labels.pod }} holds no domains. Check pihole_updateGravity.log in the pod.

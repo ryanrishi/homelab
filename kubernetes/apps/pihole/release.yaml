@@ -37,6 +37,40 @@ spec:
     adminPassword: ${SECRET_PIHOLE_ADMIN_PASSWORD}
     extraEnvVars:
       RATE_LIMIT: "0/0"
+    podAnnotations:
+      kubectl.kubernetes.io/default-container: pihole
+    extraVolumes:
+      logs:
+        emptyDir: {}
+    extraVolumeMounts:
+      logs:
+        mountPath: /var/log/pihole
+    # Pi-hole writes queries to a file, not stdout, so stream it for Alloy
+    extraContainers:
+      - name: querylog
+        image: busybox:1.37.0
+        command: ["tail", "-n0", "-F", "/var/log/pihole/pihole.log"]
+        volumeMounts:
+          - name: logs
+            mountPath: /var/log/pihole
+            readOnly: true
+        resources:
+          requests:
+            memory: 16Mi
+            cpu: 5m
+          limits:
+            memory: 32Mi
+    monitoring:
+      sidecar:
+        enabled: true
+        image:
+          tag: v1.3.1
+        resources:
+          requests:
+            memory: 32Mi
+            cpu: 5m
+          limits:
+            memory: 64Mi
     whitelist:
       - app.segment.com
       - api.segment.io
@@ -50,6 +84,9 @@ spec:
       - api.eu.amplitude.com
       - api.lab.amplitude.com
     priorityClassName: critical-dns
+    # Alloy collects logs only on these nodes
+    nodeSelector:
+      lab.ryanrishi.com/longhorn-enabled: "true"
     affinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:

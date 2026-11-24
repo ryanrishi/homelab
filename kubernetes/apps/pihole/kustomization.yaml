@@ -8,3 +8,5 @@ resources:
   - release.yaml
   - pihole-secrets.sops.yaml
   - pihole-config.sops.yaml
+  - podmonitor.yaml
+  - prometheus-rules.yaml
