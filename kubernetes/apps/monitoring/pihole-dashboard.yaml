@@ -1,0 +1,756 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
+data:
+  pihole.json: |-
+    {
+      "uid": "pihole",
+      "title": "Pi-hole",
+      "tags": [
+        "pihole",
+        "dns"
+      ],
+      "timezone": "browser",
+      "editable": true,
+      "schemaVersion": 39,
+      "time": {
+        "from": "now-24h",
+        "to": "now"
+      },
+      "refresh": "1m",
+      "templating": {
+        "list": [
+          {
+            "name": "prometheus",
+            "label": "Prometheus",
+            "type": "datasource",
+            "query": "prometheus",
+            "hide": 2
+          },
+          {
+            "name": "loki",
+            "label": "Loki",
+            "type": "datasource",
+            "query": "loki",
+            "hide": 2
+          },
+          {
+            "name": "pod",
+            "label": "Instance",
+            "type": "query",
+            "datasource": {
+              "type": "loki",
+              "uid": "${loki}"
+            },
+            "query": {
+              "type": 1,
+              "label": "pod",
+              "stream": "{namespace=\"pihole\", container=\"querylog\"}",
+              "refId": "pod"
+            },
+            "definition": "label_values({namespace=\"pihole\", container=\"querylog\"}, pod)",
+            "multi": true,
+            "includeAll": true,
+            "allValue": ".+",
+            "refresh": 2,
+            "sort": 1,
+            "current": {
+              "text": [
+                "All"
+              ],
+              "value": [
+                "$__all"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "label": "Search",
+            "type": "textbox",
+            "query": "",
+            "current": {
+              "text": "",
+              "value": ""
+            }
+          }
+        ]
+      },
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Queries today",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus}"
+              },
+              "expr": "sum(pihole_dns_queries_today{pod=~\"$pod\"})",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "none",
+            "graphMode": "none",
+            "textMode": "auto"
+          },
+          "id": 1,
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 4,
+            "h": 4
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Blocked today",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus}"
+              },
+              "expr": "sum(pihole_ads_blocked_today{pod=~\"$pod\"})",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "none",
+            "graphMode": "none",
+            "textMode": "auto"
+          },
+          "id": 2,
+          "gridPos": {
+            "x": 4,
+            "y": 0,
+            "w": 4,
+            "h": 4
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Blocked",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus}"
+              },
+              "expr": "100 * sum(pihole_ads_blocked_today{pod=~\"$pod\"}) / sum(pihole_dns_queries_today{pod=~\"$pod\"})",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "none",
+            "graphMode": "none",
+            "textMode": "auto"
+          },
+          "id": 3,
+          "gridPos": {
+            "x": 8,
+            "y": 0,
+            "w": 4,
+            "h": 4
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Domains on blocklist",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus}"
+              },
+              "expr": "max(pihole_domains_being_blocked{pod=~\"$pod\"})",
+              "refId": "A",
+              "instant": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "none",
+            "graphMode": "none",
+            "textMode": "auto"
+          },
+          "id": 4,
+          "gridPos": {
+            "x": 12,
+            "y": 0,
+            "w": 4,
+            "h": 4
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Blocking",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${prometheus}"
+              },
+              "expr": "pihole_status{pod=~\"$pod\"}",
+              "refId": "A",
+              "instant": true,
+              "legendFormat": "{{pod}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "decimals": 0,
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "Disabled",
+                      "color": "red"
+                    },
+                    "1": {
+                      "text": "Enabled",
+                      "color": "green"
+                    }
+                  }
+                }
+              ]
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "auto"
+          },
+          "id": 5,
+          "gridPos": {
+            "x": 16,
+            "y": 0,
+            "w": 8,
+            "h": 4
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Queries per instance",
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki}"
+              },
+              "expr": "sum by (pod) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=\"query\" [$__auto]))",
+              "legendFormat": "{{pod}}",
+              "refId": "A",
+              "queryType": "range"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "drawStyle": "bars",
+                "fillOpacity": 80,
+                "lineWidth": 1,
+                "stacking": {
+                  "mode": "normal"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "id": 6,
+          "gridPos": {
+            "x": 0,
+            "y": 4,
+            "w": 12,
+            "h": 8
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Allowed vs blocked",
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki}"
+              },
+              "expr": "sum(count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=\"query\" [$__auto])) - sum(count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=~\".+ blocked\" [$__auto]))",
+              "legendFormat": "allowed",
+              "refId": "A",
+              "queryType": "range"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki}"
+              },
+              "expr": "sum(count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=~\".+ blocked\" [$__auto]))",
+              "legendFormat": "blocked",
+              "refId": "B",
+              "queryType": "range"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "drawStyle": "bars",
+                "fillOpacity": 80,
+                "lineWidth": 1,
+                "stacking": {
+                  "mode": "normal"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "id": 7,
+          "gridPos": {
+            "x": 12,
+            "y": 4,
+            "w": 12,
+            "h": 8
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Query types",
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki}"
+              },
+              "expr": "sum by (query_type) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=\"query\" [$__auto]))",
+              "legendFormat": "{{query_type}}",
+              "refId": "A",
+              "queryType": "range"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "drawStyle": "bars",
+                "fillOpacity": 80,
+                "lineWidth": 1,
+                "stacking": {
+                  "mode": "normal"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "id": 8,
+          "gridPos": {
+            "x": 0,
+            "y": 12,
+            "w": 12,
+            "h": 8
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Answer source",
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki}"
+              },
+              "expr": "sum by (action) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=~\"forwarded|cached|cached-stale|.+ blocked\" [$__auto]))",
+              "legendFormat": "{{action}}",
+              "refId": "A",
+              "queryType": "range"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "drawStyle": "bars",
+                "fillOpacity": 80,
+                "lineWidth": 1,
+                "stacking": {
+                  "mode": "normal"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          },
+          "id": 9,
+          "gridPos": {
+            "x": 12,
+            "y": 12,
+            "w": 12,
+            "h": 8
+          }
+        },
+        {
+          "type": "table",
+          "title": "Top domains",
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki}"
+              },
+              "expr": "topk(15, sum by (domain) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=\"query\" [$__range])))",
+              "refId": "A",
+              "queryType": "instant"
+            }
+          ],
+          "transformations": [
+            {
+              "id": "reduce",
+              "options": {
+                "reducers": [
+                  "lastNotNull"
+                ],
+                "labelsToFields": true
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Field": true
+                },
+                "renameByName": {
+                  "Last *": "Queries",
+                  "Last": "Queries"
+                }
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "sort": [
+                  {
+                    "field": "Queries",
+                    "desc": true
+                  }
+                ]
+              }
+            }
+          ],
+          "options": {
+            "showHeader": true
+          },
+          "id": 10,
+          "gridPos": {
+            "x": 0,
+            "y": 20,
+            "w": 8,
+            "h": 10
+          }
+        },
+        {
+          "type": "table",
+          "title": "Top blocked domains",
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki}"
+              },
+              "expr": "topk(15, sum by (domain) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=~\".+ blocked\" [$__range])))",
+              "refId": "A",
+              "queryType": "instant"
+            }
+          ],
+          "transformations": [
+            {
+              "id": "reduce",
+              "options": {
+                "reducers": [
+                  "lastNotNull"
+                ],
+                "labelsToFields": true
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Field": true
+                },
+                "renameByName": {
+                  "Last *": "Queries",
+                  "Last": "Queries"
+                }
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "sort": [
+                  {
+                    "field": "Queries",
+                    "desc": true
+                  }
+                ]
+              }
+            }
+          ],
+          "options": {
+            "showHeader": true
+          },
+          "id": 11,
+          "gridPos": {
+            "x": 8,
+            "y": 20,
+            "w": 8,
+            "h": 10
+          }
+        },
+        {
+          "type": "table",
+          "title": "Top clients",
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki}"
+              },
+              "expr": "topk(15, sum by (client) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=\"query\" [$__range])))",
+              "refId": "A",
+              "queryType": "instant"
+            }
+          ],
+          "transformations": [
+            {
+              "id": "reduce",
+              "options": {
+                "reducers": [
+                  "lastNotNull"
+                ],
+                "labelsToFields": true
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Field": true
+                },
+                "renameByName": {
+                  "Last *": "Queries",
+                  "Last": "Queries"
+                }
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "sort": [
+                  {
+                    "field": "Queries",
+                    "desc": true
+                  }
+                ]
+              }
+            }
+          ],
+          "options": {
+            "showHeader": true
+          },
+          "id": 12,
+          "gridPos": {
+            "x": 16,
+            "y": 20,
+            "w": 8,
+            "h": 10
+          }
+        },
+        {
+          "type": "logs",
+          "title": "Query log",
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${loki}"
+              },
+              "expr": "{namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} |= \"$search\"",
+              "refId": "A",
+              "queryType": "range"
+            }
+          ],
+          "options": {
+            "showLabels": false,
+            "showCommonLabels": false,
+            "showTime": true,
+            "wrapLogMessage": false,
+            "sortOrder": "Descending",
+            "enableLogDetails": true,
+            "dedupStrategy": "none",
+            "displayedFields": [
+              "pod",
+              "Line"
+            ]
+          },
+          "id": 13,
+          "gridPos": {
+            "x": 0,
+            "y": 30,
+            "w": 24,
+            "h": 12
+          }
+        }
+      ]
+    }

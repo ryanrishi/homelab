@@ -13,3 +13,5 @@ resources:
   - loki-rules.yaml
   - loki-datasource.yaml
   - alloy-release.yaml
+  - blackbox-release.yaml
+  - pihole-dashboard.yaml

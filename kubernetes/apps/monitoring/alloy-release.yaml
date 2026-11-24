@@ -136,6 +136,28 @@ spec:
                 values = { detected_level = "level" }
               }
             }
+
+            stage.match {
+              selector = "{namespace=\"pihole\", container=\"querylog\"}"
+
+              stage.regex {
+                expression = "dnsmasq\\[\\d+\\]: (?P<action>[a-z-]+(?: (?:blocked|domain))?)(?:\\[(?P<query_type>[A-Za-z0-9]+)\\])? (?P<domain>\\S+) (?:from|to|is) (?P<result>.+)$"
+              }
+
+              stage.regex {
+                expression = "dnsmasq\\[\\d+\\]: query\\[\\S+ \\S+ from (?P<client>\\S+)$"
+              }
+
+              stage.structured_metadata {
+                values = {
+                  action     = "",
+                  query_type = "",
+                  domain     = "",
+                  result     = "",
+                  client     = "",
+                }
+              }
+            }
           }
 
           loki.write "default" {

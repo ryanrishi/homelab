@@ -38,6 +38,15 @@ After deployment, the following services will be available via MetalLB LoadBalan
 Container logs are collected by Alloy (DaemonSet) and stored in Loki. Query them in
 Grafana's **Explore** view against the **Loki** datasource, e.g. `{namespace="pihole"}`.
 
+Pi-hole writes DNS queries to a file, so a `querylog` sidecar streams it to stdout. Alloy parses each
+line into structured metadata (`action`, `query_type`, `domain`, `result`, `client`), and the `pod`
+label identifies the Pi-hole instance:
+
+```logql
+{namespace="pihole", container="querylog"} | action="gravity blocked"
+sum by (pod) (count_over_time({namespace="pihole", container="querylog"} | action="query" [5m]))
+```
+
 Alloy currently runs on the longhorn-enabled (replica) nodes only — the memory-tight
 server/etcd nodes are intentionally excluded. Expanding to server nodes is a future change.
 

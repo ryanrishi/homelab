@@ -1,0 +1,77 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: prometheus-blackbox-exporter
+  namespace: monitoring
+spec:
+  interval: 8h
+  timeout: 15m
+  chart:
+    spec:
+      chart: prometheus-blackbox-exporter
+      version: "11.24.0"
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: monitoring
+      interval: 12h
+  values:
+    nodeSelector:
+      lab.ryanrishi.com/longhorn-enabled: "true"
+    priorityClassName: monitoring-stack
+    resources:
+      requests:
+        memory: 32Mi
+        cpu: 10m
+      limits:
+        memory: 64Mi
+    config:
+      modules:
+        dns_pihole:
+          prober: dns
+          timeout: 5s
+          dns:
+            transport_protocol: udp
+            preferred_ip_protocol: ip4
+            query_name: google.com
+            query_type: A
+            valid_rcodes:
+              - NOERROR
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: pihole-dns
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  interval: 30s
+  module: dns_pihole
+  prober:
+    url: prometheus-blackbox-exporter.monitoring.svc:9115
+  targets:
+    staticConfig:
+      static:
+        - ${SVC_PIHOLE_IP}:53
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: dns-probe
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: dns-probe
+      rules:
+        - alert: DnsProbeFailed
+          expr: probe_success{job="probe/monitoring/pihole-dns"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Pi-hole does not resolve DNS
+            description: The blackbox DNS probe against the Pi-hole service IP has failed for 2 minutes.
