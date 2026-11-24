@@ -715,20 +715,21 @@ data:
         },
         {
           "type": "logs",
-          "title": "Query log",
+          "title": "Queries",
           "datasource": {
             "type": "loki",
             "uid": "${loki}"
           },
+          "description": "Instance (pod suffix), client, query type and domain. Blocked lines are yellow.",
           "targets": [
             {
               "datasource": {
                 "type": "loki",
                 "uid": "${loki}"
               },
-              "expr": "{namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} |= \"$search\"",
               "refId": "A",
-              "queryType": "range"
+              "queryType": "range",
+              "expr": "{namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=~\"query|.+ blocked\" |= \"$search\" | line_format `{{ .pod | trunc -5 }}  {{ if eq .action \"query\" }}{{ printf \"%-15s %-6s\" .client .query_type }}{{ else }}{{ printf \"%-22s\" \"BLOCKED\" }}{{ end }} {{ .domain }}`"
             }
           ],
           "options": {
@@ -738,11 +739,7 @@ data:
             "wrapLogMessage": false,
             "sortOrder": "Descending",
             "enableLogDetails": true,
-            "dedupStrategy": "none",
-            "displayedFields": [
-              "pod",
-              "Line"
-            ]
+            "dedupStrategy": "none"
           },
           "id": 13,
           "gridPos": {

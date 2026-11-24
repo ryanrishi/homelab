@@ -148,13 +148,19 @@ spec:
                 expression = "dnsmasq\\[\\d+\\]: query\\[\\S+ \\S+ from (?P<client>\\S+)$"
               }
 
+              stage.template {
+                source   = "level"
+                template = "{{ `{{ if hasSuffix \"blocked\" .action }}warn{{ else }}info{{ end }}` }}"
+              }
+
               stage.structured_metadata {
                 values = {
-                  action     = "",
-                  query_type = "",
-                  domain     = "",
-                  result     = "",
-                  client     = "",
+                  action         = "",
+                  query_type     = "",
+                  domain         = "",
+                  result         = "",
+                  client         = "",
+                  detected_level = "level",
                 }
               }
             }
