@@ -124,8 +124,7 @@ spec:
         server:
           root_url: http://grafana.homelab.local
         auth.anonymous:
-          enabled: true
-          org_role: Viewer
+          enabled: false
     
     # AlertManager configuration
     alertmanager:

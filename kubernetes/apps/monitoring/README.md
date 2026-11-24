@@ -18,7 +18,7 @@ After deployment, the following services will be available via MetalLB LoadBalan
 
 - **Grafana**: `http://<grafana-external-ip>:3000`
   - Admin credentials stored in SOPS-encrypted secret
-  - Anonymous access enabled (read-only)
+  - Anonymous access disabled; log in to view dashboards
 
 - **Prometheus**: `http://<prometheus-external-ip>:9090`
   - Web UI for querying metrics and viewing targets
