@@ -544,23 +544,24 @@ data:
           ],
           "transformations": [
             {
-              "id": "reduce",
+              "id": "labelsToFields",
               "options": {
-                "reducers": [
-                  "lastNotNull"
-                ],
-                "labelsToFields": true
+                "mode": "columns"
               }
+            },
+            {
+              "id": "merge",
+              "options": {}
             },
             {
               "id": "organize",
               "options": {
                 "excludeByName": {
-                  "Field": true
+                  "Time": true
                 },
                 "renameByName": {
-                  "Last *": "Queries",
-                  "Last": "Queries"
+                  "Value #A": "Queries",
+                  "domain": "Domain"
                 }
               }
             },
@@ -607,23 +608,24 @@ data:
           ],
           "transformations": [
             {
-              "id": "reduce",
+              "id": "labelsToFields",
               "options": {
-                "reducers": [
-                  "lastNotNull"
-                ],
-                "labelsToFields": true
+                "mode": "columns"
               }
+            },
+            {
+              "id": "merge",
+              "options": {}
             },
             {
               "id": "organize",
               "options": {
                 "excludeByName": {
-                  "Field": true
+                  "Time": true
                 },
                 "renameByName": {
-                  "Last *": "Queries",
-                  "Last": "Queries"
+                  "Value #A": "Queries",
+                  "domain": "Domain"
                 }
               }
             },
@@ -670,23 +672,24 @@ data:
           ],
           "transformations": [
             {
-              "id": "reduce",
+              "id": "labelsToFields",
               "options": {
-                "reducers": [
-                  "lastNotNull"
-                ],
-                "labelsToFields": true
+                "mode": "columns"
               }
+            },
+            {
+              "id": "merge",
+              "options": {}
             },
             {
               "id": "organize",
               "options": {
                 "excludeByName": {
-                  "Field": true
+                  "Time": true
                 },
                 "renameByName": {
-                  "Last *": "Queries",
-                  "Last": "Queries"
+                  "Value #A": "Queries",
+                  "client": "Client"
                 }
               }
             },
