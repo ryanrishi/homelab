@@ -537,7 +537,7 @@ data:
                 "type": "loki",
                 "uid": "${loki}"
               },
-              "expr": "topk(15, sum by (domain) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=\"query\" [$__range])))",
+              "expr": "topk(25, sum by (domain) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=\"query\" [$__range])))",
               "refId": "A",
               "queryType": "instant"
             }
@@ -601,7 +601,7 @@ data:
                 "type": "loki",
                 "uid": "${loki}"
               },
-              "expr": "topk(15, sum by (domain) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=~\".+ blocked\" [$__range])))",
+              "expr": "topk(25, sum by (domain) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=~\".+ blocked\" [$__range])))",
               "refId": "A",
               "queryType": "instant"
             }
@@ -665,7 +665,7 @@ data:
                 "type": "loki",
                 "uid": "${loki}"
               },
-              "expr": "topk(15, sum by (client) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=\"query\" [$__range])))",
+              "expr": "topk(25, sum by (client) (count_over_time({namespace=\"pihole\", container=\"querylog\", pod=~\"$pod\"} | action=\"query\" [$__range])))",
               "refId": "A",
               "queryType": "instant"
             }

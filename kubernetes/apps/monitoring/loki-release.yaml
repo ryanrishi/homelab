@@ -40,6 +40,7 @@ spec:
         type: filesystem
       limits_config:
         retention_period: 168h
+        max_query_series: 10000
       compactor:
         retention_enabled: true
         delete_request_store: filesystem
