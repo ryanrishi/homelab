@@ -48,7 +48,7 @@ spec:
     # Pi-hole writes queries to a file, not stdout, so stream it for Alloy
     extraContainers:
       - name: querylog
-        image: busybox:1.37.0
+        image: busybox:1.38.0
         command: ["tail", "-n0", "-F", "/var/log/pihole/pihole.log"]
         volumeMounts:
           - name: logs
